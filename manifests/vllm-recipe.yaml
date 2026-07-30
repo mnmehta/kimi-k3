@@ -1,0 +1,78 @@
+# 2-node recipe-shaped deployment matching
+# https://recipes.vllm.ai/moonshotai/Kimi-K3 (multi-node TP, 16 GPUs).
+# Pods sleep; launch vLLM via scripts/deploy-recipe-dummy.sh.
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-recipe
+  namespace: kimi-k3
+  labels:
+    app: vllm-recipe
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: vllm-recipe
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vllm-recipe
+  namespace: kimi-k3
+  labels:
+    app: vllm-recipe
+spec:
+  serviceName: vllm-recipe
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: vllm-recipe
+  template:
+    metadata:
+      labels:
+        app: vllm-recipe
+    spec:
+      # Closest k8s equivalent to docker --privileged --ipc=host --gpus all
+      hostNetwork: true
+      hostIPC: true
+      dnsPolicy: ClusterFirstWithHostNet
+      # One recipe node per k8s node (8 GPUs each → TP16 across 2 nodes)
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: vllm-recipe
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:kimi-k3
+        imagePullPolicy: IfNotPresent
+        command: ["sleep", "infinity"]
+        securityContext:
+          privileged: true
+        ports:
+        - name: http
+          containerPort: 8000
+          hostPort: 8000
+        env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: all
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility
+        resources:
+          limits:
+            nvidia.com/gpu: "8"
+            rdma/ib: "1"
+          requests:
+            nvidia.com/gpu: "8"
+            rdma/ib: "1"
+            cpu: "16"
+            memory: 64Gi
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

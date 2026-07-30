@@ -1,0 +1,478 @@
+---
+title: "Kimi-K3 Dummy Serve — Concurrency Sweep"
+subtitle: "Full HF architecture vs shallow smoke · 1000/1000 · TP=16"
+author: "kimi-k3 harness"
+date: "2026-07-30"
+format:
+  html:
+    theme: darkly
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 9
+    fig-height: 4.5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+SHALLOW_LAYERS = 12
+SHALLOW_EXPERTS = 16
+FULL_LAYERS = 93
+FULL_EXPERTS = 896
+
+
+def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
+    rows = []
+    for path in sorted(data_dir.glob("conc-*.json"), key=lambda p: int(p.stem.split("-")[1])):
+        d = json.loads(path.read_text())
+        rows.append(
+            {
+                "run": label,
+                "concurrency": d["max_concurrency"],
+                "num_prompts": d["num_prompts"],
+                "duration_s": d["duration"],
+                "completed": d["completed"],
+                "failed": d["failed"],
+                "request_throughput": d["request_throughput"],
+                "input_throughput": d["input_throughput"],
+                "output_throughput": d["output_throughput"],
+                "total_token_throughput": d["total_token_throughput"],
+                "mean_ttft_ms": d["mean_ttft_ms"],
+                "p90_ttft_ms": d["p90_ttft_ms"],
+                "p99_ttft_ms": d["p99_ttft_ms"],
+                "mean_tpot_ms": d["mean_tpot_ms"],
+                "p90_tpot_ms": d["p90_tpot_ms"],
+                "p99_tpot_ms": d["p99_tpot_ms"],
+                "mean_itl_ms": d["mean_itl_ms"],
+                "mean_e2el_ms": d["mean_e2el_ms"],
+                "p90_e2el_ms": d["p90_e2el_ms"],
+                "p99_e2el_ms": d["p99_e2el_ms"],
+                "max_concurrent_requests": d.get("max_concurrent_requests"),
+                "date": d.get("date"),
+                "model_id": d.get("model_id"),
+            }
+        )
+    df = pd.DataFrame(rows).sort_values("concurrency").reset_index(drop=True)
+    tok1 = df.loc[df["concurrency"] == 1, "output_throughput"].iloc[0]
+    df["ideal_output_tok_s"] = tok1 * df["concurrency"]
+    df["scaling_efficiency"] = df["output_throughput"] / df["ideal_output_tok_s"]
+    return df
+
+
+df_full = load_sweep(ROOT / "bench-results" / "conc-sweep-full-1000-1000", "full (93L)")
+df_shallow = load_sweep(ROOT / "bench-results" / "conc-sweep-1000-1000", "shallow (12L)")
+df = df_full  # primary series for single-run charts
+base = df.loc[df["concurrency"] == 1].iloc[0]
+seed_path = ROOT / "bench-results" / "conc-sweep-full-1000-1000" / "seed.txt"
+SWEEP_SEED = seed_path.read_text().strip() if seed_path.exists() else "n/a"
+
+both = pd.concat([df_shallow, df_full], ignore_index=True)
+shared = sorted(set(df_shallow["concurrency"]) & set(df_full["concurrency"]))
+cmp_rows = []
+for c in shared:
+    s = df_shallow.loc[df_shallow["concurrency"] == c].iloc[0]
+    f = df_full.loc[df_full["concurrency"] == c].iloc[0]
+    cmp_rows.append(
+        {
+            "concurrency": c,
+            "shallow_tok_s": s["output_throughput"],
+            "full_tok_s": f["output_throughput"],
+            "tok_ratio": f["output_throughput"] / s["output_throughput"],
+            "shallow_tpot": s["mean_tpot_ms"],
+            "full_tpot": f["mean_tpot_ms"],
+            "tpot_ratio": f["mean_tpot_ms"] / s["mean_tpot_ms"],
+            "shallow_ttft": s["mean_ttft_ms"],
+            "full_ttft": f["mean_ttft_ms"],
+            "ttft_ratio": f["mean_ttft_ms"] / s["mean_ttft_ms"],
+            "shallow_e2el_s": s["mean_e2el_ms"] / 1000,
+            "full_e2el_s": f["mean_e2el_ms"] / 1000,
+            "shallow_eff": s["scaling_efficiency"],
+            "full_eff": f["scaling_efficiency"],
+        }
+    )
+cmp = pd.DataFrame(cmp_rows)
+layer_ratio_sf = SHALLOW_LAYERS / FULL_LAYERS  # expected full/shallow if ∝ layers
+layer_ratio_fs = FULL_LAYERS / SHALLOW_LAYERS
+tok_ratio_c1 = cmp.loc[cmp["concurrency"] == 1, "tok_ratio"].iloc[0]
+tpot_ratio_c1 = cmp.loc[cmp["concurrency"] == 1, "tpot_ratio"].iloc[0]
+```
+
+# Overview
+
+Two `vllm bench serve` concurrency sweeps against multi-node Kimi-K3 **dummy-weight** deploys on fozzie (2×8 H200, TP=16):
+
+1. **Shallow smoke** — 12 layers / 16 experts via `--hf-overrides`, C ∈ {1…32}
+2. **Full HF architecture** — no layer truncation, dummy load-format only, C ∈ {1…256}, fresh random `--seed` (`{python} SWEEP_SEED`)
+
+Both use **1000 input / 1000 output** tokens, `--ignore-eos`, `--request-rate inf`, closed-loop `--max-concurrency`.
+
+::: {.callout-important}
+Primary results below are the **full-architecture** run. Absolute tok/s still use dummy weights (not MXFP4 quality), but the layer count and expert topology match real Kimi-K3.
+:::
+
+## Deploy comparison
+
+| Knob | Shallow (earlier) | Full (latest) |
+|------|-------------------|---------------|
+| Load format | dummy | dummy |
+| Layers | **12** (override) | **93** (HF config) |
+| Experts | **16** (override) | **896** (HF config) |
+| `--max-num-seqs` | 64 | **128** (Mamba blocks capped ~161) |
+| `--max-model-len` | 32768 | 8192 (enough for 1k/1k) |
+| Attention / MoE | FLASHMLA / marlin | FLASHMLA / marlin |
+| Prefix cache | off | off |
+| Data dir | `bench-results/conc-sweep-1000-1000/` | `bench-results/conc-sweep-full-1000-1000/` |
+
+Full-weight bring-up also needed a ZMQ bind-retry patch (`get_open_port` TOCTOU under hostNetwork TP) and could not start at `--max-num-seqs 256` (only ~161 Mamba cache blocks available).
+
+## Benchmark method
+
+- Dataset: `random`, 1000/1000, `--ignore-eos`
+- Arrival: `--request-rate inf` + `--max-concurrency C`
+- Duration target: ~2 min/tier (prompt count sized from measured latency; high-C full tiers ran longer as queueing grew)
+- Full sweep: unique `--seed` per tier derived from base seed `{python} SWEEP_SEED`
+
+```{python}
+#| label: method-meta
+print(
+    f"Full tiers: {list(df_full['concurrency'])}  |  "
+    f"C=1 tok/s={base['output_throughput']:.1f}  |  "
+    f"wall {df_full['duration_s'].min():.0f}–{df_full['duration_s'].max():.0f}s"
+)
+```
+
+# Full-architecture results
+
+```{python}
+#| label: tbl-full
+#| tbl-cap: "Full HF dummy — per-concurrency summary."
+
+show = df_full[
+    [
+        "concurrency",
+        "num_prompts",
+        "duration_s",
+        "request_throughput",
+        "output_throughput",
+        "mean_ttft_ms",
+        "mean_tpot_ms",
+        "mean_e2el_ms",
+        "scaling_efficiency",
+    ]
+].copy()
+show["duration_s"] = show["duration_s"].round(1)
+show["request_throughput"] = show["request_throughput"].round(3)
+show["output_throughput"] = show["output_throughput"].round(1)
+show["mean_ttft_ms"] = show["mean_ttft_ms"].round(1)
+show["mean_tpot_ms"] = show["mean_tpot_ms"].round(2)
+show["mean_e2el_ms"] = (show["mean_e2el_ms"] / 1000).round(1)
+show["scaling_efficiency"] = (show["scaling_efficiency"] * 100).round(1)
+show = show.rename(
+    columns={
+        "concurrency": "C",
+        "num_prompts": "prompts",
+        "duration_s": "dur (s)",
+        "request_throughput": "req/s",
+        "output_throughput": "out tok/s",
+        "mean_ttft_ms": "TTFT ms",
+        "mean_tpot_ms": "TPOT ms",
+        "mean_e2el_ms": "E2EL s",
+        "scaling_efficiency": "scale % vs C·tok₁",
+    }
+)
+show
+```
+
+## Throughput (full)
+
+Near-linear through **C=8**, dip at **C=16**, then tok/s plateaus ~480–530 while client concurrency keeps climbing (engine capped at 128 seqs).
+
+```{python}
+#| label: fig-full-throughput
+#| fig-cap: "Full-architecture output / request throughput vs concurrency."
+
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+fig.add_trace(
+    go.Scatter(
+        x=df_full["concurrency"],
+        y=df_full["output_throughput"],
+        mode="lines+markers",
+        name="output tok/s",
+        hovertemplate="C=%{x}<br>out=%{y:.1f}<extra></extra>",
+    ),
+    secondary_y=False,
+)
+fig.add_trace(
+    go.Scatter(
+        x=df_full["concurrency"],
+        y=df_full["ideal_output_tok_s"],
+        mode="lines",
+        name="ideal (C × tok/s @1)",
+        line=dict(dash="dash"),
+        hovertemplate="C=%{x}<br>ideal=%{y:.1f}<extra></extra>",
+    ),
+    secondary_y=False,
+)
+fig.add_trace(
+    go.Scatter(
+        x=df_full["concurrency"],
+        y=df_full["request_throughput"],
+        mode="lines+markers",
+        name="req/s",
+        hovertemplate="C=%{x}<br>req/s=%{y:.3f}<extra></extra>",
+    ),
+    secondary_y=True,
+)
+fig.update_xaxes(title_text="max concurrency", type="log", dtick=1)
+fig.update_yaxes(title_text="token throughput (tok/s)", secondary_y=False)
+fig.update_yaxes(title_text="request throughput (req/s)", secondary_y=True)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+```{python}
+#| label: fig-full-efficiency
+#| fig-cap: "Full-architecture scaling efficiency vs C·tok₁."
+
+fig = px.bar(
+    df_full,
+    x="concurrency",
+    y="scaling_efficiency",
+    text=df_full["scaling_efficiency"].map(lambda v: f"{100*v:.0f}%"),
+    labels={"concurrency": "max concurrency", "scaling_efficiency": "efficiency vs C·tok₁"},
+)
+fig.update_traces(textposition="outside")
+fig.update_xaxes(type="log", dtick=1)
+fig.update_yaxes(range=[0, 1.15], tickformat=".0%")
+fig.update_layout(margin=dict(t=30))
+fig.show()
+```
+
+## Latency (full)
+
+TPOT stays ~25 ms through C=8, jumps at C=16 (~68 ms), then settles ~43–47 ms. TTFT/E2EL explode above C=32 as the queue builds against `--max-num-seqs 128`.
+
+```{python}
+#| label: fig-full-latency
+#| fig-cap: "Full-architecture mean TTFT, TPOT, and E2EL."
+
+fig = make_subplots(rows=1, cols=3, subplot_titles=("TTFT (ms)", "TPOT (ms)", "E2EL (s)"))
+series = [
+    ("mean_ttft_ms", "#1f77b4", 1.0, "ms"),
+    ("mean_tpot_ms", "#ff7f0e", 1.0, "ms"),
+    ("mean_e2el_ms", "#2ca02c", 0.001, "s"),
+]
+for i, (col, color, scale, unit) in enumerate(series, start=1):
+    y = df_full[col] * scale
+    fig.add_trace(
+        go.Scatter(
+            x=df_full["concurrency"],
+            y=y,
+            mode="lines+markers",
+            line=dict(color=color),
+            hovertemplate=f"C=%{{x}}<br>%{{y:.2f}} {unit}<extra></extra>",
+            showlegend=False,
+        ),
+        row=1,
+        col=i,
+    )
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=i)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(margin=dict(t=40))
+fig.show()
+```
+
+```{python}
+#| label: findings-full
+#| output: asis
+c8 = df_full.loc[df_full["concurrency"] == 8].iloc[0]
+c16 = df_full.loc[df_full["concurrency"] == 16].iloc[0]
+c32 = df_full.loc[df_full["concurrency"] == 32].iloc[0]
+c256 = df_full.loc[df_full["concurrency"] == 256].iloc[0]
+print(f"""
+- **C=1→8:** near-linear ({base['output_throughput']:.0f} → {c8['output_throughput']:.0f} tok/s), TPOT flat ~25 ms, efficiency ~{100*c8['scaling_efficiency']:.0f}%.
+- **C=16:** same cliff as the shallow run — tok/s drops to {c16['output_throughput']:.0f}, TPOT jumps to {c16['mean_tpot_ms']:.1f} ms, E2EL ~{c16['mean_e2el_ms']/1000:.0f} s.
+- **C=32+:** tok/s recovers then plateaus (~{c32['output_throughput']:.0f}–{c256['output_throughput']:.0f}); TTFT/E2EL grow with queueing (C=256 mean E2EL ~{c256['mean_e2el_ms']/1000:.0f} s). Client C=256 exceeds engine `max_num_seqs=128`.
+""")
+```
+
+# Shallow vs full
+
+```{python}
+#| label: tbl-compare
+#| tbl-cap: "Side-by-side metrics on shared concurrency tiers."
+
+show = cmp.copy()
+show["shallow_tok_s"] = show["shallow_tok_s"].round(1)
+show["full_tok_s"] = show["full_tok_s"].round(1)
+show["tok_ratio"] = show["tok_ratio"].round(3)
+show["shallow_tpot"] = show["shallow_tpot"].round(2)
+show["full_tpot"] = show["full_tpot"].round(2)
+show["tpot_ratio"] = show["tpot_ratio"].round(2)
+show["shallow_e2el_s"] = show["shallow_e2el_s"].round(2)
+show["full_e2el_s"] = show["full_e2el_s"].round(2)
+show["shallow_eff"] = (show["shallow_eff"] * 100).round(1)
+show["full_eff"] = (show["full_eff"] * 100).round(1)
+show = show[
+    [
+        "concurrency",
+        "shallow_tok_s",
+        "full_tok_s",
+        "tok_ratio",
+        "shallow_tpot",
+        "full_tpot",
+        "tpot_ratio",
+        "shallow_e2el_s",
+        "full_e2el_s",
+        "shallow_eff",
+        "full_eff",
+    ]
+].rename(
+    columns={
+        "concurrency": "C",
+        "shallow_tok_s": "12L tok/s",
+        "full_tok_s": "93L tok/s",
+        "tok_ratio": "tok 93L/12L",
+        "shallow_tpot": "12L TPOT",
+        "full_tpot": "93L TPOT",
+        "tpot_ratio": "TPOT 93L/12L",
+        "shallow_e2el_s": "12L E2EL s",
+        "full_e2el_s": "93L E2EL s",
+        "shallow_eff": "12L scale%",
+        "full_eff": "93L scale%",
+    }
+)
+show
+```
+
+```{python}
+#| label: fig-compare-tok
+#| fig-cap: "Output tok/s — shallow vs full (log-x)."
+
+fig = px.line(
+    both,
+    x="concurrency",
+    y="output_throughput",
+    color="run",
+    markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_yaxes(type="log")
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+```{python}
+#| label: fig-compare-eff
+#| fig-cap: "Scaling efficiency vs C·tok₁ — both runs share the C=16 cliff."
+
+fig = px.line(
+    both,
+    x="concurrency",
+    y="scaling_efficiency",
+    color="run",
+    markers=True,
+    labels={"concurrency": "max concurrency", "scaling_efficiency": "efficiency vs C·tok₁", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_yaxes(tickformat=".0%", range=[0, 1.15])
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+```{python}
+#| label: fig-compare-ratio
+#| fig-cap: "Throughput ratio (full/shallow) stays flat ~0.13 across shared C; dashed line = layer ratio 12/93."
+
+fig = go.Figure()
+fig.add_trace(
+    go.Scatter(
+        x=cmp["concurrency"],
+        y=cmp["tok_ratio"],
+        mode="lines+markers",
+        name="tok/s full÷shallow",
+        hovertemplate="C=%{x}<br>ratio=%{y:.3f}<extra></extra>",
+    )
+)
+fig.add_hline(
+    y=layer_ratio_sf,
+    line_dash="dash",
+    annotation_text=f"layer ratio {SHALLOW_LAYERS}/{FULL_LAYERS} = {layer_ratio_sf:.3f}",
+    annotation_position="bottom right",
+)
+fig.update_xaxes(title_text="max concurrency", type="log", dtick=1)
+fig.update_yaxes(title_text="full / shallow tok/s", range=[0, 0.25])
+fig.update_layout(margin=dict(t=40))
+fig.show()
+```
+
+# Does throughput track layer count?
+
+Yes — within a few percent at C=1, and the ratio stays flat across C=1…16.
+
+```{python}
+#| label: layer-math
+#| output: asis
+print(f"""
+| Quantity | Value |
+|----------|------:|
+| Shallow layers | {SHALLOW_LAYERS} |
+| Full layers | {FULL_LAYERS} |
+| Layer ratio (shallow/full) | **{layer_ratio_sf:.4f}** |
+| Observed tok/s ratio @C=1 (full/shallow) | **{tok_ratio_c1:.4f}** |
+| tok ratio ÷ layer ratio | **{tok_ratio_c1/layer_ratio_sf:.3f}** |
+| Layer ratio (full/shallow) | **{layer_ratio_fs:.2f}×** |
+| Observed TPOT ratio @C=1 (full/shallow) | **{tpot_ratio_c1:.2f}×** |
+| TPOT ratio ÷ layer ratio | **{tpot_ratio_c1/layer_ratio_fs:.3f}** |
+| Expert count change | {SHALLOW_EXPERTS} → {FULL_EXPERTS} (**{FULL_EXPERTS/SHALLOW_EXPERTS:.0f}×**) |
+""")
+```
+
+::: {.callout-note}
+Decode cost tracks **layer depth**, not expert count. Experts grew 56× with no matching slowdown under dummy + marlin — consistent with per-token expert compute not dominating this path the way stacking 93 vs 12 layers does.
+:::
+
+**Shared concurrency shape:** both runs are ~91–93% efficient at C=8 and collapse to ~37% at C=16 (TPOT jumps ~2.7× in both). The shallow sweep was a good **relative** proxy for the concurrency curve; absolute tok/s simply scale with layers.
+
+# Artifacts
+
+```text
+bench-results/conc-sweep-full-1000-1000/   # full HF dummy, C=1…256
+  conc-{1,2,4,8,16,32,64,128,256}.json
+  summary.tsv  seed.txt  probe.json
+
+bench-results/conc-sweep-1000-1000/        # shallow 12L, C=1…32
+  conc-{1,2,4,8,16,32}.json
+  summary.tsv
+```
+
+Scripts: `scripts/bench-concurrency-sweep.sh`, `scripts/run-vllm-kimi-k3-recipe-dummy.sh`, `scripts/monitor-full-sweep.sh`.
+
+# Render
+
+```bash
+export PATH="$PWD/reports/bin:$PATH"
+export QUARTO_PYTHON="$PWD/reports/.venv/bin/python"
+quarto render reports/concurrency-sweep-1000-1000.qmd --to html
+```

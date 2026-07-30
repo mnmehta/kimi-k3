@@ -2,4 +2,15 @@
 .env
 .DS_Store
 *.log
+*.log.rc
+nohup.out
 vllm_profile/
+foo
+_site/
+.quarto/
+reports/.venv/
+reports/.quarto-cli/
+reports/bin/
+reports/*.html
+reports/*_files/
+reports/*.quarto_ipynb
