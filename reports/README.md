@@ -23,6 +23,8 @@ Source: `reports/concurrency-sweep-1000-1000.qmd`
 
 Data:
 
-- Real weights (primary): `bench-results/conc-sweep-real-1000-1000/`
+- TP16 real weights: `bench-results/conc-sweep-real-1000-1000/`
+- TP8×PP2 real weights: `bench-results/conc-sweep-pp2-1000-1000/`
+- PP2 @ max-num-seqs=32 (partial): `bench-results/conc-sweep-pp2-seqs32-1000-1000/`
 - Full HF dummy: `bench-results/conc-sweep-full-1000-1000/`
 - Shallow 12L dummy: `bench-results/conc-sweep-1000-1000/`

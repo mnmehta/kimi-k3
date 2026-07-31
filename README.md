@@ -22,24 +22,30 @@ is currently broken so downloads use container-local `/models` (see `manifests/S
 
 Optional HF auth: `kubectl -n kimi-k3 create secret generic hf-token --from-literal=token=HF_...`
 
-## Recipe-shaped multi-node TP (real weights)
+## Recipe-shaped multi-node (real weights)
 
 After downloads finish on both ranks:
 
 ```bash
+# TP16 across 2×8 GPUs (default)
 ./scripts/deploy-recipe.sh
+
+# TP8 × PP2 across the same 2×8 GPU STS
+./scripts/deploy-recipe-pp.sh
+
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
-In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe.sh`.  
-Manifest: `manifests/vllm-recipe.yaml` (mounts `/models`).
+In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe.sh` (`TP_SIZE` / `PP_SIZE` env).  
+Manifest: `manifests/vllm-recipe.yaml` (shared by both parallelism modes).
 
-## Recipe-shaped multi-node TP (dummy weights)
+## Recipe-shaped multi-node (dummy weights)
 
-Same STS layout with `--load-format dummy` (no need to wait on weights):
+Same STS layout with `--load-format dummy`:
 
 ```bash
-./scripts/deploy-recipe-dummy.sh
+./scripts/deploy-recipe-dummy.sh       # TP16
+./scripts/deploy-recipe-dummy-pp.sh    # TP8 × PP2
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# In-pod serve script for real Kimi-K3 weights (multi-node TP recipe).
+# In-pod serve script for real Kimi-K3 weights (multi-node recipe).
 # Recipe: https://recipes.vllm.ai/moonshotai/Kimi-K3
 #
-# Expects PVC kimi-k3-model mounted at /models with weights at MODEL path.
+# Parallelism presets (via env):
+#   TP16 (default):  TP_SIZE=16 PP_SIZE=1  (multi-node TP across 2×8 GPUs)
+#   TP8×PP2:         TP_SIZE=8  PP_SIZE=2
+#
+# Expects weights at MODEL (default /models/Kimi-K3).
 #
 # Required env:
 #   MASTER_ADDR   rank-0 host/IP
@@ -11,13 +15,17 @@
 # Optional:
 #   MODEL         default /models/Kimi-K3
 #   LOAD_FORMAT   default empty (vLLM auto); set e.g. fastsafetensors
+#   TP_SIZE / PP_SIZE / NNODES / GPUS_PER_NODE
 
 set -euo pipefail
 
 MODEL="${MODEL:-/models/Kimi-K3}"
 NNODES="${NNODES:-2}"
 GPUS_PER_NODE="${GPUS_PER_NODE:-8}"
-TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE))}"
+# Default: pure multi-node TP (TP = nnodes × GPUs/node). For TP8×PP2 set:
+#   TP_SIZE=8 PP_SIZE=2
+PP_SIZE="${PP_SIZE:-1}"
+TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE / PP_SIZE))}"
 NODE_RANK="${NODE_RANK:?NODE_RANK required (0 or 1)}"
 MASTER_ADDR="${MASTER_ADDR:?MASTER_ADDR required}"
 PORT="${PORT:-8000}"
@@ -79,7 +87,23 @@ fi
 export VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-3600}"
 export VLLM_USE_V2_MODEL_RUNNER="${VLLM_USE_V2_MODEL_RUNNER:-1}"
 export VLLM_USE_RUST_FRONTEND="${VLLM_USE_RUST_FRONTEND:-0}"
-export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
+# Empty PYTORCH_CUDA_ALLOC_CONF disables the default; expandable_segments can
+# fail hard under PP peak-load when free memory is tiny.
+if [[ "${PYTORCH_CUDA_ALLOC_CONF+x}" = x && -z "${PYTORCH_CUDA_ALLOC_CONF}" ]]; then
+  unset PYTORCH_CUDA_ALLOC_CONF
+elif [[ -z "${PYTORCH_CUDA_ALLOC_CONF+x}" ]]; then
+  export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+fi
+# Recipe note: mlx5 dmabuf registration (errno 524) → fall back to nvidia_peermem.
+export NCCL_DMABUF_ENABLE="${NCCL_DMABUF_ENABLE:-0}"
+# PP cross-node P2P has failed on IPv6 link-local RoCE GIDs (IBV_WC_RETRY_EXC_ERR).
+# Optional overrides (set via deploy env):
+#   NCCL_IB_DISABLE=1          # force Socket (debug / workaround)
+#   NCCL_IB_GID_INDEX=3        # prefer IPv4-mapped RoCEv2 GID when present
+#   NCCL_IB_HCA=mlx5_5         # HCA that carries the IPv4 GID on these nodes
+[[ -n "${NCCL_IB_DISABLE:-}" ]] && export NCCL_IB_DISABLE
+[[ -n "${NCCL_IB_GID_INDEX:-}" ]] && export NCCL_IB_GID_INDEX
+[[ -n "${NCCL_IB_HCA:-}" ]] && export NCCL_IB_HCA
 export VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION="${VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION:-0}"
 export HF_HOME="${HF_HOME:-/models/hf}"
 export PYTHONUNBUFFERED=1
@@ -178,6 +202,10 @@ SERVE_ARGS=(
   --reasoning-parser kimi_k3
 )
 
+if [[ "$PP_SIZE" -gt 1 ]]; then
+  SERVE_ARGS+=(--pipeline-parallel-size "$PP_SIZE")
+fi
+
 if [[ -n "$LOAD_FORMAT" ]]; then
   SERVE_ARGS+=(--load-format "$LOAD_FORMAT")
 fi
@@ -187,7 +215,7 @@ if [[ "$NODE_RANK" != "0" ]]; then
 fi
 
 echo "Launching recipe-shaped REAL-WEIGHT serve:"
-echo "  MODEL=$MODEL TP=$TP_SIZE NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
+echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
 echo "  IFACE=$GLOO_SOCKET_IFNAME LOAD_FORMAT=${LOAD_FORMAT:-<auto>}"
 echo "  max-num-seqs=$MAX_NUM_SEQS max-model-len=$MAX_MODEL_LEN"
 cat "$MARKER" || true

@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Deploy multi-node TP recipe with REAL weights from PVC kimi-k3-model.
+# Deploy multi-node recipe with REAL weights (container-local /models or PVC).
 # Recipe: https://recipes.vllm.ai/moonshotai/Kimi-K3
 #
+# Default parallelism: TP16 (PP=1). For TP8×PP2 use ./scripts/deploy-recipe-pp.sh
+# or: TP_SIZE=8 PP_SIZE=2 ./scripts/deploy-recipe.sh
+#
 # Prerequisites:
-#   ./scripts/download-model.sh   # PVC Bound + Job complete
+#   ./scripts/download-model.sh
 #
 # Usage:
 #   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
@@ -15,9 +18,13 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 NNODES="${NNODES:-2}"
+PP_SIZE="${PP_SIZE:-1}"
+TP_SIZE="${TP_SIZE:-$((NNODES * 8 / PP_SIZE))}"
 PVC="${PVC:-kimi-k3-model}"
 MODEL_PATH="${MODEL_PATH:-/models/Kimi-K3}"
 LOAD_FORMAT="${LOAD_FORMAT:-}"
+
+echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} NNODES=${NNODES}"
 
 echo "==> Applying namespace + recipe StatefulSet (container-local /models; see manifests/STORAGE.md)"
 kubectl apply -f "$ROOT/manifests/namespace.yaml"
@@ -50,17 +57,19 @@ if [[ -z "$MASTER_ADDR" ]]; then
 fi
 echo "==> MASTER_ADDR=$MASTER_ADDR"
 
-echo "==> Copying in-pod serve script"
+echo "==> Copying in-pod serve + stop scripts"
 for i in $(seq 0 $((NNODES - 1))); do
   kubectl -n "$NS" cp \
     "$ROOT/scripts/run-vllm-kimi-k3-recipe.sh" \
     "vllm-recipe-$i:/tmp/run-recipe.sh"
+  kubectl -n "$NS" cp \
+    "$ROOT/scripts/stop-inpod-vllm.sh" \
+    "vllm-recipe-$i:/tmp/stop-inpod-vllm.sh"
 done
 
 echo "==> Stopping any previous serve processes"
 for i in $(seq 0 $((NNODES - 1))); do
-  kubectl -n "$NS" exec "vllm-recipe-$i" -- \
-    bash -c 'pkill -f "vllm serve" || true' || true
+  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/stop-inpod-vllm.sh >/dev/null || true
 done
 sleep 2
 
@@ -69,18 +78,30 @@ if [[ -n "$LOAD_FORMAT" ]]; then
   LOAD_ENV="LOAD_FORMAT=$LOAD_FORMAT"
 fi
 
+# Optional knobs (set by deploy-recipe-pp.sh or caller)
+OPT_ENV=""
+for v in GPU_MEM_UTIL MAX_NUM_SEQS MAX_MODEL_LEN MAX_NUM_BATCHED_TOKENS \
+         NCCL_IB_DISABLE NCCL_IB_GID_INDEX NCCL_IB_HCA NCCL_DMABUF_ENABLE \
+         PYTORCH_CUDA_ALLOC_CONF; do
+  if [[ -n "${!v+x}" ]]; then
+    OPT_ENV+=" $v=${!v}"
+  fi
+done
+
+PAR_ENV="TP_SIZE=$TP_SIZE PP_SIZE=$PP_SIZE NNODES=$NNODES MODEL=$MODEL_PATH $LOAD_ENV$OPT_ENV"
+
 echo "==> Starting workers (headless) then head"
 for i in $(seq 1 $((NNODES - 1))); do
   kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
     "rm -f /tmp/vllm-recipe.log; \
-     NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR NNODES=$NNODES MODEL=$MODEL_PATH $LOAD_ENV \
+     NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
      nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
      echo started rank $i pid=\$!"
 done
 
 kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
   "rm -f /tmp/vllm-recipe.log; \
-   NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR NNODES=$NNODES MODEL=$MODEL_PATH $LOAD_ENV \
+   NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
    nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
    echo started rank 0 pid=\$!"
 

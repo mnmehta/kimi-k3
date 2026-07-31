@@ -1,7 +1,8 @@
 # 2-node recipe-shaped deployment matching
 # https://recipes.vllm.ai/moonshotai/Kimi-K3 (multi-node TP, 16 GPUs).
-# Pods sleep; launch vLLM via scripts/deploy-recipe.sh (real) or
-# scripts/deploy-recipe-dummy.sh (dummy).
+# Pods sleep; launch vLLM via:
+#   scripts/deploy-recipe.sh / deploy-recipe-dummy.sh          (TP16)
+#   scripts/deploy-recipe-pp.sh / deploy-recipe-dummy-pp.sh    (TP8×PP2)
 #
 # Storage: container-local /models on the node overlay (~28T). See manifests/STORAGE.md.
 # (hostPath /var/lib/... lands on a 15G ram0 tmpfs on fozzie — not usable for 1.5TB weights.)

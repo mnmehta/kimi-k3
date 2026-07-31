@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# In-pod serve script mimicking the multi-node TP recipe at:
+# In-pod serve script mimicking the multi-node recipe at:
 #   https://recipes.vllm.ai/moonshotai/Kimi-K3
 #
 # Differences from the published recipe (intentional for this cluster smoke):
 #   - --load-format dummy (full HF architecture; no weight download)
 #   - rank > 0 adds --headless (recipe: workers are headless)
+#
+# Parallelism presets (via env):
+#   TP16 (default):  TP_SIZE=16 PP_SIZE=1
+#   TP8×PP2:         TP_SIZE=8  PP_SIZE=2
 #
 # Optional shallow overrides for tiny smoke fits (off by default):
 #   NUM_LAYERS / NUM_EXPERTS / NUM_EXPERTS_PER_TOKEN / NUM_SHARED_EXPERTS
@@ -20,7 +24,9 @@ set -euo pipefail
 MODEL="${MODEL:-moonshotai/Kimi-K3}"
 NNODES="${NNODES:-2}"
 GPUS_PER_NODE="${GPUS_PER_NODE:-8}"
-TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE))}"
+# Default: pure multi-node TP. For TP8×PP2 set TP_SIZE=8 PP_SIZE=2.
+PP_SIZE="${PP_SIZE:-1}"
+TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE / PP_SIZE))}"
 NODE_RANK="${NODE_RANK:?NODE_RANK required (0 or 1)}"
 MASTER_ADDR="${MASTER_ADDR:?MASTER_ADDR required}"
 PORT="${PORT:-8000}"
@@ -184,6 +190,10 @@ SERVE_ARGS=(
   --reasoning-parser kimi_k3
 )
 
+if [[ "$PP_SIZE" -gt 1 ]]; then
+  SERVE_ARGS+=(--pipeline-parallel-size "$PP_SIZE")
+fi
+
 # Only apply architecture overrides when explicitly requested (shallow smoke).
 if [[ -n "$NUM_LAYERS" || -n "$NUM_EXPERTS" || -n "$NUM_EXPERTS_PER_TOKEN" || -n "$NUM_SHARED_EXPERTS" ]]; then
   text_cfg="{"
@@ -205,7 +215,7 @@ if [[ "$NODE_RANK" != "0" ]]; then
 fi
 
 echo "Launching recipe-shaped dummy serve:"
-echo "  MODEL=$MODEL TP=$TP_SIZE NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
+echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
 echo "  IFACE=$GLOO_SOCKET_IFNAME $OVERRIDE_DESC"
 echo "  max-num-seqs=$MAX_NUM_SEQS"
 

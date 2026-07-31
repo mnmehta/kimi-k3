@@ -1,8 +1,8 @@
 ---
 title: "Kimi-K3 Concurrency Sweep"
-subtitle: "Real weights vs full HF dummy · 1000/1000 · TP=16"
+subtitle: "Real weights · TP16 vs TP8×PP2 · 1000/1000"
 author: "kimi-k3 harness"
-date: "2026-07-30"
+date: "2026-07-31"
 format:
   html:
     theme: darkly
@@ -84,13 +84,42 @@ def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
     return df
 
 
-df_real = load_sweep(ROOT / "bench-results" / "conc-sweep-real-1000-1000", "real weights")
+df_real = load_sweep(ROOT / "bench-results" / "conc-sweep-real-1000-1000", "TP16 real")
+df_pp2 = load_sweep(ROOT / "bench-results" / "conc-sweep-pp2-1000-1000", "TP8×PP2 real")
 df_full = load_sweep(ROOT / "bench-results" / "conc-sweep-full-1000-1000", "full dummy (93L)")
 df_shallow = load_sweep(ROOT / "bench-results" / "conc-sweep-1000-1000", "shallow dummy (12L)")
 df = df_real
 base = df.loc[df["concurrency"] == 1].iloc[0]
+base_pp2 = df_pp2.loc[df_pp2["concurrency"] == 1].iloc[0]
 seed_path = ROOT / "bench-results" / "conc-sweep-real-1000-1000" / "seed.txt"
 SWEEP_SEED = seed_path.read_text().strip() if seed_path.exists() else "n/a"
+pp2_seed_path = ROOT / "bench-results" / "conc-sweep-pp2-1000-1000" / "seed.txt"
+PP2_SEED = pp2_seed_path.read_text().strip() if pp2_seed_path.exists() else "n/a"
+
+tp = pd.concat([df_real, df_pp2], ignore_index=True)
+shared_tp = sorted(set(df_real["concurrency"]) & set(df_pp2["concurrency"]))
+tp_rows = []
+for c in shared_tp:
+    r = df_real.loc[df_real["concurrency"] == c].iloc[0]
+    p = df_pp2.loc[df_pp2["concurrency"] == c].iloc[0]
+    tp_rows.append(
+        {
+            "concurrency": c,
+            "tp16_tok_s": r["output_throughput"],
+            "pp2_tok_s": p["output_throughput"],
+            "tok_ratio_pp2_tp16": p["output_throughput"] / r["output_throughput"],
+            "tp16_tpot": r["mean_tpot_ms"],
+            "pp2_tpot": p["mean_tpot_ms"],
+            "tp16_ttft": r["mean_ttft_ms"],
+            "pp2_ttft": p["mean_ttft_ms"],
+            "tp16_e2el_s": r["mean_e2el_ms"] / 1000,
+            "pp2_e2el_s": p["mean_e2el_ms"] / 1000,
+            "tp16_eff": r["scaling_efficiency"],
+            "pp2_eff": p["scaling_efficiency"],
+        }
+    )
+tp_cmp = pd.DataFrame(tp_rows)
+tok_ratio_c1_tp = tp_cmp.loc[tp_cmp["concurrency"] == 1, "tok_ratio_pp2_tp16"].iloc[0]
 
 rd = pd.concat([df_real, df_full], ignore_index=True)
 shared_rd = sorted(set(df_real["concurrency"]) & set(df_full["concurrency"]))
@@ -146,51 +175,162 @@ tpot_ratio_c1_sf = sf_cmp.loc[sf_cmp["concurrency"] == 1, "tpot_ratio"].iloc[0]
 
 # Overview
 
-Three `vllm bench serve` concurrency sweeps on fozzie (2×8 H200, TP=16, FLASHMLA / marlin):
+`vllm bench serve` concurrency sweeps on fozzie (2×8 H200, FLASHMLA / marlin), all **1000/1000**, `--ignore-eos`, `--request-rate inf`:
 
-1. **Real weights** (primary) — `/models/Kimi-K3` MXFP4 checkpoint, C ∈ {1…256}, seed `{python} SWEEP_SEED`
-2. **Full HF dummy** — same 93L / 896-expert architecture, `--load-format dummy`
-3. **Shallow dummy** — 12L / 16 experts via `--hf-overrides`, C ∈ {1…32}
-
-All use **1000 input / 1000 output**, `--ignore-eos`, `--request-rate inf`, closed-loop `--max-concurrency`.
+1. **TP16 real weights** — `--tensor-parallel-size 16`, C ∈ {1…256}, seed `{python} SWEEP_SEED`
+2. **TP8×PP2 real weights** — `--tensor-parallel-size 8 --pipeline-parallel-size 2`, seed `{python} PP2_SEED`
+3. **Full HF dummy** (TP16) — same 93L / 896-expert arch, `--load-format dummy`
+4. **Shallow dummy** (TP16) — 12L / 16 experts via `--hf-overrides`, C ∈ {1…32}
 
 ::: {.callout-important}
-Primary results are the **real-weight** run. Full dummy is a close absolute proxy (~82–100% of real tok/s); shallow dummy remains useful for relative concurrency shape and layer-ratio analysis.
+Primary comparison is **TP16 vs TP8×PP2** on real `/models/Kimi-K3` weights. Cross-node PP required `NCCL_IB_HCA=mlx5_5` + `NCCL_IB_GID_INDEX=3` (default RoCE IPv6 link-local GIDs hit `IBV_WC_RETRY_EXC_ERR`).
 :::
 
 ## Deploy comparison
 
-| Knob | Shallow dummy | Full dummy | Real weights |
-|------|---------------|------------|--------------|
-| Load | dummy | dummy | HF checkpoint (`/models/Kimi-K3`) |
-| Layers / experts | 12 / 16 | 93 / 896 | 93 / 896 |
-| `--max-num-seqs` | 64 | 128 | 128 |
-| `--max-model-len` | 32768 | 8192 | 8192 |
-| Data | `conc-sweep-1000-1000/` | `conc-sweep-full-1000-1000/` | `conc-sweep-real-1000-1000/` |
+| Knob | Shallow dummy | Full dummy | TP16 real | TP8×PP2 real |
+|------|---------------|------------|-----------|--------------|
+| Parallelism | TP16 | TP16 | TP16 | TP8 × PP2 |
+| Load | dummy | dummy | HF checkpoint | HF checkpoint |
+| Layers / experts | 12 / 16 | 93 / 896 | 93 / 896 | 93 / 896 |
+| `--max-num-seqs` | 64 | 128 | 128 | **256** |
+| `--max-model-len` | 32768 | 8192 | 8192 | **8192** |
+| Data | `conc-sweep-1000-1000/` | `conc-sweep-full-1000-1000/` | `conc-sweep-real-1000-1000/` | `conc-sweep-pp2-1000-1000/` |
 
-Real-weight bring-up: download onto recipe pods (VAST PVC provisioning failed on fozzie — see `manifests/STORAGE.md`), then `scripts/deploy-recipe.sh`.
+Bring-up: `scripts/deploy-recipe.sh` (TP16) or `scripts/deploy-recipe-pp.sh` (TP8×PP2).
 
 ## Benchmark method
 
 - Dataset: `random`, 1000/1000, `--ignore-eos`
 - Arrival: `--request-rate inf` + `--max-concurrency C`
 - ~2 min/tier target (high-C tiers longer as queueing grew)
-- Real sweep: unique `--seed` per tier from base `{python} SWEEP_SEED`
+- Unique `--seed` per tier from base seeds above
 
 ```{python}
 #| label: method-meta
 print(
-    f"Real tiers: {list(df_real['concurrency'])}  |  "
-    f"C=1 tok/s={base['output_throughput']:.1f}  |  "
-    f"wall {df_real['duration_s'].min():.0f}–{df_real['duration_s'].max():.0f}s"
+    f"TP16 tiers: {list(df_real['concurrency'])}  |  C=1 tok/s={base['output_throughput']:.1f}\n"
+    f"PP2 tiers:  {list(df_pp2['concurrency'])}  |  C=1 tok/s={base_pp2['output_throughput']:.1f}"
 )
 ```
 
-# Real-weight results
+# TP16 vs TP8×PP2 (real weights)
+
+```{python}
+#| label: tbl-tp-pp
+#| tbl-cap: "TP16 vs TP8×PP2 on shared concurrency tiers."
+
+show = tp_cmp.copy()
+for col in ["tp16_tok_s", "pp2_tok_s", "tp16_tpot", "pp2_tpot", "tp16_e2el_s", "pp2_e2el_s"]:
+    show[col] = show[col].round(1 if "tok" in col or "e2el" in col else 2)
+show["tok_ratio_pp2_tp16"] = show["tok_ratio_pp2_tp16"].round(3)
+show["tp16_eff"] = (show["tp16_eff"] * 100).round(1)
+show["pp2_eff"] = (show["pp2_eff"] * 100).round(1)
+show = show[
+    [
+        "concurrency",
+        "tp16_tok_s",
+        "pp2_tok_s",
+        "tok_ratio_pp2_tp16",
+        "tp16_tpot",
+        "pp2_tpot",
+        "tp16_e2el_s",
+        "pp2_e2el_s",
+        "tp16_eff",
+        "pp2_eff",
+    ]
+].rename(
+    columns={
+        "concurrency": "C",
+        "tp16_tok_s": "TP16 tok/s",
+        "pp2_tok_s": "PP2 tok/s",
+        "tok_ratio_pp2_tp16": "PP2/TP16",
+        "tp16_tpot": "TP16 TPOT",
+        "pp2_tpot": "PP2 TPOT",
+        "tp16_e2el_s": "TP16 E2EL s",
+        "pp2_e2el_s": "PP2 E2EL s",
+        "tp16_eff": "TP16 scale%",
+        "pp2_eff": "PP2 scale%",
+    }
+)
+show
+```
+
+```{python}
+#| label: fig-tp-pp-tok
+#| fig-cap: "Output tok/s — TP16 vs TP8×PP2 (real weights)."
+
+fig = px.line(
+    tp,
+    x="concurrency",
+    y="output_throughput",
+    color="run",
+    markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+```{python}
+#| label: fig-tp-pp-latency
+#| fig-cap: "Mean TPOT and TTFT — TP16 vs TP8×PP2."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TPOT (ms)", "TTFT (ms)"))
+for run, dfx, color in [
+    ("TP16", df_real, "#1f77b4"),
+    ("TP8×PP2", df_pp2, "#ff7f0e"),
+]:
+    fig.add_trace(
+        go.Scatter(
+            x=dfx["concurrency"],
+            y=dfx["mean_tpot_ms"],
+            mode="lines+markers",
+            name=f"{run} TPOT",
+            line=dict(color=color),
+            legendgroup=run,
+        ),
+        row=1,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=dfx["concurrency"],
+            y=dfx["mean_ttft_ms"],
+            mode="lines+markers",
+            name=f"{run} TTFT",
+            line=dict(color=color, dash="dot"),
+            legendgroup=run,
+        ),
+        row=1,
+        col=2,
+    )
+fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=1)
+fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=2)
+fig.update_yaxes(type="log", row=1, col=2)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+```{python}
+#| label: findings-tp-pp
+#| output: asis
+hi = tp_cmp.loc[tp_cmp["concurrency"] >= 32, "tok_ratio_pp2_tp16"]
+best_pp2 = df_pp2.loc[df_pp2["output_throughput"].idxmax()]
+best_tp16 = df_real.loc[df_real["output_throughput"].idxmax()]
+print(f"""
+- **@C=1:** PP2/TP16 tok/s = **{tok_ratio_c1_tp:.3f}** ({base_pp2['output_throughput']:.0f} vs {base['output_throughput']:.0f} tok/s); PP2 TPOT {base_pp2['mean_tpot_ms']:.1f} ms vs TP16 {base['mean_tpot_ms']:.1f} ms.
+- **Peak tok/s:** PP2 **{best_pp2['output_throughput']:.0f}** @C={int(best_pp2['concurrency'])}; TP16 **{best_tp16['output_throughput']:.0f}** @C={int(best_tp16['concurrency'])}.
+- **@C≥32:** PP2/TP16 ratio ~**{hi.min():.2f}–{hi.max():.2f}** on shared tiers.
+""")
+```
+
+# TP16 real-weight results
 
 ```{python}
 #| label: tbl-real
-#| tbl-cap: "Real weights — per-concurrency summary."
+#| tbl-cap: "TP16 real weights — per-concurrency summary."
 
 show = df_real[
     [
@@ -228,13 +368,13 @@ show = show.rename(
 show
 ```
 
-## Throughput (real)
+## Throughput (TP16)
 
 Near-linear through **C=8**, dip at **C=16**, then tok/s plateaus ~405–436 while client concurrency keeps climbing (engine capped at 128 seqs; C=256 oversubscribes).
 
 ```{python}
 #| label: fig-real-throughput
-#| fig-cap: "Real-weight output / request throughput vs concurrency."
+#| fig-cap: "TP16 real-weight output / request throughput vs concurrency."
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
 fig.add_trace(
@@ -277,7 +417,7 @@ fig.show()
 
 ```{python}
 #| label: fig-real-efficiency
-#| fig-cap: "Real-weight scaling efficiency vs C·tok₁."
+#| fig-cap: "TP16 scaling efficiency vs C·tok₁."
 
 fig = px.bar(
     df_real,
@@ -293,13 +433,13 @@ fig.update_layout(margin=dict(t=30))
 fig.show()
 ```
 
-## Latency (real)
+## Latency (TP16)
 
 TPOT ~25–31 ms through C=8, jumps at C=16 (~75 ms), then settles ~53–57 ms. TTFT/E2EL explode above C=32 as the queue builds against `--max-num-seqs 128`.
 
 ```{python}
 #| label: fig-real-latency
-#| fig-cap: "Real-weight mean TTFT, TPOT, and E2EL."
+#| fig-cap: "TP16 mean TTFT, TPOT, and E2EL."
 
 fig = make_subplots(rows=1, cols=3, subplot_titles=("TTFT (ms)", "TPOT (ms)", "E2EL (s)"))
 series = [
@@ -341,9 +481,63 @@ print(f"""
 """)
 ```
 
+# TP8×PP2 real-weight results
+
+```{python}
+#| label: tbl-pp2
+#| tbl-cap: "TP8×PP2 real weights — per-concurrency summary."
+
+show = df_pp2[
+    [
+        "concurrency",
+        "num_prompts",
+        "duration_s",
+        "request_throughput",
+        "output_throughput",
+        "mean_ttft_ms",
+        "mean_tpot_ms",
+        "mean_e2el_ms",
+        "scaling_efficiency",
+    ]
+].copy()
+show["duration_s"] = show["duration_s"].round(1)
+show["request_throughput"] = show["request_throughput"].round(3)
+show["output_throughput"] = show["output_throughput"].round(1)
+show["mean_ttft_ms"] = show["mean_ttft_ms"].round(1)
+show["mean_tpot_ms"] = show["mean_tpot_ms"].round(2)
+show["mean_e2el_ms"] = (show["mean_e2el_ms"] / 1000).round(1)
+show["scaling_efficiency"] = (show["scaling_efficiency"] * 100).round(1)
+show = show.rename(
+    columns={
+        "concurrency": "C",
+        "num_prompts": "prompts",
+        "duration_s": "dur (s)",
+        "request_throughput": "req/s",
+        "output_throughput": "out tok/s",
+        "mean_ttft_ms": "TTFT ms",
+        "mean_tpot_ms": "TPOT ms",
+        "mean_e2el_ms": "E2EL s",
+        "scaling_efficiency": "scale % vs C·tok₁",
+    }
+)
+show
+```
+
+```{python}
+#| label: findings-pp2
+#| output: asis
+c_hi = int(df_pp2["concurrency"].max())
+row_hi = df_pp2.loc[df_pp2["concurrency"] == c_hi].iloc[0]
+peak = df_pp2.loc[df_pp2["output_throughput"].idxmax()]
+print(f"""
+- PP2 tiers present: {list(df_pp2['concurrency'])} (seed `{PP2_SEED}`).
+- Peak **{peak['output_throughput']:.0f} tok/s** @C={int(peak['concurrency'])}; @C={c_hi} tok/s={row_hi['output_throughput']:.0f}, mean TPOT {row_hi['mean_tpot_ms']:.1f} ms, mean E2EL {row_hi['mean_e2el_ms']/1000:.0f} s.
+""")
+```
+
 # Real vs full dummy
 
-Dummy full-architecture is a strong absolute proxy for real MXFP4 serve on this path.
+Dummy full-architecture is a strong absolute proxy for real MXFP4 serve on the TP16 path.
 
 ```{python}
 #| label: tbl-real-dummy
@@ -475,12 +669,14 @@ fig.show()
 # Artifacts
 
 ```text
-bench-results/conc-sweep-real-1000-1000/   # real weights, C=1…256
-bench-results/conc-sweep-full-1000-1000/   # full HF dummy, C=1…256
-bench-results/conc-sweep-1000-1000/        # shallow 12L dummy, C=1…32
+bench-results/conc-sweep-real-1000-1000/          # TP16 real, C=1…256
+bench-results/conc-sweep-pp2-1000-1000/           # TP8×PP2 real
+bench-results/conc-sweep-pp2-seqs32-1000-1000/    # PP2 partial @ max-num-seqs=32
+bench-results/conc-sweep-full-1000-1000/          # full HF dummy TP16
+bench-results/conc-sweep-1000-1000/               # shallow 12L dummy
 ```
 
-Scripts: `scripts/bench-concurrency-sweep.sh`, `scripts/deploy-recipe.sh`, `scripts/run-vllm-kimi-k3-recipe.sh`, `scripts/monitor-real-sweep.sh`.
+Scripts: `scripts/bench-concurrency-sweep.sh`, `scripts/deploy-recipe.sh`, `scripts/deploy-recipe-pp.sh`, `scripts/run-vllm-kimi-k3-recipe.sh`.
 
 # Render
 
