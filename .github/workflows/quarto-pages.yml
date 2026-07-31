@@ -42,11 +42,13 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Render report
+      - name: Render reports
         run: |
+          quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
           quarto render reports/concurrency-sweep-1000-1000.qmd --to html
           mkdir -p _site
-          cp reports/concurrency-sweep-1000-1000.html _site/index.html
+          cp reports/tp16-vs-pp2-1000-1000.html _site/index.html
+          cp reports/concurrency-sweep-1000-1000.html _site/concurrency-sweep-1000-1000.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
