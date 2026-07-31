@@ -670,13 +670,15 @@ fig.show()
 
 ```text
 bench-results/conc-sweep-real-1000-1000/          # TP16 real, C=1…256
-bench-results/conc-sweep-pp2-1000-1000/           # TP8×PP2 real
+bench-results/conc-sweep-pp2-1000-1000/           # TP8×PP2 real (+ vllm-recipe-*.log)
 bench-results/conc-sweep-pp2-seqs32-1000-1000/    # PP2 partial @ max-num-seqs=32
 bench-results/conc-sweep-full-1000-1000/          # full HF dummy TP16
 bench-results/conc-sweep-1000-1000/               # shallow 12L dummy
 ```
 
-Scripts: `scripts/bench-concurrency-sweep.sh`, `scripts/deploy-recipe.sh`, `scripts/deploy-recipe-pp.sh`, `scripts/run-vllm-kimi-k3-recipe.sh`.
+Each finished sweep also archives `vllm-recipe-0.log` / `vllm-recipe-1.log` via `scripts/copy-sweep-results.sh`.
+
+Scripts: `scripts/bench-concurrency-sweep.sh`, `scripts/copy-sweep-results.sh`, `scripts/deploy-recipe.sh`, `scripts/deploy-recipe-pp.sh`, `scripts/run-vllm-kimi-k3-recipe.sh`.
 
 # Render
 
