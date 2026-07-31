@@ -2,6 +2,8 @@
 .env
 .DS_Store
 *.log
+# Keep vLLM serve logs archived with each sweep (metrics stay as *.json).
+!bench-results/**/vllm-recipe-*.log
 *.log.rc
 *.pid
 nohup.out

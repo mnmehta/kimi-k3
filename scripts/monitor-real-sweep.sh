@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -u
 export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NS=kimi-k3
 RESULT=/tmp/vllm-bench-sweep-real-256
-LOCAL_OUT=/Users/mimehta/kimi-k3/bench-results/conc-sweep-real-1000-1000
+LOCAL_OUT="$ROOT/bench-results/conc-sweep-real-1000-1000"
 echo "=== real-weight sweep monitor $(date -u) ==="
 for j in $(seq 1 180); do
   sleep 30
@@ -25,10 +26,7 @@ for j in $(seq 1 180); do
   if kubectl -n "$NS" exec vllm-recipe-0 -- grep -q 'sweep complete' "$RESULT/nohup.out" 2>/dev/null; then
     echo SWEEP_DONE
     kubectl -n "$NS" exec vllm-recipe-0 -- cat "$RESULT/summary.tsv"
-    mkdir -p "$LOCAL_OUT"
-    kubectl -n "$NS" exec vllm-recipe-0 -- tar -C "$RESULT" -czf - . > /tmp/real-sweep.tgz
-    tar -C "$LOCAL_OUT" -xzf /tmp/real-sweep.tgz
-    echo "copied to $LOCAL_OUT/"
+    RESULT="$RESULT" LOCAL_OUT="$LOCAL_OUT" "$ROOT/scripts/copy-sweep-results.sh"
     exit 0
   fi
 done

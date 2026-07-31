@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -u
 export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NS=kimi-k3
 RESULT=/tmp/vllm-bench-sweep-full-256
-echo "=== file monitor $(date -u) ==="
+LOCAL_OUT="$ROOT/bench-results/conc-sweep-full-1000-1000"
+echo "=== full-dummy sweep monitor $(date -u) ==="
 for j in $(seq 1 120); do
   sleep 30
   if ! kubectl -n "$NS" exec vllm-recipe-0 -- curl -sf -m 2 http://127.0.0.1:8000/health >/dev/null 2>&1; then
@@ -20,12 +22,7 @@ for j in $(seq 1 120); do
   if kubectl -n "$NS" exec vllm-recipe-0 -- grep -q 'sweep complete' "$RESULT/nohup.out" 2>/dev/null; then
     echo SWEEP_DONE
     kubectl -n "$NS" exec vllm-recipe-0 -- cat "$RESULT/summary.tsv"
-    # pull results locally
-    mkdir -p /Users/mimehta/kimi-k3/bench-results/conc-sweep-full-1000-1000
-    kubectl -n "$NS" exec vllm-recipe-0 -- tar -C "$RESULT" -czf - . \
-      > /tmp/full-sweep.tgz
-    tar -C /Users/mimehta/kimi-k3/bench-results/conc-sweep-full-1000-1000 -xzf /tmp/full-sweep.tgz
-    echo "copied to bench-results/conc-sweep-full-1000-1000/"
+    RESULT="$RESULT" LOCAL_OUT="$LOCAL_OUT" "$ROOT/scripts/copy-sweep-results.sh"
     exit 0
   fi
 done
