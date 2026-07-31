@@ -191,7 +191,7 @@ peak_pp2 = df_pp2.loc[df_pp2["output_throughput"].idxmax()]
 
 # Overview
 
-Two `vllm bench serve` concurrency sweeps on **fozzie** (2×8 H200), same real MXFP4 checkpoint (`/models/Kimi-K3`), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). Row set matches the [NVIDIA Dynamo Kimi-K3 “Compare All Targets”](https://docs.nvidia.com/dynamo/dev/recipes/kimi-k3#compare-all-targets) table, plus harness knobs for this sweep:
+Two `vllm bench serve` concurrency sweeps on **fozzie** (2×8 H200), same real MXFP4 checkpoint (`/models/Kimi-K3`), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`), C ∈ {1…512}. Row set matches the [NVIDIA Dynamo Kimi-K3 “Compare All Targets”](https://docs.nvidia.com/dynamo/dev/recipes/kimi-k3#compare-all-targets) table, plus harness knobs for this sweep:
 
 | | **TP16** | **TP8×PP2** |
 |--|----------|-------------|
@@ -506,11 +506,14 @@ show.rename(
 
 | Kind | Path |
 |------|------|
-| TP16 sweep data | [`bench-results/conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) |
-| TP8×PP2 sweep data | [`bench-results/conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) |
-| TP16 serve logs | `vllm-recipe-{0,1}.log` under the TP16 sweep dir (filled in by `copy-sweep-results.sh` when present) |
+| TP16 sweep (C=1…512) | [`bench-results/conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) |
+| TP8×PP2 sweep (C=1…512) | [`bench-results/conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) |
+| TP16 serve log (rank 0) | [`vllm-recipe-0.log`](https://github.com/mnmehta/kimi-k3/blob/main/bench-results/conc-sweep-real-1000-1000/vllm-recipe-0.log) |
+| TP16 serve log (rank 1) | [`vllm-recipe-1.log`](https://github.com/mnmehta/kimi-k3/blob/main/bench-results/conc-sweep-real-1000-1000/vllm-recipe-1.log) |
 | PP2 serve log (rank 0) | [`vllm-recipe-0.log`](https://github.com/mnmehta/kimi-k3/blob/main/bench-results/conc-sweep-pp2-1000-1000/vllm-recipe-0.log) |
 | PP2 serve log (rank 1) | [`vllm-recipe-1.log`](https://github.com/mnmehta/kimi-k3/blob/main/bench-results/conc-sweep-pp2-1000-1000/vllm-recipe-1.log) |
+| Prior TP16 (C≤256) | [`conc-sweep-real-1000-1000-c1-256/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000-c1-256) |
+| Prior PP2 (C≤256) | [`conc-sweep-pp2-1000-1000-c1-256/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000-c1-256) |
 | Report source | [`reports/tp16-vs-pp2-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/tp16-vs-pp2-1000-1000.qmd) |
 
 Scripts:

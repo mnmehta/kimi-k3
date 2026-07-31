@@ -3,7 +3,7 @@ set -u
 export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NS=kimi-k3
-RESULT=/tmp/vllm-bench-sweep-real-256
+RESULT=/tmp/vllm-bench-sweep-real-512
 LOCAL_OUT="$ROOT/bench-results/conc-sweep-real-1000-1000"
 echo "=== real-weight sweep monitor $(date -u) ==="
 for j in $(seq 1 180); do

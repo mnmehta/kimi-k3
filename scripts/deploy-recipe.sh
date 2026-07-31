@@ -23,6 +23,8 @@ TP_SIZE="${TP_SIZE:-$((NNODES * 8 / PP_SIZE))}"
 PVC="${PVC:-kimi-k3-model}"
 MODEL_PATH="${MODEL_PATH:-/models/Kimi-K3}"
 LOAD_FORMAT="${LOAD_FORMAT:-}"
+# Engine seq budget (client sweep may oversubscribe up to C=512).
+export MAX_NUM_SEQS="${MAX_NUM_SEQS:-128}"
 
 echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} NNODES=${NNODES}"
 

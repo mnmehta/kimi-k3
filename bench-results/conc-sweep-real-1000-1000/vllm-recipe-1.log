@@ -1,0 +1,364 @@
+Launching recipe-shaped REAL-WEIGHT serve:
+  MODEL=/models/Kimi-K3 TP=16 PP=1 NNODES=2 NODE_RANK=1 MASTER_ADDR=10.202.208.69
+  IFACE=enp157s0np0 LOAD_FORMAT=<auto>
+  max-num-seqs=128 max-model-len=8192
+downloaded_at=2026-07-30T23:45:11Z
+MODEL_ID=moonshotai/Kimi-K3
+LOCAL_DIR=/models/Kimi-K3
+INFO 07-31 20:09:38 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:38 [model.py:636] Resolved architecture: KimiK3ForConditionalGeneration
+INFO 07-31 20:09:38 [model.py:654] Defaulting to tokenizer_mode='kimi_k3' for KimiK3ForConditionalGeneration
+INFO 07-31 20:09:38 [model.py:1810] Using max model len 8192
+INFO 07-31 20:09:43 [arg_utils.py:2088] Inferred data_parallel_rank 0 from node_rank 1
+INFO 07-31 20:09:43 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=4096.
+INFO 07-31 20:09:43 [vllm.py:1141] Asynchronous scheduling is enabled.
+INFO 07-31 20:09:43 [vllm.py:1232] Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1. Set VLLM_USE_BREAKABLE_CUDAGRAPH=0 to opt out.
+WARNING 07-31 20:09:43 [vllm.py:1238] VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's torch.compile pipeline. Equivalent to -cc.mode=none.
+WARNING 07-31 20:09:43 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 07-31 20:09:43 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+WARNING 07-31 20:09:43 [vllm.py:2263] Model Runner V2 does not yet support the thinking_token_budget request parameter. Set VLLM_USE_V2_MODEL_RUNNER=0 if this is required.
+INFO 07-31 20:09:43 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 07-31 20:09:43 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:43 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant, allreduce_rms
+INFO 07-31 20:09:43 [serve.py:212] Launching vLLM (v0.1.dev19262+gb6bbf29dd.d20260727) headless multiproc executor, with head node address 10.202.208.69:29501 for torch.distributed process group.
+WARNING 07-31 20:09:43 [multiproc_executor.py:1081] Reducing Torch parallelism from 64 threads to 1 to avoid unnecessary CPU contention. Set OMP_NUM_THREADS in the external environment to tune this value as needed.
+INFO 07-31 20:09:55 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 07-31 20:09:55 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:55 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=20343) INFO 07-31 20:09:56 [parallel_state.py:1612] world_size=16 rank=9 local_rank=1 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+INFO 07-31 20:09:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 07-31 20:09:57 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:57 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 07-31 20:09:57 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+WARNING 07-31 20:09:57 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:57 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 07-31 20:09:57 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=20342) INFO 07-31 20:09:57 [parallel_state.py:1612] world_size=16 rank=8 local_rank=0 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+WARNING 07-31 20:09:57 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:57 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 07-31 20:09:57 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:57 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 07-31 20:09:57 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:57 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 07-31 20:09:57 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 07-31 20:09:57 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=20344) INFO 07-31 20:09:58 [parallel_state.py:1612] world_size=16 rank=10 local_rank=2 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+(Worker pid=20349) INFO 07-31 20:09:58 [parallel_state.py:1612] world_size=16 rank=15 local_rank=7 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+(Worker pid=20348) INFO 07-31 20:09:58 [parallel_state.py:1612] world_size=16 rank=14 local_rank=6 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+(Worker pid=20346) INFO 07-31 20:09:58 [parallel_state.py:1612] world_size=16 rank=12 local_rank=4 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+(Worker pid=20345) INFO 07-31 20:09:58 [parallel_state.py:1612] world_size=16 rank=11 local_rank=3 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+(Worker pid=20347) INFO 07-31 20:09:58 [parallel_state.py:1612] world_size=16 rank=13 local_rank=5 distributed_init_method=tcp://10.202.208.69:29501 backend=nccl
+(Worker pid=20343) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20345) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20342) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20344) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20347) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20346) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20349) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20348) WARNING 07-31 20:10:18 [symm_mem.py:73] SymmMemCommunicator: World size 16 not supported, communicator is not available.
+(Worker pid=20342) INFO 07-31 20:10:19 [parallel_state.py:1943] rank 8 in world size 16 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 8, EP rank 8, EPLB rank N/A
+(Worker pid=20342) INFO 07-31 20:10:19 [gpu_worker.py:373] Using V2 Model Runner
+(Worker_TP10 pid=20344) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP11 pid=20345) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP10 pid=20344) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP10 pid=20344) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP15 pid=20349) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP11 pid=20345) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP14 pid=20348) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP11 pid=20345) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP10 pid=20344) INFO 07-31 20:10:20 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP15 pid=20349) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP15 pid=20349) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP14 pid=20348) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP14 pid=20348) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP9 pid=20343) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP11 pid=20345) INFO 07-31 20:10:20 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP9 pid=20343) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP15 pid=20349) INFO 07-31 20:10:20 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP9 pid=20343) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP14 pid=20348) INFO 07-31 20:10:20 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP9 pid=20343) INFO 07-31 20:10:20 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP8 pid=20342) WARNING 07-31 20:10:20 [vision.py:153] The number of vision attention heads is not divisible by the tensor parallel size. Falling back to data parallelism for the vision encoder.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [cuda.py:541] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [mm_encoder_attention.py:373] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [vllm.py:1141] Asynchronous scheduling is enabled.
+(Worker_TP8 pid=20342) WARNING 07-31 20:10:20 [vllm.py:1238] VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's torch.compile pipeline. Equivalent to -cc.mode=none.
+(Worker_TP8 pid=20342) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP8 pid=20342) WARNING 07-31 20:10:20 [vllm.py:2263] Model Runner V2 does not yet support the thinking_token_budget request parameter. Set VLLM_USE_V2_MODEL_RUNNER=0 if this is required.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [kda.py:163] Using FlashKDA KDA prefill backend.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [mxfp4.py:419] Using 'MARLIN' Mxfp4 MoE backend.
+(Worker_TP13 pid=20347) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:20 [selector.py:174] Using FLASH_ATTN MLA prefill backend.
+(Worker_TP12 pid=20346) INFO 07-31 20:10:20 [model_runner.py:288] Loading model from scratch...
+(Worker_TP13 pid=20347) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP13 pid=20347) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP12 pid=20346) WARNING 07-31 20:10:20 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP12 pid=20346) INFO 07-31 20:10:20 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP13 pid=20347) INFO 07-31 20:10:21 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP12 pid=20346) INFO 07-31 20:10:21 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:25 [weight_utils.py:869] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 1453.74 GiB. Available RAM: 1926.67 GiB.
+(Worker_TP8 pid=20342) INFO 07-31 20:10:25 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (OVERLAY) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+[rank9]:[W731 20:11:58.610294828 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:11:58.266201822 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:11:59.676286382 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:11:59.307741662 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:11:59.431783642 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:11:59.503013833 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:11:59.544591627 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:00.746800164 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP8 pid=20342) INFO 07-31 20:12:00 [default_loader.py:430] Loading weights took 95.20 seconds
+[rank14]:[W731 20:12:00.417776321 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:01.600052237 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP8 pid=20342) INFO 07-31 20:12:01 [mxfp4.py:1718] Using MoEPrepareAndFinalizeNoDPEPModular
+(Worker_TP8 pid=20342) INFO 07-31 20:12:01 [mxfp4.py:1719] Using MarlinExperts
+[rank10]:[W731 20:12:01.605918520 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:01.679938725 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:01.831147400 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:01.500350168 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:01.546506759 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:02.756087182 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:02.816653231 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:02.822335757 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:02.911711317 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:02.185817488 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:03.723896181 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:03.734622342 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:03.958080435 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:03.073758441 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:03.114180271 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:03.132776174 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:03.467935855 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:04.929602543 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:04.930405498 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:04.097216942 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:04.167091749 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:04.306096771 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:04.350896527 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:04.584249237 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:05.809786013 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:05.113942236 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:05.115745476 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:05.205345405 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:05.260701491 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:05.446846591 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:05.541889701 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:06.711734651 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:06.944201814 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:06.288312842 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:06.300742965 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:06.329023340 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:06.344923679 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:07.599432592 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:07.752692681 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:07.828151416 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:07.082708619 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:07.490654635 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:07.519375694 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:07.527455499 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:07.552610905 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:08.771235289 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:08.976617851 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:08.982617556 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:08.264630523 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:09.627531697 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:09.700457678 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:09.740429269 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:09.763529253 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:09.936142249 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:09.202834793 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:09.257758206 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:09.405576055 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:10.793598607 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:10.896645216 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:10.026249152 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:10.036513272 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:10.186472380 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:10.466774316 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:10.530465164 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:11.647569450 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:11.946112888 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:11.041303512 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:11.244626286 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:11.279122770 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:11.450174814 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:12.608431359 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:12.719130216 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:12.772782536 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:12.064233408 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:12.149451836 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:12.383324775 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:12.407052956 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:13.603582330 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:13.748490752 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:13.895327333 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:13.896722618 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:13.202056607 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank9]:[W731 20:12:13.238460336 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:13.535780213 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:13.560892006 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:14.756664429 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:14.870072490 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:14.032890847 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:14.105373357 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP9 pid=20343) INFO 07-31 20:12:14 [model_runner.py:309] Model loading took 129.75 GiB and 114.420395 seconds
+(Worker_TP9 pid=20343) INFO 07-31 20:12:14 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP9 pid=20343) WARNING 07-31 20:12:14 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP9 pid=20343) INFO 07-31 20:12:14 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP9 pid=20343) WARNING 07-31 20:12:14 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP9 pid=20343) INFO 07-31 20:12:14 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP9 pid=20343) INFO 07-31 20:12:14 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP9 pid=20343) INFO 07-31 20:12:14 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+[rank8]:[W731 20:12:14.329479196 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:15.699144003 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:15.701869634 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:15.937165647 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:15.002809657 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:15.158913982 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank15]:[W731 20:12:15.330057902 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 7 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:15.532050793 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank10]:[W731 20:12:16.871333887 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 2 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank14]:[W731 20:12:16.893703643 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 6 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank13]:[W731 20:12:16.110922353 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 5 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:16.121006703 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:16.304323665 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP15 pid=20349) INFO 07-31 20:12:16 [model_runner.py:309] Model loading took 129.75 GiB and 116.594706 seconds
+(Worker_TP15 pid=20349) INFO 07-31 20:12:16 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP15 pid=20349) WARNING 07-31 20:12:16 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP15 pid=20349) INFO 07-31 20:12:16 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP15 pid=20349) WARNING 07-31 20:12:16 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP15 pid=20349) INFO 07-31 20:12:16 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP15 pid=20349) INFO 07-31 20:12:16 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP15 pid=20349) INFO 07-31 20:12:16 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+[rank8]:[W731 20:12:17.690999692 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP10 pid=20344) INFO 07-31 20:12:17 [model_runner.py:309] Model loading took 129.75 GiB and 117.134440 seconds
+(Worker_TP14 pid=20348) INFO 07-31 20:12:17 [model_runner.py:309] Model loading took 129.75 GiB and 117.127861 seconds
+(Worker_TP10 pid=20344) INFO 07-31 20:12:17 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP10 pid=20344) WARNING 07-31 20:12:17 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP10 pid=20344) INFO 07-31 20:12:17 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP10 pid=20344) WARNING 07-31 20:12:17 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP10 pid=20344) INFO 07-31 20:12:17 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP10 pid=20344) INFO 07-31 20:12:17 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP14 pid=20348) INFO 07-31 20:12:17 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP10 pid=20344) INFO 07-31 20:12:17 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_TP14 pid=20348) WARNING 07-31 20:12:17 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP14 pid=20348) INFO 07-31 20:12:17 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP14 pid=20348) WARNING 07-31 20:12:17 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP14 pid=20348) INFO 07-31 20:12:17 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP14 pid=20348) INFO 07-31 20:12:17 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP14 pid=20348) INFO 07-31 20:12:17 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_TP13 pid=20347) INFO 07-31 20:12:17 [model_runner.py:309] Model loading took 129.75 GiB and 117.247505 seconds
+[rank11]:[W731 20:12:17.438256375 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP13 pid=20347) INFO 07-31 20:12:17 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP13 pid=20347) WARNING 07-31 20:12:17 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP13 pid=20347) INFO 07-31 20:12:17 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP13 pid=20347) WARNING 07-31 20:12:17 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP13 pid=20347) INFO 07-31 20:12:17 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP13 pid=20347) INFO 07-31 20:12:17 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP13 pid=20347) INFO 07-31 20:12:17 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+[rank12]:[W731 20:12:17.568947680 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank8]:[W731 20:12:18.951161795 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank11]:[W731 20:12:18.527437733 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 3 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:19.679700703 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP8 pid=20342) INFO 07-31 20:12:19 [model_runner.py:309] Model loading took 129.75 GiB and 119.024573 seconds
+(Worker_TP8 pid=20342) INFO 07-31 20:12:19 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP8 pid=20342) WARNING 07-31 20:12:19 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP8 pid=20342) INFO 07-31 20:12:19 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP8 pid=20342) WARNING 07-31 20:12:19 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP8 pid=20342) INFO 07-31 20:12:19 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP8 pid=20342) INFO 07-31 20:12:19 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP8 pid=20342) INFO 07-31 20:12:19 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_TP11 pid=20345) INFO 07-31 20:12:19 [model_runner.py:309] Model loading took 129.75 GiB and 119.727906 seconds
+(Worker_TP11 pid=20345) INFO 07-31 20:12:19 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP11 pid=20345) WARNING 07-31 20:12:19 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP11 pid=20345) INFO 07-31 20:12:19 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP11 pid=20345) WARNING 07-31 20:12:19 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP11 pid=20345) INFO 07-31 20:12:19 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP11 pid=20345) INFO 07-31 20:12:19 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP11 pid=20345) INFO 07-31 20:12:19 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+[rank12]:[W731 20:12:20.783987697 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+[rank12]:[W731 20:12:21.883774619 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 4 while trying to map 20971520 bytes (free: 17825792, total: 150111977472).
+(Worker_TP12 pid=20346) INFO 07-31 20:12:22 [model_runner.py:309] Model loading took 129.75 GiB and 121.884013 seconds
+(Worker_TP12 pid=20346) INFO 07-31 20:12:22 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_TP12 pid=20346) WARNING 07-31 20:12:22 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP12 pid=20346) INFO 07-31 20:12:22 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP12 pid=20346) WARNING 07-31 20:12:22 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_TP12 pid=20346) INFO 07-31 20:12:22 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_TP12 pid=20346) INFO 07-31 20:12:22 [interface.py:911] Setting attention block size to 384 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP12 pid=20346) INFO 07-31 20:12:22 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_TP14 pid=20348) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP14 pid=20348) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP10 pid=20344) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP10 pid=20344) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP15 pid=20349) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP15 pid=20349) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP8 pid=20342) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP8 pid=20342) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP12 pid=20346) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP12 pid=20346) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP9 pid=20343) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP9 pid=20343) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP13 pid=20347) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP13 pid=20347) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP11 pid=20345) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP11 pid=20345) Calling super().encode with {'add_special_tokens': False}
+(Worker_TP8 pid=20342) INFO 07-31 20:12:25 [encoder_runner.py:80] Encoder cache will be initialized with a budget of 16817 tokens, and profiled with 1 image items of the maximum feature size.
+(Worker_TP8 pid=20342) INFO 07-31 20:12:30 [gpu_worker.py:547] Available KV cache memory: 2.17 GiB
+(Worker_TP14 pid=20348) INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP9 pid=20343) (Worker_TP14 pid=20348) INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP10 pid=20344) (Worker_TP12 pid=20346) (Worker_TP13 pid=20347) INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP9 pid=20343) INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP15 pid=20349) (Worker_TP8 pid=20342) (Worker_TP10 pid=20344) INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP12 pid=20346) INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP13 pid=20347) INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP15 pid=20349) INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP8 pid=20342) INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP11 pid=20345) INFO 07-31 20:12:30 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP11 pid=20345) INFO 07-31 20:12:30 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP8 pid=20342) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP13 pid=20347) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP14 pid=20348) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP10 pid=20344) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP15 pid=20349) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP12 pid=20346) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP11 pid=20345) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP9 pid=20343) INFO 07-31 20:12:38 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP8 pid=20342) INFO 07-31 20:12:38 [breakable_cudagraph.py:288] Breakable CUDA graph enabled
+(Worker_TP15 pid=20349) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.44 GiB
+(Worker_TP15 pid=20349) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.6 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.44 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-429555036` (-0.4 GiB) to fit into requested memory, or `--kv-cache-memory=1948406272` (1.81 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.18 GiB.
+(Worker_TP8 pid=20342) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.44 GiB
+(Worker_TP8 pid=20342) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.61 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.44 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-446332252` (-0.42 GiB) to fit into requested memory, or `--kv-cache-memory=1931629056` (1.8 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.17 GiB.
+(Worker_TP9 pid=20343) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.44 GiB
+(Worker_TP9 pid=20343) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.6 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.44 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-429555036` (-0.4 GiB) to fit into requested memory, or `--kv-cache-memory=1948406272` (1.81 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.18 GiB.
+(Worker_TP13 pid=20347) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.45 GiB
+(Worker_TP13 pid=20347) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.6 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.45 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-442137948` (-0.41 GiB) to fit into requested memory, or `--kv-cache-memory=1935823360` (1.8 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.18 GiB.
+(Worker_TP14 pid=20348) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.43 GiB
+(Worker_TP14 pid=20348) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.61 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.43 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-437943644` (-0.41 GiB) to fit into requested memory, or `--kv-cache-memory=1940017664` (1.81 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.17 GiB.
+(Worker_TP10 pid=20344) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.43 GiB
+(Worker_TP10 pid=20344) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.61 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.43 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-437943644` (-0.41 GiB) to fit into requested memory, or `--kv-cache-memory=1940017664` (1.81 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.17 GiB.
+(Worker_TP11 pid=20345) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.45 GiB
+(Worker_TP11 pid=20345) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.6 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.45 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-442137948` (-0.41 GiB) to fit into requested memory, or `--kv-cache-memory=1935823360` (1.8 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.18 GiB.
+(Worker_TP12 pid=20346) INFO 07-31 20:13:15 [model_runner.py:766] Graph capturing finished in 37 secs, took 2.43 GiB
+(Worker_TP12 pid=20346) INFO 07-31 20:13:15 [gpu_worker.py:773] Free memory on device (137.82/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 131.61 GiB for consumed memory (weights + non-torch), 1.83 GiB for peak activation, and 2.43 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=-437943644` (-0.41 GiB) to fit into requested memory, or `--kv-cache-memory=1940017664` (1.81 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.17 GiB.
+(Worker_TP8 pid=20342) INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP10 pid=20344) INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP13 pid=20347) INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP9 pid=20343) (Worker_TP12 pid=20346) (Worker_TP11 pid=20345) INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP14 pid=20348) INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP15 pid=20349) INFO 07-31 20:13:15 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP8 pid=20342) WARNING 07-31 20:20:51 [jit_monitor.py:135] Triton kernel JIT compilation during inference: mask_empty_context_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.

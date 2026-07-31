@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # vllm bench concurrency sweep: 1000/1000 tokens, ~2 min per concurrency tier.
-# Powers of two from 1 .. 256. Uses a random --seed so prompts differ across runs.
+# Powers of two from 1 .. 512. Uses a random --seed so prompts differ across runs.
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:8000}"
@@ -8,8 +8,8 @@ MODEL="${MODEL:-moonshotai/Kimi-K3}"
 INPUT_LEN="${INPUT_LEN:-1000}"
 OUTPUT_LEN="${OUTPUT_LEN:-1000}"
 TARGET_SECS="${TARGET_SECS:-120}"
-RESULT_DIR="${RESULT_DIR:-/tmp/vllm-bench-sweep-256}"
-CONCURRENCIES=(${CONCURRENCIES:-1 2 4 8 16 32 64 128 256})
+RESULT_DIR="${RESULT_DIR:-/tmp/vllm-bench-sweep-512}"
+CONCURRENCIES=(${CONCURRENCIES:-1 2 4 8 16 32 64 128 256 512})
 # Fresh random seed for this sweep (override with SEED=...).
 SEED="${SEED:-$(python3 -c 'import random; print(random.randint(1, 2_000_000_000))')}"
 
