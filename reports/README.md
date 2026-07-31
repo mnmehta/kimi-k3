@@ -22,9 +22,9 @@ Real-weight comparison only (no dummy / truncated-layer runs):
 quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
 ```
 
-Source: `reports/tp16-vs-pp2-1000-1000.qmd`  
-Data: `bench-results/conc-sweep-real-1000-1000/`, `bench-results/conc-sweep-pp2-1000-1000/`  
-Pages: [mnmehta.github.io/kimi-k3](https://mnmehta.github.io/kimi-k3/) (this report is `index.html`)
+- Source: [`reports/tp16-vs-pp2-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/tp16-vs-pp2-1000-1000.qmd)
+- Data: [`conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000), [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000)
+- Pages: [mnmehta.github.io/kimi-k3](https://mnmehta.github.io/kimi-k3/) (this report is `index.html`)
 
 ## Full harness history (incl. dummy)
 
@@ -32,4 +32,5 @@ Pages: [mnmehta.github.io/kimi-k3](https://mnmehta.github.io/kimi-k3/) (this rep
 quarto render reports/concurrency-sweep-1000-1000.qmd --to html
 ```
 
-Also published at `/concurrency-sweep-1000-1000.html` on Pages.
+- Source: [`reports/concurrency-sweep-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/concurrency-sweep-1000-1000.qmd)
+- Also published at [/concurrency-sweep-1000-1000.html](https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html)
