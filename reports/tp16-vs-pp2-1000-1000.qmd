@@ -23,6 +23,7 @@ jupyter: kimi-k3-reports
 #| label: setup
 from pathlib import Path
 import json
+import re
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -34,6 +35,64 @@ pio.templates.default = "plotly_dark"
 ROOT = Path("..")
 if not (ROOT / "bench-results").exists():
     ROOT = Path(".")
+
+_RE_KV_GIB = re.compile(r"Available KV cache memory:\s*([\d.]+)\s*GiB")
+_RE_KV_TOKENS = re.compile(r"GPU KV cache size:\s*([\d,]+)\s*tokens")
+_RE_KV_MAXCONC = re.compile(
+    r"Maximum concurrency for\s*([\d,]+)\s*tokens per request:\s*([\d.]+)x"
+)
+
+
+def parse_kv_from_logs(data_dir: Path) -> dict:
+    """Parse available KV GiB / token capacity from archived vllm-recipe-*.log files.
+
+    Returns blank display strings when logs (or the KV lines) are missing so the
+    overview table stays renderable before copy-sweep-results.sh lands the logs.
+    """
+    gibs: list[float] = []
+    tokens = None
+    max_conc = None
+    ctx_tokens = None
+    for path in sorted(data_dir.glob("vllm-recipe-*.log")):
+        # Prefer EngineCore lines; available-memory is per-worker (take first per file).
+        text = path.read_text(errors="replace")
+        m_gib = _RE_KV_GIB.search(text)
+        if m_gib:
+            gibs.append(float(m_gib.group(1)))
+        if tokens is None:
+            m_tok = _RE_KV_TOKENS.search(text)
+            if m_tok:
+                tokens = int(m_tok.group(1).replace(",", ""))
+        if max_conc is None:
+            m_mc = _RE_KV_MAXCONC.search(text)
+            if m_mc:
+                ctx_tokens = int(m_mc.group(1).replace(",", ""))
+                max_conc = float(m_mc.group(2))
+
+    if not gibs:
+        gib_s = "—"
+    elif len(set(gibs)) == 1:
+        gib_s = f"{gibs[0]:.2f} GiB"
+    else:
+        gib_s = " / ".join(f"{g:.2f} GiB" for g in gibs)
+
+    if tokens is None:
+        tok_s = "—"
+    else:
+        tok_s = f"{tokens:,} tokens"
+
+    if max_conc is None or ctx_tokens is None:
+        maxconc_s = "—"
+    else:
+        maxconc_s = f"{max_conc:.2f}× @ {ctx_tokens:,} tok"
+
+    return {
+        "kv_gib": gib_s,
+        "kv_tokens": tok_s,
+        "kv_max_concurrency": maxconc_s,
+        "kv_gib_raw": gibs,
+        "kv_tokens_raw": tokens,
+    }
 
 
 def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
@@ -79,15 +138,26 @@ def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
     return df
 
 
-df_tp16 = load_sweep(ROOT / "bench-results" / "conc-sweep-real-1000-1000", "TP16")
-df_pp2 = load_sweep(ROOT / "bench-results" / "conc-sweep-pp2-1000-1000", "TP8×PP2")
+tp16_dir = ROOT / "bench-results" / "conc-sweep-real-1000-1000"
+pp2_dir = ROOT / "bench-results" / "conc-sweep-pp2-1000-1000"
+df_tp16 = load_sweep(tp16_dir, "TP16")
+df_pp2 = load_sweep(pp2_dir, "TP8×PP2")
 base_tp16 = df_tp16.loc[df_tp16["concurrency"] == 1].iloc[0]
 base_pp2 = df_pp2.loc[df_pp2["concurrency"] == 1].iloc[0]
 
-tp16_seed = ROOT / "bench-results" / "conc-sweep-real-1000-1000" / "seed.txt"
-pp2_seed = ROOT / "bench-results" / "conc-sweep-pp2-1000-1000" / "seed.txt"
+tp16_seed = tp16_dir / "seed.txt"
+pp2_seed = pp2_dir / "seed.txt"
 TP16_SEED = tp16_seed.read_text().strip() if tp16_seed.exists() else "n/a"
 PP2_SEED = pp2_seed.read_text().strip() if pp2_seed.exists() else "n/a"
+
+kv_tp16 = parse_kv_from_logs(tp16_dir)
+kv_pp2 = parse_kv_from_logs(pp2_dir)
+TP16_KV_GIB = kv_tp16["kv_gib"]
+PP2_KV_GIB = kv_pp2["kv_gib"]
+TP16_KV_TOKENS = kv_tp16["kv_tokens"]
+PP2_KV_TOKENS = kv_pp2["kv_tokens"]
+TP16_KV_MAXCONC = kv_tp16["kv_max_concurrency"]
+PP2_KV_MAXCONC = kv_pp2["kv_max_concurrency"]
 
 both = pd.concat([df_tp16, df_pp2], ignore_index=True)
 shared = sorted(set(df_tp16["concurrency"]) & set(df_pp2["concurrency"]))
@@ -134,6 +204,9 @@ Two `vllm bench serve` concurrency sweeps on **fozzie** (2×8 H200), same real M
 | **Max context** | 8192 (`--max-model-len`) | 8192 (`--max-model-len`) |
 | `--max-num-seqs` | 128 | 256 |
 | `--gpu-memory-utilization` | 0.97 | 0.90 |
+| Available KV cache | `{python} TP16_KV_GIB` | `{python} PP2_KV_GIB` |
+| GPU KV cache size | `{python} TP16_KV_TOKENS` | `{python} PP2_KV_TOKENS` |
+| Max concurrency (at max-model-len) | `{python} TP16_KV_MAXCONC` | `{python} PP2_KV_MAXCONC` |
 | MoE backend | marlin | marlin |
 | Interconnect | NCCL / RoCE IB (cross-node TP) | NCCL / RoCE IB (`NCCL_IB_HCA=mlx5_5`, `NCCL_IB_GID_INDEX=3`) |
 | Sweep seed | `{python} TP16_SEED` | `{python} PP2_SEED` |
@@ -435,6 +508,7 @@ show.rename(
 |------|------|
 | TP16 sweep data | [`bench-results/conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) |
 | TP8×PP2 sweep data | [`bench-results/conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) |
+| TP16 serve logs | `vllm-recipe-{0,1}.log` under the TP16 sweep dir (filled in by `copy-sweep-results.sh` when present) |
 | PP2 serve log (rank 0) | [`vllm-recipe-0.log`](https://github.com/mnmehta/kimi-k3/blob/main/bench-results/conc-sweep-pp2-1000-1000/vllm-recipe-0.log) |
 | PP2 serve log (rank 1) | [`vllm-recipe-1.log`](https://github.com/mnmehta/kimi-k3/blob/main/bench-results/conc-sweep-pp2-1000-1000/vllm-recipe-1.log) |
 | Report source | [`reports/tp16-vs-pp2-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/tp16-vs-pp2-1000-1000.qmd) |
