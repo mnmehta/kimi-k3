@@ -121,20 +121,25 @@ peak_pp2 = df_pp2.loc[df_pp2["output_throughput"].idxmax()]
 
 # Overview
 
-Two `vllm bench serve` concurrency sweeps on **fozzie** (2×8 H200), same real MXFP4 checkpoint (`/models/Kimi-K3`), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`):
+Two `vllm bench serve` concurrency sweeps on **fozzie** (2×8 H200), same real MXFP4 checkpoint (`/models/Kimi-K3`), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). Row set matches the [NVIDIA Dynamo Kimi-K3 “Compare All Targets”](https://docs.nvidia.com/dynamo/dev/recipes/kimi-k3#compare-all-targets) table, plus harness knobs for this sweep:
 
 | | **TP16** | **TP8×PP2** |
 |--|----------|-------------|
-| Parallelism | `--tensor-parallel-size 16` | `--tensor-parallel-size 8 --pipeline-parallel-size 2` |
-| Nodes | 2 × 8 GPU | 2 × 8 GPU (one PP stage / node) |
+| **GPUs** | 16× H200 (2 nodes × 8) | 16× H200 (2 nodes × 8) |
+| **Workers** | 1 (aggregated; rank-0 API + headless rank-1) | 1 (aggregated; rank-0 API + headless rank-1) |
+| **Parallelism** | TP16 | TP8 × PP2 (one PP stage / node) |
+| **KV transfer** | — (no P/D disagg) | — (no P/D disagg; PP activations over NCCL IB) |
+| **Attention** | FLASHMLA | FLASHMLA |
+| **Precision** | MXFP4 checkpoint (marlin MoE); default KV dtype | MXFP4 checkpoint (marlin MoE); default KV dtype |
+| **Max context** | 8192 (`--max-model-len`) | 8192 (`--max-model-len`) |
 | `--max-num-seqs` | 128 | 256 |
-| `--max-model-len` | 8192 | 8192 |
 | `--gpu-memory-utilization` | 0.97 | 0.90 |
-| MoE / attn | marlin / FLASHMLA | marlin / FLASHMLA |
+| MoE backend | marlin | marlin |
+| Interconnect | NCCL / RoCE IB (cross-node TP) | NCCL / RoCE IB (`NCCL_IB_HCA=mlx5_5`, `NCCL_IB_GID_INDEX=3`) |
 | Sweep seed | `{python} TP16_SEED` | `{python} PP2_SEED` |
 | Data | [`conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) | [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) |
 
-Bring-up: [`scripts/deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) vs [`scripts/deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh). Cross-node PP P2P required `NCCL_IB_HCA=mlx5_5` + `NCCL_IB_GID_INDEX=3` (default RoCE IPv6 link-local GIDs failed with `IBV_WC_RETRY_EXC_ERR`).
+Bring-up: [`scripts/deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) vs [`scripts/deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh). Cross-node PP P2P required the IPv4-mapped RoCE GID above (default IPv6 link-local GIDs failed with `IBV_WC_RETRY_EXC_ERR`).
 
 ```{python}
 #| label: method-meta
