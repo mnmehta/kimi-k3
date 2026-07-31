@@ -1,0 +1,70 @@
+# One-shot download of moonshotai/Kimi-K3 onto PVC kimi-k3-model.
+# Script is injected as ConfigMap kimi-k3-model-download (see scripts/download-model.sh).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kimi-k3-model-download
+  namespace: kimi-k3
+  labels:
+    app: kimi-k3
+    component: model-download
+spec:
+  ttlSecondsAfterFinished: 86400
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: kimi-k3
+        component: model-download
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: download
+        image: vllm/vllm-openai:kimi-k3
+        imagePullPolicy: IfNotPresent
+        command: ["bash", "/scripts/download-model-inpod.sh"]
+        env:
+        - name: MODEL_ID
+          value: moonshotai/Kimi-K3
+        - name: MODEL_ROOT
+          value: /models
+        - name: LOCAL_DIR
+          value: /models/Kimi-K3
+        - name: HF_HOME
+          value: /models/hf
+        - name: HF_HUB_ENABLE_HF_TRANSFER
+          value: "1"
+        # Optional: kubectl -n kimi-k3 create secret generic hf-token --from-literal=token=...
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token
+              key: token
+              optional: true
+        - name: HUGGING_FACE_HUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token
+              key: token
+              optional: true
+        volumeMounts:
+        - name: model
+          mountPath: /models
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        resources:
+          requests:
+            cpu: "4"
+            memory: 16Gi
+          limits:
+            cpu: "16"
+            memory: 64Gi
+      volumes:
+      - name: model
+        persistentVolumeClaim:
+          claimName: kimi-k3-model
+      - name: scripts
+        configMap:
+          name: kimi-k3-model-download
+          defaultMode: 0755

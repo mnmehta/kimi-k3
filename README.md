@@ -7,17 +7,43 @@ export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
 NS=kimi-k3
 ```
 
-## Recipe-shaped multi-node TP (dummy weights)
+## Model weights
 
-Mirrors the [vLLM Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) multi-node TP layout (2×8 GPUs, TP=16, FLASHMLA, marlin) but uses `--load-format dummy` and a shallow MoE so it fits for bring-up.
+`moonshotai/Kimi-K3` is ~1.56 TB. Prefer a shared PVC; on fozzie, VAST provisioning
+is currently broken so downloads use container-local `/models` (see `manifests/STORAGE.md`).
 
 ```bash
-./scripts/deploy-recipe-dummy.sh
-# API on rank-0 hostNetwork IP:8000
+./scripts/download-model.sh                 # auto: PVC then fallback
+./scripts/monitor-model-download.sh         # watch both ranks
+# PVC artifacts:  manifests/model-pvc.yaml, manifests/model-download-job.yaml
+# In-pod script:  scripts/download-model-inpod.sh
+# Force fallback: STORAGE_BACKEND=hostpath ./scripts/download-model.sh
+```
+
+Optional HF auth: `kubectl -n kimi-k3 create secret generic hf-token --from-literal=token=HF_...`
+
+## Recipe-shaped multi-node TP (real weights)
+
+After downloads finish on both ranks:
+
+```bash
+./scripts/deploy-recipe.sh
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
-In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe-dummy.sh`. Manifest: `manifests/vllm-recipe.yaml`.
+In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe.sh`.  
+Manifest: `manifests/vllm-recipe.yaml` (mounts `/models`).
+
+## Recipe-shaped multi-node TP (dummy weights)
+
+Same STS layout with `--load-format dummy` (no need to wait on weights):
+
+```bash
+./scripts/deploy-recipe-dummy.sh
+kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
+```
+
+In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe-dummy.sh`.
 
 ## Single-pod torch.profiler smoke (TP=2)
 
@@ -48,10 +74,10 @@ Open `vllm_profile/dp0_pp0_tp0_*.pt.trace.json.gz` in [Perfetto](https://ui.perf
 
 ## Reports
 
-Concurrency sweep Quarto report (full HF dummy vs shallow 12L):
+Concurrency sweep Quarto report (real weights vs full/shallow dummy):
 
 - Source: `reports/concurrency-sweep-1000-1000.qmd`
-- Data: `bench-results/conc-sweep-full-1000-1000/`, `bench-results/conc-sweep-1000-1000/`
+- Data: `bench-results/conc-sweep-real-1000-1000/`, `conc-sweep-full-1000-1000/`, `conc-sweep-1000-1000/`
 - GitHub Pages: https://mnmehta.github.io/kimi-k3/
 
 Local render:

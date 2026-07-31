@@ -3,6 +3,7 @@
 .DS_Store
 *.log
 *.log.rc
+*.pid
 nohup.out
 vllm_profile/
 foo

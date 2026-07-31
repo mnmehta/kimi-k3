@@ -1,6 +1,13 @@
 # 2-node recipe-shaped deployment matching
 # https://recipes.vllm.ai/moonshotai/Kimi-K3 (multi-node TP, 16 GPUs).
-# Pods sleep; launch vLLM via scripts/deploy-recipe-dummy.sh.
+# Pods sleep; launch vLLM via scripts/deploy-recipe.sh (real) or
+# scripts/deploy-recipe-dummy.sh (dummy).
+#
+# Storage: container-local /models on the node overlay (~28T). See manifests/STORAGE.md.
+# (hostPath /var/lib/... lands on a 15G ram0 tmpfs on fozzie — not usable for 1.5TB weights.)
+# When shared-vast PVC provisioning works, add:
+#   volumeMounts: [{name: model, mountPath: /models}]
+#   volumes: [{name: model, persistentVolumeClaim: {claimName: kimi-k3-model}}]
 apiVersion: v1
 kind: Service
 metadata:
@@ -65,6 +72,10 @@ spec:
           value: all
         - name: NVIDIA_DRIVER_CAPABILITIES
           value: compute,utility
+        - name: HF_HOME
+          value: /models/hf
+        - name: MODEL
+          value: /models/Kimi-K3
         resources:
           limits:
             nvidia.com/gpu: "8"

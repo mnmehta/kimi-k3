@@ -23,5 +23,6 @@ Source: `reports/concurrency-sweep-1000-1000.qmd`
 
 Data:
 
-- Full HF dummy (primary): `bench-results/conc-sweep-full-1000-1000/`
-- Shallow 12L comparison: `bench-results/conc-sweep-1000-1000/`
+- Real weights (primary): `bench-results/conc-sweep-real-1000-1000/`
+- Full HF dummy: `bench-results/conc-sweep-full-1000-1000/`
+- Shallow 12L dummy: `bench-results/conc-sweep-1000-1000/`
