@@ -5,7 +5,7 @@ Post-mortem of bringing up [vLLM multi-node tensor parallel](https://recipes.vll
 Working entrypoint: [`scripts/deploy-recipe.sh`](../scripts/deploy-recipe.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-real-1000-1000/`](../bench-results/conc-sweep-real-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
-Siblings: [`tp8-pp2-h200-deployment-issues.md`](tp8-pp2-h200-deployment-issues.md), [`tp8-dp2-h200-deployment-issues.md`](tp8-dp2-h200-deployment-issues.md).
+Siblings: [`tep16-h200-deployment-issues.md`](tep16-h200-deployment-issues.md), [`tp8-pp2-h200-deployment-issues.md`](tp8-pp2-h200-deployment-issues.md), [`tp8-dp2-h200-deployment-issues.md`](tp8-dp2-h200-deployment-issues.md).
 
 ## Root constraint
 

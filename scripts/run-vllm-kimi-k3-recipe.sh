@@ -4,6 +4,8 @@
 #
 # Parallelism presets (via env):
 #   TP16 (default):  TP_SIZE=16 PP_SIZE=1 DP_SIZE=1  (multi-node TP across 2×8)
+#   TEP16:           TP_SIZE=16 + ENABLE_EXPERT_PARALLEL=1
+#     https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep
 #   TP8×PP2:         TP_SIZE=8  PP_SIZE=2 DP_SIZE=1
 #   TP8×DP2:         TP_SIZE=8  PP_SIZE=1 DP_SIZE=2 DP_SIZE_LOCAL=1
 #     https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
@@ -58,6 +60,10 @@ ATTENTION_BACKEND="${ATTENTION_BACKEND:-FLASHMLA}"
 KV_CACHE_MEMORY_BYTES="${KV_CACHE_MEMORY_BYTES:-}"
 # Skip multimodal encoder profiling (can need ~400 MiB on Kimi-K3).
 SKIP_MM_PROFILING="${SKIP_MM_PROFILING:-0}"
+# Multi-node TEP: --enable-expert-parallel (recipe multi_node_tep).
+ENABLE_EXPERT_PARALLEL="${ENABLE_EXPERT_PARALLEL:-0}"
+# Optional: skip loading expert weights not owned by this EP rank.
+ENABLE_EP_WEIGHT_FILTER="${ENABLE_EP_WEIGHT_FILTER:-0}"
 
 MARKER="${MODEL}/.download-complete"
 if [[ ! -d "$MODEL" ]]; then
@@ -253,6 +259,14 @@ else
   fi
 fi
 
+if [[ "$ENABLE_EXPERT_PARALLEL" == "1" ]]; then
+  SERVE_ARGS+=(--enable-expert-parallel)
+fi
+
+if [[ "$ENABLE_EP_WEIGHT_FILTER" == "1" ]]; then
+  SERVE_ARGS+=(--enable-ep-weight-filter)
+fi
+
 if [[ -n "$LOAD_FORMAT" ]]; then
   SERVE_ARGS+=(--load-format "$LOAD_FORMAT")
 fi
@@ -267,6 +281,7 @@ fi
 
 echo "Launching recipe-shaped REAL-WEIGHT serve:"
 echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE DP=$DP_SIZE DP_LOCAL=$DP_SIZE_LOCAL DP_START=$DP_START_RANK"
+echo "  EP=${ENABLE_EXPERT_PARALLEL} EP_WEIGHT_FILTER=${ENABLE_EP_WEIGHT_FILTER}"
 echo "  NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR DP_ADDR=$DATA_PARALLEL_ADDRESS"
 echo "  IFACE=$GLOO_SOCKET_IFNAME LOAD_FORMAT=${LOAD_FORMAT:-<auto>}"
 echo "  max-num-seqs=$MAX_NUM_SEQS max-model-len=$MAX_MODEL_LEN gpu-mem-util=$GPU_MEM_UTIL"

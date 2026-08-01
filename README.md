@@ -27,6 +27,10 @@ After downloads finish on both ranks:
 # TP16 — hostPath /mnt/local/kimi-k3/models (default)
 ./scripts/deploy-recipe.sh
 
+# TEP16 — TP16 + --enable-expert-parallel
+# https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep
+./scripts/deploy-recipe-tep.sh
+
 # TP8 × PP2
 ./scripts/deploy-recipe-pp.sh
 

@@ -52,6 +52,7 @@ _RE_KV_MAXCONC = re.compile(
 
 RUN_COLORS = {
     "TP16": "#1f77b4",
+    "TEP16": "#17becf",
     "TP8×PP2": "#ff7f0e",
     "TP8×DP2": "#2ca02c",
 }
@@ -152,71 +153,109 @@ def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
 
 
 tp16_dir = ROOT / "bench-results" / "conc-sweep-real-1000-1000"
+tep_dir = ROOT / "bench-results" / "conc-sweep-tep-1000-1000"
 pp2_dir = ROOT / "bench-results" / "conc-sweep-pp2-1000-1000"
 dp2_dir = ROOT / "bench-results" / "conc-sweep-dp2-1000-1000"
 df_tp16 = load_sweep(tp16_dir, "TP16")
+df_tep = load_sweep(tep_dir, "TEP16")
 df_pp2 = load_sweep(pp2_dir, "TP8×PP2")
 df_dp2 = load_sweep(dp2_dir, "TP8×DP2")
 base_tp16 = df_tp16.loc[df_tp16["concurrency"] == 1].iloc[0]
+base_tep = df_tep.loc[df_tep["concurrency"] == 1].iloc[0]
 base_pp2 = df_pp2.loc[df_pp2["concurrency"] == 1].iloc[0]
 base_dp2 = df_dp2.loc[df_dp2["concurrency"] == 1].iloc[0]
 
 tp16_seed = tp16_dir / "seed.txt"
+tep_seed = tep_dir / "seed.txt"
 pp2_seed = pp2_dir / "seed.txt"
 dp2_seed = dp2_dir / "seed.txt"
 TP16_SEED = tp16_seed.read_text().strip() if tp16_seed.exists() else "n/a"
+TEP_SEED = tep_seed.read_text().strip() if tep_seed.exists() else "n/a"
 PP2_SEED = pp2_seed.read_text().strip() if pp2_seed.exists() else "n/a"
 DP2_SEED = dp2_seed.read_text().strip() if dp2_seed.exists() else "n/a"
 
 kv_tp16 = parse_kv_from_logs(tp16_dir)
+kv_tep = parse_kv_from_logs(tep_dir)
 kv_pp2 = parse_kv_from_logs(pp2_dir)
 kv_dp2 = parse_kv_from_logs(dp2_dir)
 TP16_KV_GIB = kv_tp16["kv_gib"]
+TEP_KV_GIB = kv_tep["kv_gib"]
 PP2_KV_GIB = kv_pp2["kv_gib"]
 DP2_KV_GIB = kv_dp2["kv_gib"]
 TP16_KV_TOKENS = kv_tp16["kv_tokens"]
+TEP_KV_TOKENS = kv_tep["kv_tokens"]
 PP2_KV_TOKENS = kv_pp2["kv_tokens"]
 DP2_KV_TOKENS = kv_dp2["kv_tokens"]
 TP16_KV_MAXCONC = kv_tp16["kv_max_concurrency"]
+TEP_KV_MAXCONC = kv_tep["kv_max_concurrency"]
 PP2_KV_MAXCONC = kv_pp2["kv_max_concurrency"]
 DP2_KV_MAXCONC = kv_dp2["kv_max_concurrency"]
 
-both = pd.concat([df_tp16, df_pp2, df_dp2], ignore_index=True)
+both = pd.concat([df_tp16, df_tep, df_pp2, df_dp2], ignore_index=True)
+# Wide table: intersection including DP2 (C≤16). Ratio charts use high-C shared below.
 shared = sorted(
-    set(df_tp16["concurrency"]) & set(df_pp2["concurrency"]) & set(df_dp2["concurrency"])
+    set(df_tp16["concurrency"])
+    & set(df_tep["concurrency"])
+    & set(df_pp2["concurrency"])
+    & set(df_dp2["concurrency"])
+)
+shared_hi = sorted(
+    set(df_tp16["concurrency"]) & set(df_tep["concurrency"]) & set(df_pp2["concurrency"])
 )
 cmp_rows = []
 for c in shared:
     t = df_tp16.loc[df_tp16["concurrency"] == c].iloc[0]
+    e = df_tep.loc[df_tep["concurrency"] == c].iloc[0]
     p = df_pp2.loc[df_pp2["concurrency"] == c].iloc[0]
     d = df_dp2.loc[df_dp2["concurrency"] == c].iloc[0]
     cmp_rows.append(
         {
             "concurrency": c,
             "tp16_tok_s": t["output_throughput"],
+            "tep_tok_s": e["output_throughput"],
             "pp2_tok_s": p["output_throughput"],
             "dp2_tok_s": d["output_throughput"],
+            "tep_tp16": e["output_throughput"] / t["output_throughput"],
             "pp2_tp16": p["output_throughput"] / t["output_throughput"],
             "dp2_tp16": d["output_throughput"] / t["output_throughput"],
             "dp2_pp2": d["output_throughput"] / p["output_throughput"],
             "tp16_tpot": t["mean_tpot_ms"],
+            "tep_tpot": e["mean_tpot_ms"],
             "pp2_tpot": p["mean_tpot_ms"],
             "dp2_tpot": d["mean_tpot_ms"],
             "tp16_ttft": t["mean_ttft_ms"],
+            "tep_ttft": e["mean_ttft_ms"],
             "pp2_ttft": p["mean_ttft_ms"],
             "dp2_ttft": d["mean_ttft_ms"],
             "tp16_e2el_s": t["mean_e2el_ms"] / 1000,
+            "tep_e2el_s": e["mean_e2el_ms"] / 1000,
             "pp2_e2el_s": p["mean_e2el_ms"] / 1000,
             "dp2_e2el_s": d["mean_e2el_ms"] / 1000,
             "tp16_eff": t["scaling_efficiency"],
+            "tep_eff": e["scaling_efficiency"],
             "pp2_eff": p["scaling_efficiency"],
             "dp2_eff": d["scaling_efficiency"],
         }
     )
 cmp = pd.DataFrame(cmp_rows)
+cmp_hi_rows = []
+for c in shared_hi:
+    t = df_tp16.loc[df_tp16["concurrency"] == c].iloc[0]
+    e = df_tep.loc[df_tep["concurrency"] == c].iloc[0]
+    p = df_pp2.loc[df_pp2["concurrency"] == c].iloc[0]
+    cmp_hi_rows.append(
+        {
+            "concurrency": c,
+            "tep_tp16": e["output_throughput"] / t["output_throughput"],
+            "pp2_tp16": p["output_throughput"] / t["output_throughput"],
+        }
+    )
+cmp_hi = pd.DataFrame(cmp_hi_rows)
+tep_tp16_c1 = cmp.loc[cmp["concurrency"] == 1, "tep_tp16"].iloc[0]
 pp2_tp16_c1 = cmp.loc[cmp["concurrency"] == 1, "pp2_tp16"].iloc[0]
 dp2_tp16_c1 = cmp.loc[cmp["concurrency"] == 1, "dp2_tp16"].iloc[0]
 peak_tp16 = df_tp16.loc[df_tp16["output_throughput"].idxmax()]
+peak_tep = df_tep.loc[df_tep["output_throughput"].idxmax()]
 peak_pp2 = df_pp2.loc[df_pp2["output_throughput"].idxmax()]
 peak_dp2 = df_dp2.loc[df_dp2["output_throughput"].idxmax()]
 ```
@@ -232,73 +271,75 @@ From the [Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) Strategy p
 | Recipe strategy | Recipe id | Recipe intent (from page) | H200 recipe UI | This report | Harness shorthand |
 |-----------------|-----------|---------------------------|----------------|-------------|-------------------|
 | [Multi-Node Tensor Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp) | `multi_node_tp` | Latency-oriented; TP = total GPUs across nodes; `--headless` workers | Selectable | **Measured** (C=1…512) | TP16 |
-| [Multi-Node Tensor + Expert Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep) | `multi_node_tep` | Balanced; cross-node TP + `--enable-expert-parallel` | Selectable | Pending | TEP16 |
+| [Multi-Node Tensor + Expert Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep) | `multi_node_tep` | Balanced; cross-node TP + `--enable-expert-parallel` | Selectable | **Measured** (C=1…512) | TEP16 |
 | [Multi-Node TP + Pipeline Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_pp) | `multi_node_tp_pp` | Throughput; TP in-node, PP across nodes | Selectable | **Measured** (C=1…512) | TP8×PP2 |
 | Multi-Node Data + Expert Parallel | `multi_node_dep` | Throughput; per-node TEP + DP across nodes (`--enable-expert-parallel`, `--data-parallel-hybrid-lb`) | **Unsupported** (greyed out) | Out of scope on H200 | — |
 | [Multi-Node TP + Data Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp) | `multi_node_tp_dp` | Balanced; one full replica / node (e.g. TP8·DP2) | Selectable | **Measured** (C=1…16) | TP8×DP2 |
 | [Prefill/Decode Disaggregation](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster) | `pd_cluster` | Production; separate prefill/decode + NIXL KV transfer | Selectable | Pending | P/D |
 
-Head-to-head below is the **three measured** selectable strategies. Remaining selectable work: [TEP](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep) and [P/D](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster).
+Head-to-head below is the **four measured** selectable strategies. Remaining selectable work: [P/D](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster).
 
 # Measured strategies (detail)
 
-Same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / PP2 cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-0.log` (`non-default args` / launch banner). Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh).
+Same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / TEP16 / PP2 cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-0.log` (`non-default args` / launch banner). Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-tep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-tep.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh).
 
-| | **TP16** (`multi_node_tp`) | **TP8×PP2** (`multi_node_tp_pp`) | **TP8×DP2** (`multi_node_tp_dp`) |
-|:--|:--|:--|:--|
-| ***Differing CLI*** | | | |
-| `--tensor-parallel-size` | `16` | `8` | `8` |
-| `--pipeline-parallel-size` | — (1) | `2` | — (1) |
-| `--data-parallel-size` | — (1) | — (1) | `2` |
-| `--data-parallel-size-local` | — | — | `1` |
-| `--data-parallel-address` | — | — | head pod IP |
-| `--data-parallel-rpc-port` | — | — | `13345` |
-| `--data-parallel-start-rank` | — | — | `0` / `1` per rank |
-| `--nnodes` | `2` | `2` | — (DP mode; not passed) |
-| `--node-rank` | `0` / `1` | `0` / `1` | — (DP mode; not passed) |
-| `--master-addr` | head pod IP | head pod IP | — (DP mode; not passed) |
-| `--gpu-memory-utilization` | `0.97` | `0.90` | `0.97` |
-| `--max-num-seqs` | `128` | `256` | `2` |
-| `--max-model-len` | `8192` | `8192` | `2048` |
-| `--max-num-batched-tokens` | `4096` | `4096` | `256` |
-| `--kv-cache-memory-bytes` | — (auto from util) | — (auto from util) | `160000000` |
-| `--skip-mm-profiling` | — | — | set |
-| ***Shared CLI*** | | | |
-| `vllm serve` model | `/models/Kimi-K3` | `/models/Kimi-K3` | `/models/Kimi-K3` |
-| `--host` | `0.0.0.0` | `0.0.0.0` | `0.0.0.0` |
-| `--port` | `8000` | `8000` | `8000` |
-| `--trust-remote-code` | set | set | set |
-| `--attention-backend` | `FLASHMLA` | `FLASHMLA` | `FLASHMLA` |
-| `--moe-backend` | `marlin` | `marlin` | `marlin` |
-| `--disable-custom-all-reduce` | set | set | set |
-| `--no-enable-flashinfer-autotune` | set | set | set |
-| `--enable-auto-tool-choice` | set | set | set |
-| `--tool-call-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
-| `--reasoning-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
-| `--headless` | rank ≠ 0 | rank ≠ 0 | DP start-rank ≠ 0 |
-| ***Differing env (serve process)*** | | | |
-| `VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE` | default (~394 MiB) | default (~394 MiB) | `67108864` (64 MiB) |
-| `VLLM_USE_V2_MODEL_RUNNER` | `1` (script default) | `1` (script default) | `0` |
-| `VLLM_USE_RUST_FRONTEND` | `0` | `0` | `0` |
-| `NCCL_IB_HCA` / `NCCL_IB_GID_INDEX` | unset | `mlx5_5` / `3` | unset |
-| `NCCL_DMABUF_ENABLE` | `0` | `0` | `0` |
-| ***Consequences (observed)*** | | | |
-| GPUs | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) |
-| Engine layout | 1 engine, cross-node TP | 1 engine, PP stage / node | 2 DP replicas (1 / node) |
-| Precision | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) |
-| Available KV cache | `{python} TP16_KV_GIB` | `{python} PP2_KV_GIB` | `{python} DP2_KV_GIB` |
-| GPU KV cache size | `{python} TP16_KV_TOKENS` | `{python} PP2_KV_TOKENS` | `{python} DP2_KV_TOKENS` |
-| Max concurrency (at max-model-len) | `{python} TP16_KV_MAXCONC` | `{python} PP2_KV_MAXCONC` | `{python} DP2_KV_MAXCONC` |
-| Sweep tiers | C ∈ {1…512} | C ∈ {1…512} | C ∈ {1…16} |
-| Sweep seed | `{python} TP16_SEED` | `{python} PP2_SEED` | `{python} DP2_SEED` |
-| Data | [`conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) | [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) | [`conc-sweep-dp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-dp2-1000-1000) |
+| | **TP16** (`multi_node_tp`) | **TEP16** (`multi_node_tep`) | **TP8×PP2** (`multi_node_tp_pp`) | **TP8×DP2** (`multi_node_tp_dp`) |
+|:--|:--|:--|:--|:--|
+| ***Differing CLI*** | | | | |
+| `--tensor-parallel-size` | `16` | `16` | `8` | `8` |
+| `--pipeline-parallel-size` | — (1) | — (1) | `2` | — (1) |
+| `--data-parallel-size` | — (1) | — (1) | — (1) | `2` |
+| `--data-parallel-size-local` | — | — | — | `1` |
+| `--data-parallel-address` | — | — | — | head pod IP |
+| `--data-parallel-rpc-port` | — | — | — | `13345` |
+| `--data-parallel-start-rank` | — | — | — | `0` / `1` per rank |
+| `--enable-expert-parallel` | — | set | — | — |
+| `--nnodes` | `2` | `2` | `2` | — (DP mode; not passed) |
+| `--node-rank` | `0` / `1` | `0` / `1` | `0` / `1` | — (DP mode; not passed) |
+| `--master-addr` | head pod IP | head pod IP | head pod IP | — (DP mode; not passed) |
+| `--gpu-memory-utilization` | `0.97` | `0.97` | `0.90` | `0.97` |
+| `--max-num-seqs` | `128` | `128` | `256` | `2` |
+| `--max-model-len` | `8192` | `8192` | `8192` | `2048` |
+| `--max-num-batched-tokens` | `4096` | `4096` | `4096` | `256` |
+| `--kv-cache-memory-bytes` | — (auto from util) | — (auto from util) | — (auto from util) | `160000000` |
+| `--skip-mm-profiling` | — | — | — | set |
+| ***Shared CLI*** | | | | |
+| `vllm serve` model | `/models/Kimi-K3` | `/models/Kimi-K3` | `/models/Kimi-K3` | `/models/Kimi-K3` |
+| `--host` | `0.0.0.0` | `0.0.0.0` | `0.0.0.0` | `0.0.0.0` |
+| `--port` | `8000` | `8000` | `8000` | `8000` |
+| `--trust-remote-code` | set | set | set | set |
+| `--attention-backend` | `FLASHMLA` | `FLASHMLA` | `FLASHMLA` | `FLASHMLA` |
+| `--moe-backend` | `marlin` | `marlin` | `marlin` | `marlin` |
+| `--disable-custom-all-reduce` | set | set | set | set |
+| `--no-enable-flashinfer-autotune` | set | set | set | set |
+| `--enable-auto-tool-choice` | set | set | set | set |
+| `--tool-call-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
+| `--reasoning-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
+| `--headless` | rank ≠ 0 | rank ≠ 0 | rank ≠ 0 | DP start-rank ≠ 0 |
+| ***Differing env (serve process)*** | | | | |
+| `VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE` | default (~394 MiB) | default (~394 MiB) | default (~394 MiB) | `67108864` (64 MiB) |
+| `VLLM_USE_V2_MODEL_RUNNER` | `1` (script default) | `1` (script default) | `1` (script default) | `0` |
+| `VLLM_USE_RUST_FRONTEND` | `0` | `0` | `0` | `0` |
+| `NCCL_IB_HCA` / `NCCL_IB_GID_INDEX` | unset | unset | `mlx5_5` / `3` | unset |
+| `NCCL_DMABUF_ENABLE` | `0` | `0` | `0` | `0` |
+| ***Consequences (observed)*** | | | | |
+| GPUs | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) |
+| Engine layout | 1 engine, cross-node TP | 1 engine, TP+EP (56/896 experts/rank) | 1 engine, PP stage / node | 2 DP replicas (1 / node) |
+| Precision | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) |
+| Available KV cache | `{python} TP16_KV_GIB` | `{python} TEP_KV_GIB` | `{python} PP2_KV_GIB` | `{python} DP2_KV_GIB` |
+| GPU KV cache size | `{python} TP16_KV_TOKENS` | `{python} TEP_KV_TOKENS` | `{python} PP2_KV_TOKENS` | `{python} DP2_KV_TOKENS` |
+| Max concurrency (at max-model-len) | `{python} TP16_KV_MAXCONC` | `{python} TEP_KV_MAXCONC` | `{python} PP2_KV_MAXCONC` | `{python} DP2_KV_MAXCONC` |
+| Sweep tiers | C ∈ {1…512} | C ∈ {1…512} | C ∈ {1…512} | C ∈ {1…16} |
+| Sweep seed | `{python} TP16_SEED` | `{python} TEP_SEED` | `{python} PP2_SEED` | `{python} DP2_SEED` |
+| Data | [`conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) | [`conc-sweep-tep-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-tep-1000-1000) | [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) | [`conc-sweep-dp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-dp2-1000-1000) |
 
-On H200, a TP8 replica is ~135.7 GiB/GPU (vs ~129.8 GiB under TP16), so DP2 needs the differing knobs above (`--skip-mm-profiling`, 64 MiB FlashInfer workspace, tiny batched/KV). Cross-node PP P2P required the IPv4-mapped RoCE GID (`NCCL_IB_*`). Recipe target hardware is GB300; DP2 1000/1000 fits ~1 concurrent request/replica (~2 cluster-wide).
+TEP16 matches TP16 knobs plus `--enable-expert-parallel` (same `nnodes` / `node-rank` path). On H200, a TP8 replica is ~135.7 GiB/GPU (vs ~129.8 GiB under TP16/TEP16), so DP2 needs the differing knobs above (`--skip-mm-profiling`, 64 MiB FlashInfer workspace, tiny batched/KV). Cross-node PP P2P required the IPv4-mapped RoCE GID (`NCCL_IB_*`). Recipe target hardware is GB300; DP2 1000/1000 fits ~1 concurrent request/replica (~2 cluster-wide).
 
 ```{python}
 #| label: method-meta
 print(
     f"TP16 tiers: {list(df_tp16['concurrency'])}  |  C=1 = {base_tp16['output_throughput']:.1f} tok/s\n"
+    f"TEP  tiers: {list(df_tep['concurrency'])}  |  C=1 = {base_tep['output_throughput']:.1f} tok/s\n"
     f"PP2  tiers: {list(df_pp2['concurrency'])}  |  C=1 = {base_pp2['output_throughput']:.1f} tok/s\n"
     f"DP2  tiers: {list(df_dp2['concurrency'])}  |  C=1 = {base_dp2['output_throughput']:.1f} tok/s"
 )
@@ -311,37 +352,42 @@ print(
 #| tbl-cap: "Shared concurrency tiers — throughput and latency."
 
 show = cmp.copy()
-for col in ("tp16_tok_s", "pp2_tok_s", "dp2_tok_s"):
+for col in ("tp16_tok_s", "tep_tok_s", "pp2_tok_s", "dp2_tok_s"):
     show[col] = show[col].round(1)
-for col in ("pp2_tp16", "dp2_tp16", "dp2_pp2"):
+for col in ("tep_tp16", "pp2_tp16", "dp2_tp16", "dp2_pp2"):
     show[col] = show[col].round(3)
-for col in ("tp16_tpot", "pp2_tpot", "dp2_tpot"):
+for col in ("tp16_tpot", "tep_tpot", "pp2_tpot", "dp2_tpot"):
     show[col] = show[col].round(2)
-for col in ("tp16_ttft", "pp2_ttft", "dp2_ttft"):
+for col in ("tp16_ttft", "tep_ttft", "pp2_ttft", "dp2_ttft"):
     show[col] = show[col].round(1)
-for col in ("tp16_e2el_s", "pp2_e2el_s", "dp2_e2el_s"):
+for col in ("tp16_e2el_s", "tep_e2el_s", "pp2_e2el_s", "dp2_e2el_s"):
     show[col] = show[col].round(1)
-for col in ("tp16_eff", "pp2_eff", "dp2_eff"):
+for col in ("tp16_eff", "tep_eff", "pp2_eff", "dp2_eff"):
     show[col] = (show[col] * 100).round(1)
 show[
     [
         "concurrency",
         "tp16_tok_s",
+        "tep_tok_s",
         "pp2_tok_s",
         "dp2_tok_s",
+        "tep_tp16",
         "pp2_tp16",
         "dp2_tp16",
-        "dp2_pp2",
         "tp16_tpot",
+        "tep_tpot",
         "pp2_tpot",
         "dp2_tpot",
         "tp16_ttft",
+        "tep_ttft",
         "pp2_ttft",
         "dp2_ttft",
         "tp16_e2el_s",
+        "tep_e2el_s",
         "pp2_e2el_s",
         "dp2_e2el_s",
         "tp16_eff",
+        "tep_eff",
         "pp2_eff",
         "dp2_eff",
     ]
@@ -349,21 +395,26 @@ show[
     columns={
         "concurrency": "C",
         "tp16_tok_s": "TP16 tok/s",
+        "tep_tok_s": "TEP tok/s",
         "pp2_tok_s": "PP2 tok/s",
         "dp2_tok_s": "DP2 tok/s",
+        "tep_tp16": "TEP/TP16",
         "pp2_tp16": "PP2/TP16",
         "dp2_tp16": "DP2/TP16",
-        "dp2_pp2": "DP2/PP2",
         "tp16_tpot": "TP16 TPOT",
+        "tep_tpot": "TEP TPOT",
         "pp2_tpot": "PP2 TPOT",
         "dp2_tpot": "DP2 TPOT",
         "tp16_ttft": "TP16 TTFT",
+        "tep_ttft": "TEP TTFT",
         "pp2_ttft": "PP2 TTFT",
         "dp2_ttft": "DP2 TTFT",
         "tp16_e2el_s": "TP16 E2EL s",
+        "tep_e2el_s": "TEP E2EL s",
         "pp2_e2el_s": "PP2 E2EL s",
         "dp2_e2el_s": "DP2 E2EL s",
         "tp16_eff": "TP16 scale%",
+        "tep_eff": "TEP scale%",
         "pp2_eff": "PP2 scale%",
         "dp2_eff": "DP2 scale%",
     }
@@ -374,10 +425,12 @@ show[
 #| label: findings-compare
 #| output: asis
 hi = cmp.loc[cmp["concurrency"] >= 4]
+hi_full = cmp_hi.loc[cmp_hi["concurrency"] >= 4]
 print(f"""
-- **@C=1:** PP2/TP16 = **{pp2_tp16_c1:.3f}** ({base_pp2['output_throughput']:.0f} vs {base_tp16['output_throughput']:.0f} tok/s); DP2/TP16 = **{dp2_tp16_c1:.3f}** ({base_dp2['output_throughput']:.0f} tok/s). TPOT: TP16 {base_tp16['mean_tpot_ms']:.1f} / PP2 {base_pp2['mean_tpot_ms']:.1f} / DP2 {base_dp2['mean_tpot_ms']:.1f} ms.
-- **Peak tok/s:** TP16 **{peak_tp16['output_throughput']:.0f}** @C={int(peak_tp16['concurrency'])}; PP2 **{peak_pp2['output_throughput']:.0f}** @C={int(peak_pp2['concurrency'])}; DP2 **{peak_dp2['output_throughput']:.0f}** @C={int(peak_dp2['concurrency'])}.
-- **@C≥4 (DP2 saturated):** DP2/TP16 tok/s ~**{hi['dp2_tp16'].min():.2f}–{hi['dp2_tp16'].max():.2f}**; DP2/PP2 ~**{hi['dp2_pp2'].min():.2f}–{hi['dp2_pp2'].max():.2f}**. DP2 plateaus ~{peak_dp2['output_throughput']:.0f} tok/s (≈2× C=1) — expected with ~1 in-flight request per DP replica.
+- **@C=1:** TEP/TP16 = **{tep_tp16_c1:.3f}** ({base_tep['output_throughput']:.0f} vs {base_tp16['output_throughput']:.0f} tok/s); PP2/TP16 = **{pp2_tp16_c1:.3f}** ({base_pp2['output_throughput']:.0f} tok/s); DP2/TP16 = **{dp2_tp16_c1:.3f}** ({base_dp2['output_throughput']:.0f} tok/s). TPOT: TP16 {base_tp16['mean_tpot_ms']:.1f} / TEP {base_tep['mean_tpot_ms']:.1f} / PP2 {base_pp2['mean_tpot_ms']:.1f} / DP2 {base_dp2['mean_tpot_ms']:.1f} ms.
+- **Peak tok/s:** TP16 **{peak_tp16['output_throughput']:.0f}** @C={int(peak_tp16['concurrency'])}; TEP **{peak_tep['output_throughput']:.0f}** @C={int(peak_tep['concurrency'])}; PP2 **{peak_pp2['output_throughput']:.0f}** @C={int(peak_pp2['concurrency'])}; DP2 **{peak_dp2['output_throughput']:.0f}** @C={int(peak_dp2['concurrency'])}.
+- **@C≥4 (high-C shared):** TEP/TP16 ~**{hi_full['tep_tp16'].min():.2f}–{hi_full['tep_tp16'].max():.2f}**; PP2/TP16 ~**{hi_full['pp2_tp16'].min():.2f}–{hi_full['pp2_tp16'].max():.2f}**.
+- **@C≥4 (DP2 saturated):** DP2/TP16 tok/s ~**{hi['dp2_tp16'].min():.2f}–{hi['dp2_tp16'].max():.2f}**. DP2 plateaus ~{peak_dp2['output_throughput']:.0f} tok/s (≈2× C=1) — expected with ~1 in-flight request per DP replica.
 """)
 ```
 
@@ -426,8 +479,18 @@ fig.show()
 fig = go.Figure()
 fig.add_trace(
     go.Scatter(
-        x=cmp["concurrency"],
-        y=cmp["pp2_tp16"],
+        x=cmp_hi["concurrency"],
+        y=cmp_hi["tep_tp16"],
+        mode="lines+markers",
+        name="TEP÷TP16",
+        line=dict(color=RUN_COLORS["TEP16"]),
+        hovertemplate="C=%{x}<br>TEP/TP16=%{y:.3f}<extra></extra>",
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=cmp_hi["concurrency"],
+        y=cmp_hi["pp2_tp16"],
         mode="lines+markers",
         name="PP2÷TP16",
         line=dict(color=RUN_COLORS["TP8×PP2"]),
@@ -481,7 +544,7 @@ fig = make_subplots(
     cols=3,
     subplot_titles=("TPOT (ms)", "TTFT (ms)", "E2EL (s)"),
 )
-for run, dfx in [("TP16", df_tp16), ("TP8×PP2", df_pp2), ("TP8×DP2", df_dp2)]:
+for run, dfx in [("TP16", df_tp16), ("TEP16", df_tep), ("TP8×PP2", df_pp2), ("TP8×DP2", df_dp2)]:
     color = RUN_COLORS[run]
     fig.add_trace(
         go.Scatter(
@@ -539,6 +602,47 @@ fig.show()
 #| tbl-cap: "TP16 real weights — per-concurrency summary."
 
 show = df_tp16[
+    [
+        "concurrency",
+        "num_prompts",
+        "duration_s",
+        "request_throughput",
+        "output_throughput",
+        "mean_ttft_ms",
+        "mean_tpot_ms",
+        "mean_e2el_ms",
+        "scaling_efficiency",
+    ]
+].copy()
+show["duration_s"] = show["duration_s"].round(1)
+show["request_throughput"] = show["request_throughput"].round(3)
+show["output_throughput"] = show["output_throughput"].round(1)
+show["mean_ttft_ms"] = show["mean_ttft_ms"].round(1)
+show["mean_tpot_ms"] = show["mean_tpot_ms"].round(2)
+show["mean_e2el_ms"] = (show["mean_e2el_ms"] / 1000).round(1)
+show["scaling_efficiency"] = (show["scaling_efficiency"] * 100).round(1)
+show.rename(
+    columns={
+        "concurrency": "C",
+        "num_prompts": "prompts",
+        "duration_s": "dur (s)",
+        "request_throughput": "req/s",
+        "output_throughput": "out tok/s",
+        "mean_ttft_ms": "TTFT ms",
+        "mean_tpot_ms": "TPOT ms",
+        "mean_e2el_ms": "E2EL s",
+        "scaling_efficiency": "scale %",
+    }
+)
+```
+
+## TEP16
+
+```{python}
+#| label: tbl-tep
+#| tbl-cap: "TEP16 real weights — per-concurrency summary."
+
+show = df_tep[
     [
         "concurrency",
         "num_prompts",
@@ -660,9 +764,11 @@ show.rename(
 | Kind | Path |
 |------|------|
 | TP16 sweep (C=1…512) | [`bench-results/conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) |
+| TEP16 sweep (C=1…512) | [`bench-results/conc-sweep-tep-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-tep-1000-1000) |
 | TP8×PP2 sweep (C=1…512) | [`bench-results/conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) |
 | TP8×DP2 sweep (C=1…16) | [`bench-results/conc-sweep-dp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-dp2-1000-1000) |
 | TP16 serve logs | [`vllm-recipe-*.log`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) |
+| TEP16 serve logs | [`vllm-recipe-*.log`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-tep-1000-1000) |
 | PP2 serve logs | [`vllm-recipe-*.log`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) |
 | DP2 serve logs | [`vllm-recipe-*.log`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-dp2-1000-1000) |
 | Report source | [`reports/tp16-vs-pp2-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/tp16-vs-pp2-1000-1000.qmd) |
@@ -672,10 +778,11 @@ Scripts:
 - [`scripts/deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh)
 - [`scripts/deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh)
 - [`scripts/deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh)
+- [`scripts/deploy-recipe-tep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-tep.sh)
 - [`scripts/run-vllm-kimi-k3-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-vllm-kimi-k3-recipe.sh)
 - [`scripts/bench-concurrency-sweep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/bench-concurrency-sweep.sh)
-- [`scripts/start-dp2-sweep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/start-dp2-sweep.sh)
-- [`scripts/monitor-dp2-sweep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/monitor-dp2-sweep.sh)
+- [`scripts/start-tep-sweep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/start-tep-sweep.sh)
+- [`scripts/monitor-tep-sweep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/monitor-tep-sweep.sh)
 - [`scripts/copy-sweep-results.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/copy-sweep-results.sh)
 
 # Render

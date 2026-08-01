@@ -5,7 +5,7 @@ Post-mortem of bringing up [vLLM multi-node TP+DP](https://recipes.vllm.ai/moons
 Working entrypoint: [`scripts/deploy-recipe-dp.sh`](../scripts/deploy-recipe-dp.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-dp2-1000-1000/`](../bench-results/conc-sweep-dp2-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
-Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`tp8-pp2-h200-deployment-issues.md`](tp8-pp2-h200-deployment-issues.md).
+Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`tep16-h200-deployment-issues.md`](tep16-h200-deployment-issues.md), [`tp8-pp2-h200-deployment-issues.md`](tp8-pp2-h200-deployment-issues.md).
 
 ## Root constraint
 
