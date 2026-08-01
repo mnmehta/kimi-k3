@@ -9,15 +9,12 @@ NS=kimi-k3
 
 ## Model weights
 
-`moonshotai/Kimi-K3` is ~1.56 TB. Prefer a shared PVC; on fozzie, VAST provisioning
-is currently broken so downloads use container-local `/models` (see `manifests/STORAGE.md`).
+`moonshotai/Kimi-K3` is ~1.56 TB. Weights live on **real hostPath**
+`/mnt/local/kimi-k3/models` per node (CoreWeave local NVMe). See `manifests/STORAGE.md`.
 
 ```bash
-./scripts/download-model.sh                 # auto: PVC then fallback
-./scripts/monitor-model-download.sh         # watch both ranks
-# PVC artifacts:  manifests/model-pvc.yaml, manifests/model-download-job.yaml
-# In-pod script:  scripts/download-model-inpod.sh
-# Force fallback: STORAGE_BACKEND=hostpath ./scripts/download-model.sh
+./scripts/download-model.sh
+./scripts/monitor-model-download.sh
 ```
 
 Optional HF auth: `kubectl -n kimi-k3 create secret generic hf-token --from-literal=token=HF_...`
@@ -27,17 +24,17 @@ Optional HF auth: `kubectl -n kimi-k3 create secret generic hf-token --from-lite
 After downloads finish on both ranks:
 
 ```bash
-# TP16 across 2×8 GPUs (default)
+# TP16 — hostPath /mnt/local/kimi-k3/models (default)
 ./scripts/deploy-recipe.sh
 
-# TP8 × PP2 across the same 2×8 GPU STS
+# TP8 × PP2
 ./scripts/deploy-recipe-pp.sh
 
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
-In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe.sh` (`TP_SIZE` / `PP_SIZE` env).  
-Manifest: `manifests/vllm-recipe.yaml` (shared by both parallelism modes).
+In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe.sh`.  
+Manifests: `vllm-recipe.yaml` (hostPath) / `vllm-recipe-overlay.yaml` (ephemeral legacy).
 
 ## Recipe-shaped multi-node (dummy weights)
 

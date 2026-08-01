@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs inside the model-download Job. Downloads moonshotai/Kimi-K3 onto the
-# PVC mounted at MODEL_ROOT (default /models).
+# Runs inside a recipe pod (or similar). Downloads moonshotai/Kimi-K3 onto
+# MODEL_ROOT (default /models — hostPath /mnt/local/kimi-k3/models).
 set -euo pipefail
 
 MODEL_ID="${MODEL_ID:-moonshotai/Kimi-K3}"

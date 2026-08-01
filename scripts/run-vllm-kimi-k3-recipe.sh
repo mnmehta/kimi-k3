@@ -40,7 +40,7 @@ ATTENTION_BACKEND="${ATTENTION_BACKEND:-FLASHMLA}"
 
 MARKER="${MODEL}/.download-complete"
 if [[ ! -d "$MODEL" ]]; then
-  echo "MODEL path missing: $MODEL (is PVC mounted at /models?)" >&2
+  echo "MODEL path missing: $MODEL (is hostPath /models populated?)" >&2
   exit 1
 fi
 if [[ ! -f "$MARKER" ]]; then

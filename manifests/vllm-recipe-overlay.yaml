@@ -1,12 +1,5 @@
-# 2-node recipe-shaped deployment matching
-# https://recipes.vllm.ai/moonshotai/Kimi-K3 (multi-node TP, 16 GPUs).
-# Pods sleep; launch vLLM via:
-#   scripts/deploy-recipe.sh / deploy-recipe-dummy.sh          (TP16)
-#   scripts/deploy-recipe-pp.sh / deploy-recipe-dummy-pp.sh    (TP8×PP2)
-#
-# Storage: real CoreWeave local NVMe via hostPath /mnt/local/kimi-k3/models
-# (see manifests/STORAGE.md). Survives pod delete on the same node; not node reboot.
-# Legacy ephemeral: vllm-recipe-overlay.yaml.
+# Ephemeral fallback: container-local /models (overlay on /mnt/local).
+# Lost when the pod is deleted. Prefer vllm-recipe.yaml (real hostPath).
 apiVersion: v1
 kind: Service
 metadata:
@@ -73,9 +66,6 @@ spec:
           value: /models/hf
         - name: MODEL
           value: /models/Kimi-K3
-        volumeMounts:
-        - name: model
-          mountPath: /models
         resources:
           limits:
             nvidia.com/gpu: "8"
@@ -85,14 +75,5 @@ spec:
             rdma/ib: "1"
             cpu: "16"
             memory: 64Gi
-            # Weights ~1.56Ti live on hostPath (not counted as ephemeral-storage),
-            # but leave headroom for logs/scratch on the local NVMe.
-            ephemeral-storage: 50Gi
-      volumes:
-      - name: model
-        hostPath:
-          # CoreWeave local NVMe RAID — NOT /var/lib (small/ram0 on some paths).
-          path: /mnt/local/kimi-k3/models
-          type: DirectoryOrCreate
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

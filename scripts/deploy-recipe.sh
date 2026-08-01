@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Deploy multi-node recipe with REAL weights (container-local /models or PVC).
+# Deploy multi-node recipe with REAL weights on hostPath /models.
 # Recipe: https://recipes.vllm.ai/moonshotai/Kimi-K3
 #
 # Default parallelism: TP16 (PP=1). For TP8×PP2 use ./scripts/deploy-recipe-pp.sh
 # or: TP_SIZE=8 PP_SIZE=2 ./scripts/deploy-recipe.sh
 #
 # Prerequisites:
-#   ./scripts/download-model.sh
+#   ./scripts/download-model.sh   # or weights already on /mnt/local/kimi-k3/models
 #
 # Usage:
 #   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
@@ -20,18 +20,37 @@ NS="${NS:-kimi-k3}"
 NNODES="${NNODES:-2}"
 PP_SIZE="${PP_SIZE:-1}"
 TP_SIZE="${TP_SIZE:-$((NNODES * 8 / PP_SIZE))}"
-PVC="${PVC:-kimi-k3-model}"
 MODEL_PATH="${MODEL_PATH:-/models/Kimi-K3}"
 LOAD_FORMAT="${LOAD_FORMAT:-}"
+# hostpath = CoreWeave /mnt/local/kimi-k3/models (default)
+# overlay  = ephemeral container-local /models (legacy)
+STORAGE_BACKEND="${STORAGE_BACKEND:-hostpath}"
 # Engine seq budget (client sweep may oversubscribe up to C=512).
 export MAX_NUM_SEQS="${MAX_NUM_SEQS:-128}"
 
-echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} NNODES=${NNODES}"
+echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} NNODES=${NNODES} STORAGE_BACKEND=${STORAGE_BACKEND}"
 
-echo "==> Applying namespace + recipe StatefulSet (container-local /models; see manifests/STORAGE.md)"
+echo "==> Applying namespace + recipe StatefulSet"
 kubectl apply -f "$ROOT/manifests/namespace.yaml"
-kubectl apply -f "$ROOT/manifests/vllm-recipe.yaml"
+# Stop serve before volume-template changes recreate pods.
+for i in $(seq 0 $((NNODES - 1))); do
+  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/stop-inpod-vllm.sh >/dev/null 2>&1 || true
+done || true
+case "$STORAGE_BACKEND" in
+  hostpath)
+    kubectl apply -f "$ROOT/manifests/vllm-recipe.yaml"
+    ;;
+  overlay)
+    kubectl apply -f "$ROOT/manifests/vllm-recipe-overlay.yaml"
+    ;;
+  *)
+    echo "Unknown STORAGE_BACKEND=$STORAGE_BACKEND (use hostpath|overlay)" >&2
+    exit 1
+    ;;
+esac
 kubectl -n "$NS" scale statefulset/vllm-recipe --replicas="$NNODES"
+# Force rollout when switching storage backend (template may already match).
+kubectl -n "$NS" delete pod -l app=vllm-recipe --wait=false 2>/dev/null || true
 kubectl -n "$NS" rollout status statefulset/vllm-recipe --timeout=30m
 
 echo "==> Waiting for pods Ready"
@@ -40,10 +59,11 @@ for i in $(seq 0 $((NNODES - 1))); do
 done
 kubectl -n "$NS" get pods -l app=vllm-recipe -o wide
 
-if kubectl -n "$NS" get pvc "$PVC" >/dev/null 2>&1; then
-  echo "==> PVC $PVC status (optional; hostPath fallback may be active)"
-  kubectl -n "$NS" get pvc "$PVC" || true
-fi
+echo "==> Storage mount check"
+for i in $(seq 0 $((NNODES - 1))); do
+  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
+    'echo rank-'"$i"'; df -h /models | tail -1; findmnt -T /models | head -2 || true'
+done
 
 echo "==> Verifying weights on each rank"
 for i in $(seq 0 $((NNODES - 1))); do
