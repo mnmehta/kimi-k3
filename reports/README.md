@@ -14,9 +14,9 @@ export PATH="$PWD/reports/bin:$PATH"
 export QUARTO_PYTHON="$PWD/reports/.venv/bin/python"
 ```
 
-## TP16 vs TP8×PP2 vs TP8×DP2 (primary)
+## vLLM Kimi-K3 recipe strategy evaluation (primary)
 
-Real-weight comparison only (no dummy / truncated-layer runs):
+Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://recipes.vllm.ai/moonshotai/Kimi-K3) on H200. Measured: `multi_node_tp`, `multi_node_tp_pp`, `multi_node_tp_dp`. Pending: TEP, P/D. `multi_node_dep` is unsupported/greyed out on H200 in the recipe UI.
 
 ```bash
 quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html

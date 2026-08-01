@@ -1,6 +1,6 @@
 ---
-title: "Kimi-K3: TP16 vs TP8×PP2 vs TP8×DP2"
-subtitle: "Real-weight concurrency sweep · 1000/1000 · 2×8 H200"
+title: "Kimi-K3: vLLM recipe strategy evaluation"
+subtitle: "Real-weight concurrency sweeps on 2×8 H200 · 1000/1000 · measured vs pending recipe strategies"
 author: "kimi-k3 harness"
 date: "2026-08-01"
 format:
@@ -213,30 +213,79 @@ peak_pp2 = df_pp2.loc[df_pp2["output_throughput"].idxmax()]
 peak_dp2 = df_dp2.loc[df_dp2["output_throughput"].idxmax()]
 ```
 
-# Overview
+# Goal
 
-Three `vllm bench serve` concurrency sweeps on **fozzie** (2×8 H200), same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / PP2 cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4 and higher tiers only add queue time. Row set matches the [NVIDIA Dynamo Kimi-K3 “Compare All Targets”](https://docs.nvidia.com/dynamo/dev/recipes/kimi-k3#compare-all-targets) table, plus harness knobs for this sweep:
+Evaluate the deployment strategies listed on the official [vLLM Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) (Strategy picker), on **fozzie** 2×8 H200 with the real MXFP4 checkpoint. Recipe hardware target is **≥8× GB300**; this harness runs on H200 and records where configs must diverge.
 
-| | **TP16** | **TP8×PP2** | **TP8×DP2** |
-|--|----------|-------------|-------------|
-| **GPUs** | 16× H200 (2 nodes × 8) | 16× H200 (2 nodes × 8) | 16× H200 (2 nodes × 8) |
-| **Workers** | 1 aggregated engine | 1 aggregated engine | 2 DP replicas (1 / node) |
-| **Parallelism** | TP16 | TP8 × PP2 (one PP stage / node) | TP8 × DP2 (one full replica / node) |
-| **KV transfer** | — (no P/D disagg) | — (PP activations over NCCL IB) | — (independent KV per replica) |
-| **Attention** | FLASHMLA | FLASHMLA | FLASHMLA |
-| **Precision** | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) |
-| **Max context** | 8192 | 8192 | 2048 (H200 KV/workspace-limited) |
-| `--max-num-seqs` | 128 | 256 | 2 |
-| `--gpu-memory-utilization` | 0.97 | 0.90 | 0.97 (+ 160 MB KV; FlashInfer workspace 64 MB; `--skip-mm-profiling`) |
+## Recipe strategy coverage
+
+From the [Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) Strategy picker (page defaults to **NVIDIA H200**). Recipe metadata marks `multi_node_dep` as `strategy_hardware.h200: unsupported` (greyed out in the UI); it is not a target for this H200 harness.
+
+| Recipe strategy | Recipe id | Recipe intent (from page) | H200 recipe UI | This report | Harness shorthand |
+|-----------------|-----------|---------------------------|----------------|-------------|-------------------|
+| [Multi-Node Tensor Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp) | `multi_node_tp` | Latency-oriented; TP = total GPUs across nodes; `--headless` workers | Selectable | **Measured** (C=1…512) | TP16 |
+| [Multi-Node Tensor + Expert Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep) | `multi_node_tep` | Balanced; cross-node TP + `--enable-expert-parallel` | Selectable | Pending | TEP16 |
+| [Multi-Node TP + Pipeline Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_pp) | `multi_node_tp_pp` | Throughput; TP in-node, PP across nodes | Selectable | **Measured** (C=1…512) | TP8×PP2 |
+| Multi-Node Data + Expert Parallel | `multi_node_dep` | Throughput; per-node TEP + DP across nodes (`--enable-expert-parallel`, `--data-parallel-hybrid-lb`) | **Unsupported** (greyed out) | Out of scope on H200 | — |
+| [Multi-Node TP + Data Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp) | `multi_node_tp_dp` | Balanced; one full replica / node (e.g. TP8·DP2) | Selectable | **Measured** (C=1…16) | TP8×DP2 |
+| [Prefill/Decode Disaggregation](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster) | `pd_cluster` | Production; separate prefill/decode + NIXL KV transfer | Selectable | Pending | P/D |
+
+Head-to-head below is the **three measured** selectable strategies. Remaining selectable work: [TEP](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep) and [P/D](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster).
+
+# Measured strategies (detail)
+
+Same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / PP2 cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-0.log` (`non-default args` / launch banner). Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh).
+
+| | **TP16** (`multi_node_tp`) | **TP8×PP2** (`multi_node_tp_pp`) | **TP8×DP2** (`multi_node_tp_dp`) |
+|:--|:--|:--|:--|
+| ***Differing CLI*** | | | |
+| `--tensor-parallel-size` | `16` | `8` | `8` |
+| `--pipeline-parallel-size` | — (1) | `2` | — (1) |
+| `--data-parallel-size` | — (1) | — (1) | `2` |
+| `--data-parallel-size-local` | — | — | `1` |
+| `--data-parallel-address` | — | — | head pod IP |
+| `--data-parallel-rpc-port` | — | — | `13345` |
+| `--data-parallel-start-rank` | — | — | `0` / `1` per rank |
+| `--nnodes` | `2` | `2` | — (DP mode; not passed) |
+| `--node-rank` | `0` / `1` | `0` / `1` | — (DP mode; not passed) |
+| `--master-addr` | head pod IP | head pod IP | — (DP mode; not passed) |
+| `--gpu-memory-utilization` | `0.97` | `0.90` | `0.97` |
+| `--max-num-seqs` | `128` | `256` | `2` |
+| `--max-model-len` | `8192` | `8192` | `2048` |
+| `--max-num-batched-tokens` | `4096` | `4096` | `256` |
+| `--kv-cache-memory-bytes` | — (auto from util) | — (auto from util) | `160000000` |
+| `--skip-mm-profiling` | — | — | set |
+| ***Shared CLI*** | | | |
+| `vllm serve` model | `/models/Kimi-K3` | `/models/Kimi-K3` | `/models/Kimi-K3` |
+| `--host` | `0.0.0.0` | `0.0.0.0` | `0.0.0.0` |
+| `--port` | `8000` | `8000` | `8000` |
+| `--trust-remote-code` | set | set | set |
+| `--attention-backend` | `FLASHMLA` | `FLASHMLA` | `FLASHMLA` |
+| `--moe-backend` | `marlin` | `marlin` | `marlin` |
+| `--disable-custom-all-reduce` | set | set | set |
+| `--no-enable-flashinfer-autotune` | set | set | set |
+| `--enable-auto-tool-choice` | set | set | set |
+| `--tool-call-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
+| `--reasoning-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
+| `--headless` | rank ≠ 0 | rank ≠ 0 | DP start-rank ≠ 0 |
+| ***Differing env (serve process)*** | | | |
+| `VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE` | default (~394 MiB) | default (~394 MiB) | `67108864` (64 MiB) |
+| `VLLM_USE_V2_MODEL_RUNNER` | `1` (script default) | `1` (script default) | `0` |
+| `VLLM_USE_RUST_FRONTEND` | `0` | `0` | `0` |
+| `NCCL_IB_HCA` / `NCCL_IB_GID_INDEX` | unset | `mlx5_5` / `3` | unset |
+| `NCCL_DMABUF_ENABLE` | `0` | `0` | `0` |
+| ***Consequences (observed)*** | | | |
+| GPUs | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) |
+| Engine layout | 1 engine, cross-node TP | 1 engine, PP stage / node | 2 DP replicas (1 / node) |
+| Precision | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) |
 | Available KV cache | `{python} TP16_KV_GIB` | `{python} PP2_KV_GIB` | `{python} DP2_KV_GIB` |
 | GPU KV cache size | `{python} TP16_KV_TOKENS` | `{python} PP2_KV_TOKENS` | `{python} DP2_KV_TOKENS` |
 | Max concurrency (at max-model-len) | `{python} TP16_KV_MAXCONC` | `{python} PP2_KV_MAXCONC` | `{python} DP2_KV_MAXCONC` |
-| MoE backend | marlin | marlin | marlin |
-| Interconnect | NCCL / RoCE IB (cross-node TP) | NCCL / RoCE IB (`NCCL_IB_HCA=mlx5_5`, GID 3) | DP RPC + intra-node TP NCCL |
+| Sweep tiers | C ∈ {1…512} | C ∈ {1…512} | C ∈ {1…16} |
 | Sweep seed | `{python} TP16_SEED` | `{python} PP2_SEED` | `{python} DP2_SEED` |
 | Data | [`conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) | [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) | [`conc-sweep-dp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-dp2-1000-1000) |
 
-Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh). DP2 follows the [vLLM multi-node TP+DP recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp). Cross-node PP P2P required the IPv4-mapped RoCE GID above. On H200, a TP8 replica is ~135.7 GiB/GPU (vs ~129.8 GiB under TP16), leaving ~200–260 MiB free — mm-encoder profiling alone tries ~396 MiB. DP2 uses `--skip-mm-profiling`, shrinks FlashInfer workspace to 64 MiB, `max-num-batched-tokens=256`, `max-model-len=2048`, `--max-num-seqs=2`, and pins `--kv-cache-memory-bytes=160000000` (~160 MiB). 1000/1000 fits with ~1 concurrent request/replica (~2 cluster-wide). Recipe target hardware is GB300.
+On H200, a TP8 replica is ~135.7 GiB/GPU (vs ~129.8 GiB under TP16), so DP2 needs the differing knobs above (`--skip-mm-profiling`, 64 MiB FlashInfer workspace, tiny batched/KV). Cross-node PP P2P required the IPv4-mapped RoCE GID (`NCCL_IB_*`). Recipe target hardware is GB300; DP2 1000/1000 fits ~1 concurrent request/replica (~2 cluster-wide).
 
 ```{python}
 #| label: method-meta
