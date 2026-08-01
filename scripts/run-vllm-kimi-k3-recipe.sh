@@ -3,33 +3,50 @@
 # Recipe: https://recipes.vllm.ai/moonshotai/Kimi-K3
 #
 # Parallelism presets (via env):
-#   TP16 (default):  TP_SIZE=16 PP_SIZE=1  (multi-node TP across 2×8 GPUs)
-#   TP8×PP2:         TP_SIZE=8  PP_SIZE=2
+#   TP16 (default):  TP_SIZE=16 PP_SIZE=1 DP_SIZE=1  (multi-node TP across 2×8)
+#   TP8×PP2:         TP_SIZE=8  PP_SIZE=2 DP_SIZE=1
+#   TP8×DP2:         TP_SIZE=8  PP_SIZE=1 DP_SIZE=2 DP_SIZE_LOCAL=1
+#     https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
 #
 # Expects weights at MODEL (default /models/Kimi-K3).
 #
 # Required env:
-#   MASTER_ADDR   rank-0 host/IP
-#   NODE_RANK     0 or 1
+#   MASTER_ADDR            rank-0 / DP coordinator IP
+#   NODE_RANK              0 or 1  (TP/PP multi-node mode only)
+#   or DP_START_RANK       0 or 1  (DP mode; NODE_RANK optional)
 #
 # Optional:
 #   MODEL         default /models/Kimi-K3
 #   LOAD_FORMAT   default empty (vLLM auto); set e.g. fastsafetensors
-#   TP_SIZE / PP_SIZE / NNODES / GPUS_PER_NODE
+#   TP_SIZE / PP_SIZE / DP_SIZE / DP_SIZE_LOCAL / DP_RPC_PORT / NNODES
 
 set -euo pipefail
 
 MODEL="${MODEL:-/models/Kimi-K3}"
 NNODES="${NNODES:-2}"
 GPUS_PER_NODE="${GPUS_PER_NODE:-8}"
-# Default: pure multi-node TP (TP = nnodes × GPUs/node). For TP8×PP2 set:
-#   TP_SIZE=8 PP_SIZE=2
 PP_SIZE="${PP_SIZE:-1}"
-TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE / PP_SIZE))}"
-NODE_RANK="${NODE_RANK:?NODE_RANK required (0 or 1)}"
+DP_SIZE="${DP_SIZE:-1}"
+DP_SIZE_LOCAL="${DP_SIZE_LOCAL:-1}"
+DP_START_RANK="${DP_START_RANK:-0}"
+DP_RPC_PORT="${DP_RPC_PORT:-13345}"
+# Default TP: full multi-node TP, unless DP>1 (then one replica per node → TP=GPUs/node).
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  TP_SIZE="${TP_SIZE:-$GPUS_PER_NODE}"
+else
+  TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE / PP_SIZE))}"
+fi
 MASTER_ADDR="${MASTER_ADDR:?MASTER_ADDR required}"
+DATA_PARALLEL_ADDRESS="${DATA_PARALLEL_ADDRESS:-$MASTER_ADDR}"
 PORT="${PORT:-8000}"
 LOAD_FORMAT="${LOAD_FORMAT:-}"
+NODE_RANK="${NODE_RANK:-}"
+if [[ "$DP_SIZE" -le 1 && -z "$NODE_RANK" ]]; then
+  echo "NODE_RANK required when DP_SIZE=1" >&2
+  exit 1
+fi
+# Prefer explicit NODE_RANK; else align with DP_START_RANK for logging.
+NODE_RANK="${NODE_RANK:-$DP_START_RANK}"
 
 GPU_MEM_UTIL="${GPU_MEM_UTIL:-0.97}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-128}"
@@ -37,6 +54,10 @@ MAX_MODEL_LEN="${MAX_MODEL_LEN:-8192}"
 MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-4096}"
 MOE_BACKEND="${MOE_BACKEND:-marlin}"
 ATTENTION_BACKEND="${ATTENTION_BACKEND:-FLASHMLA}"
+# Optional hard KV reservation (bytes). When set, skips util-based profiling.
+KV_CACHE_MEMORY_BYTES="${KV_CACHE_MEMORY_BYTES:-}"
+# Skip multimodal encoder profiling (can need ~400 MiB on Kimi-K3).
+SKIP_MM_PROFILING="${SKIP_MM_PROFILING:-0}"
 
 MARKER="${MODEL}/.download-complete"
 if [[ ! -d "$MODEL" ]]; then
@@ -87,6 +108,11 @@ fi
 export VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-3600}"
 export VLLM_USE_V2_MODEL_RUNNER="${VLLM_USE_V2_MODEL_RUNNER:-1}"
 export VLLM_USE_RUST_FRONTEND="${VLLM_USE_RUST_FRONTEND:-0}"
+# Default is ~394 MiB; TP8 on H200 only has ~200–260 MiB free after weights.
+# Callers (deploy-recipe-dp.sh) should set a smaller value when needed.
+if [[ -n "${VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE:-}" ]]; then
+  export VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE
+fi
 # Empty PYTORCH_CUDA_ALLOC_CONF disables the default; expandable_segments can
 # fail hard under PP peak-load when free memory is tiny.
 if [[ "${PYTORCH_CUDA_ALLOC_CONF+x}" = x && -z "${PYTORCH_CUDA_ALLOC_CONF}" ]]; then
@@ -186,9 +212,6 @@ SERVE_ARGS=(
   --port "$PORT"
   --trust-remote-code
   --tensor-parallel-size "$TP_SIZE"
-  --nnodes "$NNODES"
-  --node-rank "$NODE_RANK"
-  --master-addr "$MASTER_ADDR"
   --gpu-memory-utilization "$GPU_MEM_UTIL"
   --max-num-seqs "$MAX_NUM_SEQS"
   --max-model-len "$MAX_MODEL_LEN"
@@ -202,22 +225,52 @@ SERVE_ARGS=(
   --reasoning-parser kimi_k3
 )
 
-if [[ "$PP_SIZE" -gt 1 ]]; then
-  SERVE_ARGS+=(--pipeline-parallel-size "$PP_SIZE")
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  # Multi-node TP + Data Parallel (one full replica per node).
+  # https://docs.vllm.ai/en/latest/serving/data_parallel_deployment/
+  SERVE_ARGS+=(
+    --data-parallel-size "$DP_SIZE"
+    --data-parallel-size-local "$DP_SIZE_LOCAL"
+    --data-parallel-address "$DATA_PARALLEL_ADDRESS"
+    --data-parallel-rpc-port "$DP_RPC_PORT"
+    --data-parallel-start-rank "$DP_START_RANK"
+  )
+  if [[ "$DP_START_RANK" != "0" ]]; then
+    SERVE_ARGS+=(--headless)
+  fi
+else
+  # Multi-node TP (and optional PP) via nnodes / node-rank.
+  SERVE_ARGS+=(
+    --nnodes "$NNODES"
+    --node-rank "$NODE_RANK"
+    --master-addr "$MASTER_ADDR"
+  )
+  if [[ "$PP_SIZE" -gt 1 ]]; then
+    SERVE_ARGS+=(--pipeline-parallel-size "$PP_SIZE")
+  fi
+  if [[ "$NODE_RANK" != "0" ]]; then
+    SERVE_ARGS+=(--headless)
+  fi
 fi
 
 if [[ -n "$LOAD_FORMAT" ]]; then
   SERVE_ARGS+=(--load-format "$LOAD_FORMAT")
 fi
 
-if [[ "$NODE_RANK" != "0" ]]; then
-  SERVE_ARGS+=(--headless)
+if [[ -n "$KV_CACHE_MEMORY_BYTES" ]]; then
+  SERVE_ARGS+=(--kv-cache-memory-bytes "$KV_CACHE_MEMORY_BYTES")
+fi
+
+if [[ "$SKIP_MM_PROFILING" == "1" ]]; then
+  SERVE_ARGS+=(--skip-mm-profiling)
 fi
 
 echo "Launching recipe-shaped REAL-WEIGHT serve:"
-echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
+echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE DP=$DP_SIZE DP_LOCAL=$DP_SIZE_LOCAL DP_START=$DP_START_RANK"
+echo "  NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR DP_ADDR=$DATA_PARALLEL_ADDRESS"
 echo "  IFACE=$GLOO_SOCKET_IFNAME LOAD_FORMAT=${LOAD_FORMAT:-<auto>}"
-echo "  max-num-seqs=$MAX_NUM_SEQS max-model-len=$MAX_MODEL_LEN"
+echo "  max-num-seqs=$MAX_NUM_SEQS max-model-len=$MAX_MODEL_LEN gpu-mem-util=$GPU_MEM_UTIL"
+echo "  kv-cache-memory-bytes=${KV_CACHE_MEMORY_BYTES:-<auto>} V2_RUNNER=${VLLM_USE_V2_MODEL_RUNNER:-} RUST_FE=${VLLM_USE_RUST_FRONTEND:-}"
 cat "$MARKER" || true
 
 exec vllm serve "$MODEL" "${SERVE_ARGS[@]}"

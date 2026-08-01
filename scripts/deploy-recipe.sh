@@ -2,8 +2,10 @@
 # Deploy multi-node recipe with REAL weights on hostPath /models.
 # Recipe: https://recipes.vllm.ai/moonshotai/Kimi-K3
 #
-# Default parallelism: TP16 (PP=1). For TP8×PP2 use ./scripts/deploy-recipe-pp.sh
-# or: TP_SIZE=8 PP_SIZE=2 ./scripts/deploy-recipe.sh
+# Default parallelism: TP16 (PP=1, DP=1).
+#   TP8×PP2: ./scripts/deploy-recipe-pp.sh
+#   TP8×DP2: ./scripts/deploy-recipe-dp.sh
+#     https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
 #
 # Prerequisites:
 #   ./scripts/download-model.sh   # or weights already on /mnt/local/kimi-k3/models
@@ -19,7 +21,14 @@ export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 NNODES="${NNODES:-2}"
 PP_SIZE="${PP_SIZE:-1}"
-TP_SIZE="${TP_SIZE:-$((NNODES * 8 / PP_SIZE))}"
+DP_SIZE="${DP_SIZE:-1}"
+DP_SIZE_LOCAL="${DP_SIZE_LOCAL:-1}"
+DP_RPC_PORT="${DP_RPC_PORT:-13345}"
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  TP_SIZE="${TP_SIZE:-8}"
+else
+  TP_SIZE="${TP_SIZE:-$((NNODES * 8 / PP_SIZE))}"
+fi
 MODEL_PATH="${MODEL_PATH:-/models/Kimi-K3}"
 LOAD_FORMAT="${LOAD_FORMAT:-}"
 # hostpath = CoreWeave /mnt/local/kimi-k3/models (default)
@@ -28,7 +37,7 @@ STORAGE_BACKEND="${STORAGE_BACKEND:-hostpath}"
 # Engine seq budget (client sweep may oversubscribe up to C=512).
 export MAX_NUM_SEQS="${MAX_NUM_SEQS:-128}"
 
-echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} NNODES=${NNODES} STORAGE_BACKEND=${STORAGE_BACKEND}"
+echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} DP=${DP_SIZE} DP_LOCAL=${DP_SIZE_LOCAL} NNODES=${NNODES} STORAGE_BACKEND=${STORAGE_BACKEND}"
 
 echo "==> Applying namespace + recipe StatefulSet"
 kubectl apply -f "$ROOT/manifests/namespace.yaml"
@@ -100,32 +109,49 @@ if [[ -n "$LOAD_FORMAT" ]]; then
   LOAD_ENV="LOAD_FORMAT=$LOAD_FORMAT"
 fi
 
-# Optional knobs (set by deploy-recipe-pp.sh or caller)
+# Optional knobs (set by deploy-recipe-pp.sh / deploy-recipe-dp.sh or caller)
 OPT_ENV=""
 for v in GPU_MEM_UTIL MAX_NUM_SEQS MAX_MODEL_LEN MAX_NUM_BATCHED_TOKENS \
          NCCL_IB_DISABLE NCCL_IB_GID_INDEX NCCL_IB_HCA NCCL_DMABUF_ENABLE \
-         PYTORCH_CUDA_ALLOC_CONF; do
+         PYTORCH_CUDA_ALLOC_CONF VLLM_USE_RUST_FRONTEND VLLM_USE_V2_MODEL_RUNNER \
+         DP_RPC_PORT DATA_PARALLEL_ADDRESS KV_CACHE_MEMORY_BYTES \
+         VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE SKIP_MM_PROFILING; do
   if [[ -n "${!v+x}" ]]; then
     OPT_ENV+=" $v=${!v}"
   fi
 done
 
-PAR_ENV="TP_SIZE=$TP_SIZE PP_SIZE=$PP_SIZE NNODES=$NNODES MODEL=$MODEL_PATH $LOAD_ENV$OPT_ENV"
+PAR_ENV="TP_SIZE=$TP_SIZE PP_SIZE=$PP_SIZE DP_SIZE=$DP_SIZE DP_SIZE_LOCAL=$DP_SIZE_LOCAL NNODES=$NNODES MODEL=$MODEL_PATH $LOAD_ENV$OPT_ENV"
 
-echo "==> Starting workers (headless) then head"
-for i in $(seq 1 $((NNODES - 1))); do
-  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  echo "==> Starting DP workers (headless) then DP head (data-parallel-address=$MASTER_ADDR)"
+  for i in $(seq 1 $((NNODES - 1))); do
+    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
+      "rm -f /tmp/vllm-recipe.log; \
+       DP_START_RANK=$i NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR DATA_PARALLEL_ADDRESS=$MASTER_ADDR $PAR_ENV \
+       nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
+       echo started dp_start_rank=$i pid=\$!"
+  done
+  kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
     "rm -f /tmp/vllm-recipe.log; \
-     NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
+     DP_START_RANK=0 NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR DATA_PARALLEL_ADDRESS=$MASTER_ADDR $PAR_ENV \
      nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
-     echo started rank $i pid=\$!"
-done
-
-kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
-  "rm -f /tmp/vllm-recipe.log; \
-   NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
-   nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
-   echo started rank 0 pid=\$!"
+     echo started dp_start_rank=0 pid=\$!"
+else
+  echo "==> Starting workers (headless) then head"
+  for i in $(seq 1 $((NNODES - 1))); do
+    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
+      "rm -f /tmp/vllm-recipe.log; \
+       NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
+       nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
+       echo started rank $i pid=\$!"
+  done
+  kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
+    "rm -f /tmp/vllm-recipe.log; \
+     NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
+     nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
+     echo started rank 0 pid=\$!"
+fi
 
 echo "==> Waiting for /health (weight load can take a long time)"
 echo "    kubectl -n $NS exec vllm-recipe-0 -- tail -f /tmp/vllm-recipe.log"

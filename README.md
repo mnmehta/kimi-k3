@@ -30,6 +30,10 @@ After downloads finish on both ranks:
 # TP8 × PP2
 ./scripts/deploy-recipe-pp.sh
 
+# TP8 × DP2 (one replica per node)
+# https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
+./scripts/deploy-recipe-dp.sh
+
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
@@ -43,6 +47,7 @@ Same STS layout with `--load-format dummy`:
 ```bash
 ./scripts/deploy-recipe-dummy.sh       # TP16
 ./scripts/deploy-recipe-dummy-pp.sh    # TP8 × PP2
+./scripts/deploy-recipe-dummy-dp.sh    # TP8 × DP2
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 

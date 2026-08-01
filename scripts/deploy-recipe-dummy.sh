@@ -2,8 +2,9 @@
 # Deploy the multi-node recipe (dummy weights) onto the kimi-k3 namespace.
 # Recipe: https://recipes.vllm.ai/moonshotai/Kimi-K3
 #
-# Default: TP16. For TP8×PP2 use ./scripts/deploy-recipe-dummy-pp.sh
-# or: TP_SIZE=8 PP_SIZE=2 ./scripts/deploy-recipe-dummy.sh
+# Default: TP16. Also:
+#   TP8×PP2: ./scripts/deploy-recipe-dummy-pp.sh
+#   TP8×DP2: ./scripts/deploy-recipe-dummy-dp.sh
 #
 # Usage:
 #   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
@@ -16,9 +17,16 @@ export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 NNODES="${NNODES:-2}"
 PP_SIZE="${PP_SIZE:-1}"
-TP_SIZE="${TP_SIZE:-$((NNODES * 8 / PP_SIZE))}"
+DP_SIZE="${DP_SIZE:-1}"
+DP_SIZE_LOCAL="${DP_SIZE_LOCAL:-1}"
+DP_RPC_PORT="${DP_RPC_PORT:-13345}"
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  TP_SIZE="${TP_SIZE:-8}"
+else
+  TP_SIZE="${TP_SIZE:-$((NNODES * 8 / PP_SIZE))}"
+fi
 
-echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} NNODES=${NNODES} (dummy)"
+echo "==> Parallelism TP=${TP_SIZE} PP=${PP_SIZE} DP=${DP_SIZE} DP_LOCAL=${DP_SIZE_LOCAL} NNODES=${NNODES} (dummy)"
 echo "==> Applying namespace + StatefulSet ($NNODES nodes × 8 GPUs)"
 kubectl apply -f "$ROOT/manifests/namespace.yaml"
 kubectl apply -f "$ROOT/manifests/vllm-recipe.yaml"
@@ -53,22 +61,44 @@ for i in $(seq 0 $((NNODES - 1))); do
 done
 sleep 2
 
-PAR_ENV="TP_SIZE=$TP_SIZE PP_SIZE=$PP_SIZE NNODES=$NNODES"
-
-echo "==> Starting workers (headless) then head"
-for i in $(seq 1 $((NNODES - 1))); do
-  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
-    "rm -f /tmp/vllm-recipe.log; \
-     NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
-     nohup bash /tmp/run-recipe-dummy.sh > /tmp/vllm-recipe.log 2>&1 & \
-     echo started rank $i pid=\$!"
+OPT_ENV=""
+for v in GPU_MEM_UTIL MAX_NUM_SEQS MAX_MODEL_LEN MAX_NUM_BATCHED_TOKENS \
+         VLLM_USE_RUST_FRONTEND VLLM_USE_V2_MODEL_RUNNER DP_RPC_PORT; do
+  if [[ -n "${!v+x}" ]]; then
+    OPT_ENV+=" $v=${!v}"
+  fi
 done
+PAR_ENV="TP_SIZE=$TP_SIZE PP_SIZE=$PP_SIZE DP_SIZE=$DP_SIZE DP_SIZE_LOCAL=$DP_SIZE_LOCAL NNODES=$NNODES$OPT_ENV"
 
-kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
-  "rm -f /tmp/vllm-recipe.log; \
-   NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
-   nohup bash /tmp/run-recipe-dummy.sh > /tmp/vllm-recipe.log 2>&1 & \
-   echo started rank 0 pid=\$!"
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  echo "==> Starting DP workers (headless) then DP head"
+  for i in $(seq 1 $((NNODES - 1))); do
+    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
+      "rm -f /tmp/vllm-recipe.log; \
+       DP_START_RANK=$i NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR DATA_PARALLEL_ADDRESS=$MASTER_ADDR $PAR_ENV \
+       nohup bash /tmp/run-recipe-dummy.sh > /tmp/vllm-recipe.log 2>&1 & \
+       echo started dp_start_rank=$i pid=\$!"
+  done
+  kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
+    "rm -f /tmp/vllm-recipe.log; \
+     DP_START_RANK=0 NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR DATA_PARALLEL_ADDRESS=$MASTER_ADDR $PAR_ENV \
+     nohup bash /tmp/run-recipe-dummy.sh > /tmp/vllm-recipe.log 2>&1 & \
+     echo started dp_start_rank=0 pid=\$!"
+else
+  echo "==> Starting workers (headless) then head"
+  for i in $(seq 1 $((NNODES - 1))); do
+    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
+      "rm -f /tmp/vllm-recipe.log; \
+       NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
+       nohup bash /tmp/run-recipe-dummy.sh > /tmp/vllm-recipe.log 2>&1 & \
+       echo started rank $i pid=\$!"
+  done
+  kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
+    "rm -f /tmp/vllm-recipe.log; \
+     NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
+     nohup bash /tmp/run-recipe-dummy.sh > /tmp/vllm-recipe.log 2>&1 & \
+     echo started rank 0 pid=\$!"
+fi
 
 echo "==> Waiting for /health"
 echo "    kubectl -n $NS exec vllm-recipe-0 -- tail -f /tmp/vllm-recipe.log"

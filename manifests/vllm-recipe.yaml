@@ -1,8 +1,9 @@
 # 2-node recipe-shaped deployment matching
 # https://recipes.vllm.ai/moonshotai/Kimi-K3 (multi-node TP, 16 GPUs).
 # Pods sleep; launch vLLM via:
-#   scripts/deploy-recipe.sh / deploy-recipe-dummy.sh          (TP16)
-#   scripts/deploy-recipe-pp.sh / deploy-recipe-dummy-pp.sh    (TP8×PP2)
+#   scripts/deploy-recipe.sh / deploy-recipe-dummy.sh             (TP16)
+#   scripts/deploy-recipe-pp.sh / deploy-recipe-dummy-pp.sh       (TP8×PP2)
+#   scripts/deploy-recipe-dp.sh / deploy-recipe-dummy-dp.sh       (TP8×DP2)
 #
 # Storage: real CoreWeave local NVMe via hostPath /mnt/local/kimi-k3/models
 # (see manifests/STORAGE.md). Survives pod delete on the same node; not node reboot.

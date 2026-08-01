@@ -7,15 +7,17 @@
 #   - rank > 0 adds --headless (recipe: workers are headless)
 #
 # Parallelism presets (via env):
-#   TP16 (default):  TP_SIZE=16 PP_SIZE=1
-#   TP8×PP2:         TP_SIZE=8  PP_SIZE=2
+#   TP16 (default):  TP_SIZE=16 PP_SIZE=1 DP_SIZE=1
+#   TP8×PP2:         TP_SIZE=8  PP_SIZE=2 DP_SIZE=1
+#   TP8×DP2:         TP_SIZE=8  PP_SIZE=1 DP_SIZE=2 DP_SIZE_LOCAL=1
 #
 # Optional shallow overrides for tiny smoke fits (off by default):
 #   NUM_LAYERS / NUM_EXPERTS / NUM_EXPERTS_PER_TOKEN / NUM_SHARED_EXPERTS
 #
 # Required env:
-#   MASTER_ADDR   rank-0 host/IP
-#   NODE_RANK     0 or 1
+#   MASTER_ADDR            rank-0 / DP coordinator IP
+#   NODE_RANK              0 or 1  (TP/PP mode)
+#   or DP_START_RANK       0 or 1  (DP mode)
 #
 # Optional env overrides match recipe knobs (defaults below).
 
@@ -24,12 +26,25 @@ set -euo pipefail
 MODEL="${MODEL:-moonshotai/Kimi-K3}"
 NNODES="${NNODES:-2}"
 GPUS_PER_NODE="${GPUS_PER_NODE:-8}"
-# Default: pure multi-node TP. For TP8×PP2 set TP_SIZE=8 PP_SIZE=2.
 PP_SIZE="${PP_SIZE:-1}"
-TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE / PP_SIZE))}"
-NODE_RANK="${NODE_RANK:?NODE_RANK required (0 or 1)}"
+DP_SIZE="${DP_SIZE:-1}"
+DP_SIZE_LOCAL="${DP_SIZE_LOCAL:-1}"
+DP_START_RANK="${DP_START_RANK:-0}"
+DP_RPC_PORT="${DP_RPC_PORT:-13345}"
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  TP_SIZE="${TP_SIZE:-$GPUS_PER_NODE}"
+else
+  TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE / PP_SIZE))}"
+fi
 MASTER_ADDR="${MASTER_ADDR:?MASTER_ADDR required}"
+DATA_PARALLEL_ADDRESS="${DATA_PARALLEL_ADDRESS:-$MASTER_ADDR}"
 PORT="${PORT:-8000}"
+NODE_RANK="${NODE_RANK:-}"
+if [[ "$DP_SIZE" -le 1 && -z "$NODE_RANK" ]]; then
+  echo "NODE_RANK required when DP_SIZE=1" >&2
+  exit 1
+fi
+NODE_RANK="${NODE_RANK:-$DP_START_RANK}"
 
 # Optional shallow overrides — unset by default so dummy loads full Kimi-K3 config.
 NUM_LAYERS="${NUM_LAYERS:-}"
@@ -174,9 +189,6 @@ SERVE_ARGS=(
   --trust-remote-code
   --load-format dummy
   --tensor-parallel-size "$TP_SIZE"
-  --nnodes "$NNODES"
-  --node-rank "$NODE_RANK"
-  --master-addr "$MASTER_ADDR"
   --gpu-memory-utilization "$GPU_MEM_UTIL"
   --max-num-seqs "$MAX_NUM_SEQS"
   --max-model-len "$MAX_MODEL_LEN"
@@ -190,8 +202,29 @@ SERVE_ARGS=(
   --reasoning-parser kimi_k3
 )
 
-if [[ "$PP_SIZE" -gt 1 ]]; then
-  SERVE_ARGS+=(--pipeline-parallel-size "$PP_SIZE")
+if [[ "$DP_SIZE" -gt 1 ]]; then
+  SERVE_ARGS+=(
+    --data-parallel-size "$DP_SIZE"
+    --data-parallel-size-local "$DP_SIZE_LOCAL"
+    --data-parallel-address "$DATA_PARALLEL_ADDRESS"
+    --data-parallel-rpc-port "$DP_RPC_PORT"
+    --data-parallel-start-rank "$DP_START_RANK"
+  )
+  if [[ "$DP_START_RANK" != "0" ]]; then
+    SERVE_ARGS+=(--headless)
+  fi
+else
+  SERVE_ARGS+=(
+    --nnodes "$NNODES"
+    --node-rank "$NODE_RANK"
+    --master-addr "$MASTER_ADDR"
+  )
+  if [[ "$PP_SIZE" -gt 1 ]]; then
+    SERVE_ARGS+=(--pipeline-parallel-size "$PP_SIZE")
+  fi
+  if [[ "$NODE_RANK" != "0" ]]; then
+    SERVE_ARGS+=(--headless)
+  fi
 fi
 
 # Only apply architecture overrides when explicitly requested (shallow smoke).
@@ -210,12 +243,9 @@ else
   OVERRIDE_DESC="full HF config (no hf-overrides)"
 fi
 
-if [[ "$NODE_RANK" != "0" ]]; then
-  SERVE_ARGS+=(--headless)
-fi
-
 echo "Launching recipe-shaped dummy serve:"
-echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
+echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE DP=$DP_SIZE DP_LOCAL=$DP_SIZE_LOCAL DP_START=$DP_START_RANK"
+echo "  NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
 echo "  IFACE=$GLOO_SOCKET_IFNAME $OVERRIDE_DESC"
 echo "  max-num-seqs=$MAX_NUM_SEQS"
 
