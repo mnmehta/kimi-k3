@@ -1,0 +1,35 @@
+/* Use most of the viewport on wide screens; keep modest gutters. */
+:root {
+  --kimi-content-max: min(96vw, 2200px);
+}
+
+body.floating main,
+#quarto-content.page-columns main,
+main#quarto-document-content,
+#quarto-document-content {
+  max-width: var(--kimi-content-max) !important;
+}
+
+/* Bootstrap article containers from bootswatch themes */
+.container,
+.container-lg,
+.container-xl,
+.container-xxl,
+.page-main {
+  max-width: var(--kimi-content-max) !important;
+  width: 100%;
+}
+
+/* Tables and Plotly fill the content column */
+.cell-output-display,
+.quarto-figure,
+.js-plotly-plot,
+.plotly-graph-div {
+  max-width: 100%;
+  width: 100% !important;
+}
+
+div.datatables,
+table {
+  max-width: 100%;
+}

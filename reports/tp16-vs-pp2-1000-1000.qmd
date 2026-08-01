@@ -6,13 +6,20 @@ date: "2026-08-01"
 format:
   html:
     theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
     toc: true
     toc-depth: 2
     code-fold: true
     code-tools: true
     embed-resources: true
-    fig-width: 9
-    fig-height: 4.5
+    fig-width: 14
+    fig-height: 5
 execute:
   echo: false
   warning: false
@@ -31,6 +38,19 @@ import plotly.io as pio
 from plotly.subplots import make_subplots
 
 pio.templates.default = "plotly_dark"
+# Fill the content column as the viewport widens.
+pio.renderers.default = "notebook"
+_orig_show = go.Figure.show
+
+
+def _show_responsive(fig, *args, **kwargs):
+    fig.update_layout(autosize=True)
+    cfg = dict(kwargs.pop("config", None) or {})
+    cfg.setdefault("responsive", True)
+    return _orig_show(fig, *args, config=cfg, **kwargs)
+
+
+go.Figure.show = _show_responsive
 
 ROOT = Path("..")
 if not (ROOT / "bench-results").exists():
