@@ -15,6 +15,7 @@ format:
     css: full-width.css
     toc: true
     toc-depth: 2
+    toc-expand: true
     code-fold: true
     code-tools: true
     embed-resources: true
@@ -38,19 +39,6 @@ import plotly.io as pio
 from plotly.subplots import make_subplots
 
 pio.templates.default = "plotly_dark"
-# Fill the content column as the viewport widens.
-pio.renderers.default = "notebook"
-_orig_show = go.Figure.show
-
-
-def _show_responsive(fig, *args, **kwargs):
-    fig.update_layout(autosize=True)
-    cfg = dict(kwargs.pop("config", None) or {})
-    cfg.setdefault("responsive", True)
-    return _orig_show(fig, *args, config=cfg, **kwargs)
-
-
-go.Figure.show = _show_responsive
 
 ROOT = Path("..")
 if not (ROOT / "bench-results").exists():
@@ -692,10 +680,4 @@ Scripts:
 
 # Render
 
-Source: [`reports/tp16-vs-pp2-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/tp16-vs-pp2-1000-1000.qmd)
-
-```bash
-export PATH="$PWD/reports/bin:$PATH"
-export QUARTO_PYTHON="$PWD/reports/.venv/bin/python"
-quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
-```
+Local Quarto setup and render commands: [README — Reports](https://github.com/mnmehta/kimi-k3#reports).

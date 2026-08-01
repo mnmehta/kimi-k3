@@ -82,16 +82,24 @@ Open `vllm_profile/dp0_pp0_tp0_*.pt.trace.json.gz` in [Perfetto](https://ui.perf
 
 ## Reports
 
-Concurrency sweep Quarto report (real weights vs full/shallow dummy):
+GitHub Pages: https://mnmehta.github.io/kimi-k3/ (primary report is `index.html`).
 
-- Source: `reports/concurrency-sweep-1000-1000.qmd`
-- Data: `bench-results/conc-sweep-real-1000-1000/`, `conc-sweep-full-1000-1000/`, `conc-sweep-1000-1000/`
-- GitHub Pages: https://mnmehta.github.io/kimi-k3/
+Sources and data: see [`reports/README.md`](reports/README.md).
 
-Local render:
+### Setup
+
+```bash
+python3 -m venv reports/.venv
+reports/.venv/bin/pip install -r reports/requirements.txt
+reports/.venv/bin/python -m ipykernel install --user \
+  --name=kimi-k3-reports --display-name="Python (kimi-k3 reports)"
+```
+
+### Local render
 
 ```bash
 export PATH="$PWD/reports/bin:$PATH"
 export QUARTO_PYTHON="$PWD/reports/.venv/bin/python"
+quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
 quarto render reports/concurrency-sweep-1000-1000.qmd --to html
 ```
