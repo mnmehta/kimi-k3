@@ -1,9 +1,11 @@
-# 2-node recipe-shaped deployment matching
-# https://recipes.vllm.ai/moonshotai/Kimi-K3 (multi-node TP, 16 GPUs).
+# Up to 4-node recipe-shaped deployment matching
+# https://recipes.vllm.ai/moonshotai/Kimi-K3 (TP16 / TEP16 = 2×8; P/D = 4×8).
 # Pods sleep; launch vLLM via:
 #   scripts/deploy-recipe.sh / deploy-recipe-dummy.sh             (TP16)
+#   scripts/deploy-recipe-tep.sh                                  (TEP16)
 #   scripts/deploy-recipe-pp.sh / deploy-recipe-dummy-pp.sh       (TP8×PP2)
 #   scripts/deploy-recipe-dp.sh / deploy-recipe-dummy-dp.sh       (TP8×DP2)
+#   scripts/deploy-recipe-pd.sh                                   (P/D 4×8)
 #
 # Storage: real CoreWeave local NVMe via hostPath /mnt/local/kimi-k3/models
 # (see manifests/STORAGE.md). Survives pod delete on the same node; not node reboot.
@@ -34,7 +36,7 @@ metadata:
     app: vllm-recipe
 spec:
   serviceName: vllm-recipe
-  replicas: 2
+  replicas: 4
   podManagementPolicy: Parallel
   selector:
     matchLabels:
@@ -47,6 +49,16 @@ spec:
       hostNetwork: true
       hostIPC: true
       dnsPolicy: ClusterFirstWithHostNet
+      # Weights on hostPath NVMe — pin to the four H200 nodes (populate via
+      # scripts/download-model.sh or scripts/sync-model-hostpath.sh).
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: ["g1191e4", "g13c364", "g11cd44", "gf2a612"]
       topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: kubernetes.io/hostname

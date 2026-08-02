@@ -86,4 +86,4 @@ echo "LOCAL_DIR=$LOCAL_DIR" >> "$MARKER"
 echo "==> Done. Marker written to $MARKER"
 df -h "$MODEL_ROOT"
 du -sh "$LOCAL_DIR" "$HF_HOME" 2>/dev/null || true
-ls -lh "$LOCAL_DIR" | head -40
+ls -lh "$LOCAL_DIR" | head -40 || true

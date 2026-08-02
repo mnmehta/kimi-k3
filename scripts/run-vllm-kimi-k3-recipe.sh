@@ -9,12 +9,14 @@
 #   TP8×PP2:         TP_SIZE=8  PP_SIZE=2 DP_SIZE=1
 #   TP8×DP2:         TP_SIZE=8  PP_SIZE=1 DP_SIZE=2 DP_SIZE_LOCAL=1
 #     https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
+#   P/D role:        NNODES=1 TP_SIZE=8 + KV_TRANSFER_CONFIG / NIXL env
+#     https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster
 #
 # Expects weights at MODEL (default /models/Kimi-K3).
 #
 # Required env:
-#   MASTER_ADDR            rank-0 / DP coordinator IP
-#   NODE_RANK              0 or 1  (TP/PP multi-node mode only)
+#   MASTER_ADDR            rank-0 / DP coordinator IP (multi-node TP/PP or DP)
+#   NODE_RANK              0 or 1  (TP/PP multi-node mode only; not needed for NNODES=1)
 #   or DP_START_RANK       0 or 1  (DP mode; NODE_RANK optional)
 #
 # Optional:
@@ -38,13 +40,18 @@ if [[ "$DP_SIZE" -gt 1 ]]; then
 else
   TP_SIZE="${TP_SIZE:-$((NNODES * GPUS_PER_NODE / PP_SIZE))}"
 fi
-MASTER_ADDR="${MASTER_ADDR:?MASTER_ADDR required}"
-DATA_PARALLEL_ADDRESS="${DATA_PARALLEL_ADDRESS:-$MASTER_ADDR}"
 PORT="${PORT:-8000}"
 LOAD_FORMAT="${LOAD_FORMAT:-}"
 NODE_RANK="${NODE_RANK:-}"
-if [[ "$DP_SIZE" -le 1 && -z "$NODE_RANK" ]]; then
-  echo "NODE_RANK required when DP_SIZE=1" >&2
+# Single-node roles (P/D) need neither MASTER_ADDR nor NODE_RANK.
+if [[ "$NNODES" -gt 1 || "$DP_SIZE" -gt 1 ]]; then
+  MASTER_ADDR="${MASTER_ADDR:?MASTER_ADDR required for multi-node / DP}"
+else
+  MASTER_ADDR="${MASTER_ADDR:-127.0.0.1}"
+fi
+DATA_PARALLEL_ADDRESS="${DATA_PARALLEL_ADDRESS:-$MASTER_ADDR}"
+if [[ "$DP_SIZE" -le 1 && "$NNODES" -gt 1 && -z "$NODE_RANK" ]]; then
+  echo "NODE_RANK required when DP_SIZE=1 and NNODES>1" >&2
   exit 1
 fi
 # Prefer explicit NODE_RANK; else align with DP_START_RANK for logging.
@@ -64,6 +71,14 @@ SKIP_MM_PROFILING="${SKIP_MM_PROFILING:-0}"
 ENABLE_EXPERT_PARALLEL="${ENABLE_EXPERT_PARALLEL:-0}"
 # Optional: skip loading expert weights not owned by this EP rank.
 ENABLE_EP_WEIGHT_FILTER="${ENABLE_EP_WEIGHT_FILTER:-0}"
+# Prefill/Decode disaggregation (NIXL). Example:
+#   KV_TRANSFER_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_producer","kv_load_failure_policy":"fail"}'
+KV_TRANSFER_CONFIG="${KV_TRANSFER_CONFIG:-}"
+ENFORCE_EAGER="${ENFORCE_EAGER:-0}"
+# JSON string for --compilation-config (decode often uses FULL_DECODE_ONLY).
+COMPILATION_CONFIG="${COMPILATION_CONFIG:-}"
+# Recipe P/D uses --no-disable-hybrid-kv-cache-manager.
+NO_DISABLE_HYBRID_KV_CACHE_MANAGER="${NO_DISABLE_HYBRID_KV_CACHE_MANAGER:-0}"
 
 MARKER="${MODEL}/.download-complete"
 if [[ ! -d "$MODEL" ]]; then
@@ -114,6 +129,12 @@ fi
 export VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-3600}"
 export VLLM_USE_V2_MODEL_RUNNER="${VLLM_USE_V2_MODEL_RUNNER:-1}"
 export VLLM_USE_RUST_FRONTEND="${VLLM_USE_RUST_FRONTEND:-0}"
+# Prefill/Decode hybrid Mamba: 3-read conv transfer needs DS layout.
+if [[ -n "${KV_TRANSFER_CONFIG:-}" ]]; then
+  export VLLM_SSM_CONV_STATE_LAYOUT="${VLLM_SSM_CONV_STATE_LAYOUT:-DS}"
+elif [[ -n "${VLLM_SSM_CONV_STATE_LAYOUT:-}" ]]; then
+  export VLLM_SSM_CONV_STATE_LAYOUT
+fi
 # Default is ~394 MiB; TP8 on H200 only has ~200–260 MiB free after weights.
 # Callers (deploy-recipe-dp.sh) should set a smaller value when needed.
 if [[ -n "${VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE:-}" ]]; then
@@ -121,11 +142,14 @@ if [[ -n "${VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE:-}" ]]; then
 fi
 # Empty PYTORCH_CUDA_ALLOC_CONF disables the default; expandable_segments can
 # fail hard under PP peak-load when free memory is tiny.
+# NixlConnector rejects expandable_segments unless --enable-cumem-allocator
+# (or sleep mode) is also on — P/D deploy enables both.
 if [[ "${PYTORCH_CUDA_ALLOC_CONF+x}" = x && -z "${PYTORCH_CUDA_ALLOC_CONF}" ]]; then
   unset PYTORCH_CUDA_ALLOC_CONF
 elif [[ -z "${PYTORCH_CUDA_ALLOC_CONF+x}" ]]; then
   export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 fi
+ENABLE_CUMEM_ALLOCATOR="${ENABLE_CUMEM_ALLOCATOR:-0}"
 # Recipe note: mlx5 dmabuf registration (errno 524) → fall back to nvidia_peermem.
 export NCCL_DMABUF_ENABLE="${NCCL_DMABUF_ENABLE:-0}"
 # PP cross-node P2P has failed on IPv6 link-local RoCE GIDs (IBV_WC_RETRY_EXC_ERR).
@@ -213,6 +237,87 @@ print(f"patched {path}")
 PY
 fi
 
+# P/D on H200 TP8: stock vLLM rejects expandable_segments with NixlConnector
+# unless --enable-cumem-allocator. CuMem then wraps weight load and OOMs
+# (~137.2 GiB peak vs DP2's successful 135.7 GiB). Prefer DP2's allocator
+# path: keep expandable_segments, skip CuMem, and relax the config check.
+# Risk: KV page remaps can break NIXL RDMA — document if transfers fail.
+VLLM_CFG_PY="/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py"
+if [[ -n "${KV_TRANSFER_CONFIG:-}" && -f "$VLLM_CFG_PY" ]] \
+  && ! grep -q "Kimi-K3 harness: allow expandable_segments with KV connector" "$VLLM_CFG_PY"; then
+  python3 - <<'PY'
+from pathlib import Path
+path = Path("/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py")
+src = path.read_text()
+needle = """        if "expandable_segments:True" not in os.environ.get(
+            "PYTORCH_CUDA_ALLOC_CONF", ""
+        ):
+            return
+        if self.model_config is not None and (self.model_config.enable_cumem_allocator):
+            return
+
+        raise ValueError(
+            f"KV connector {self.kv_transfer_config.kv_connector} is "
+            "incompatible with PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True "
+"""
+patch = """        if "expandable_segments:True" not in os.environ.get(
+            "PYTORCH_CUDA_ALLOC_CONF", ""
+        ):
+            return
+        if self.model_config is not None and (self.model_config.enable_cumem_allocator):
+            return
+        # Kimi-K3 harness: allow expandable_segments with KV connector on H200.
+        # CuMem+NIXL path OOMs TP8 weight load; DP2-style expandable is required.
+        return
+
+        raise ValueError(
+            f"KV connector {self.kv_transfer_config.kv_connector} is "
+            "incompatible with PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True "
+"""
+if needle not in src:
+    raise SystemExit(f"expandable/nixl validation patch needle missing in {path}")
+path.write_text(src.replace(needle, patch, 1))
+print(f"patched {path}")
+PY
+fi
+
+# Also skip CuMem weight pool if cumem is still enabled (belt-and-suspenders).
+WORKER_PY="/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py"
+if [[ -n "${KV_TRANSFER_CONFIG:-}" && -f "$WORKER_PY" ]] \
+  && ! grep -q "Kimi-K3 harness: skip CuMem pool for weights" "$WORKER_PY"; then
+  python3 - <<'PY'
+from pathlib import Path
+path = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py")
+src = path.read_text()
+needle = """    def load_model(self, *, load_dummy_weights: bool = False) -> None:
+        with (
+            self._maybe_get_memory_pool_context(tag="weights"),
+            set_current_vllm_config(self.vllm_config),
+            # 20 MiB is the minimum PyTorch allows for max_split_size_mb.
+            self._scoped_allocator_max_split(max_split_size_mb=20),
+        ):
+            self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+"""
+patch = """    def load_model(self, *, load_dummy_weights: bool = False) -> None:
+        # Kimi-K3 harness: skip CuMem pool for weights (KV pool unchanged).
+        from contextlib import nullcontext
+        with (
+            nullcontext(),
+            set_current_vllm_config(self.vllm_config),
+            # 20 MiB is the minimum PyTorch allows for max_split_size_mb.
+            self._scoped_allocator_max_split(max_split_size_mb=20),
+        ):
+            self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+"""
+if needle not in src:
+    # Already patched in a prior run — OK.
+    print(f"cumem weight-pool patch needle missing (maybe already patched) in {path}")
+else:
+    path.write_text(src.replace(needle, patch, 1))
+    print(f"patched {path}")
+PY
+fi
+
 SERVE_ARGS=(
   --host 0.0.0.0
   --port "$PORT"
@@ -231,20 +336,24 @@ SERVE_ARGS=(
   --reasoning-parser kimi_k3
 )
 
-if [[ "$DP_SIZE" -gt 1 ]]; then
-  # Multi-node TP + Data Parallel (one full replica per node).
+# USE_DP_CLI=1: emit --data-parallel-* even when DP_SIZE=1 (P/D roles).
+# On H200, bare NNODES=1 TP8 OOMs during MXFP4 create (~137.2 GiB) while the
+# same TP8 under the DP CLI path loads at ~135.7 GiB (see DP2 bring-up).
+USE_DP_CLI="${USE_DP_CLI:-0}"
+if [[ "$DP_SIZE" -gt 1 || "$USE_DP_CLI" == "1" ]]; then
+  # Multi-node TP + Data Parallel (one full replica per node), or single-rank DP CLI.
   # https://docs.vllm.ai/en/latest/serving/data_parallel_deployment/
   SERVE_ARGS+=(
     --data-parallel-size "$DP_SIZE"
     --data-parallel-size-local "$DP_SIZE_LOCAL"
-    --data-parallel-address "$DATA_PARALLEL_ADDRESS"
+    --data-parallel-address "${DATA_PARALLEL_ADDRESS:-127.0.0.1}"
     --data-parallel-rpc-port "$DP_RPC_PORT"
     --data-parallel-start-rank "$DP_START_RANK"
   )
-  if [[ "$DP_START_RANK" != "0" ]]; then
+  if [[ "$DP_SIZE" -gt 1 && "$DP_START_RANK" != "0" ]]; then
     SERVE_ARGS+=(--headless)
   fi
-else
+elif [[ "$NNODES" -gt 1 ]]; then
   # Multi-node TP (and optional PP) via nnodes / node-rank.
   SERVE_ARGS+=(
     --nnodes "$NNODES"
@@ -256,6 +365,11 @@ else
   fi
   if [[ "$NODE_RANK" != "0" ]]; then
     SERVE_ARGS+=(--headless)
+  fi
+else
+  # Single-node role (P/D disagg): TP within the node only.
+  if [[ "$PP_SIZE" -gt 1 ]]; then
+    SERVE_ARGS+=(--pipeline-parallel-size "$PP_SIZE")
   fi
 fi
 
@@ -279,6 +393,26 @@ if [[ "$SKIP_MM_PROFILING" == "1" ]]; then
   SERVE_ARGS+=(--skip-mm-profiling)
 fi
 
+if [[ -n "$KV_TRANSFER_CONFIG" ]]; then
+  SERVE_ARGS+=(--kv-transfer-config "$KV_TRANSFER_CONFIG")
+fi
+
+if [[ "$ENFORCE_EAGER" == "1" ]]; then
+  SERVE_ARGS+=(--enforce-eager)
+fi
+
+if [[ -n "$COMPILATION_CONFIG" ]]; then
+  SERVE_ARGS+=(--compilation-config "$COMPILATION_CONFIG")
+fi
+
+if [[ "$NO_DISABLE_HYBRID_KV_CACHE_MANAGER" == "1" ]]; then
+  SERVE_ARGS+=(--no-disable-hybrid-kv-cache-manager)
+fi
+
+if [[ "$ENABLE_CUMEM_ALLOCATOR" == "1" ]]; then
+  SERVE_ARGS+=(--enable-cumem-allocator)
+fi
+
 echo "Launching recipe-shaped REAL-WEIGHT serve:"
 echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE DP=$DP_SIZE DP_LOCAL=$DP_SIZE_LOCAL DP_START=$DP_START_RANK"
 echo "  EP=${ENABLE_EXPERT_PARALLEL} EP_WEIGHT_FILTER=${ENABLE_EP_WEIGHT_FILTER}"
@@ -286,6 +420,8 @@ echo "  NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR DP_ADDR=$DA
 echo "  IFACE=$GLOO_SOCKET_IFNAME LOAD_FORMAT=${LOAD_FORMAT:-<auto>}"
 echo "  max-num-seqs=$MAX_NUM_SEQS max-model-len=$MAX_MODEL_LEN gpu-mem-util=$GPU_MEM_UTIL"
 echo "  kv-cache-memory-bytes=${KV_CACHE_MEMORY_BYTES:-<auto>} V2_RUNNER=${VLLM_USE_V2_MODEL_RUNNER:-} RUST_FE=${VLLM_USE_RUST_FRONTEND:-}"
+echo "  kv-transfer=${KV_TRANSFER_CONFIG:-<none>} enforce-eager=${ENFORCE_EAGER} hybrid-kv=${NO_DISABLE_HYBRID_KV_CACHE_MANAGER} cumem=${ENABLE_CUMEM_ALLOCATOR}"
+echo "  nixl-host=${VLLM_NIXL_SIDE_CHANNEL_HOST:-<unset>} nixl-port=${VLLM_NIXL_SIDE_CHANNEL_PORT:-<unset>}"
 cat "$MARKER" || true
 
 exec vllm serve "$MODEL" "${SERVE_ARGS[@]}"

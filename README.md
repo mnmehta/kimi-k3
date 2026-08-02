@@ -38,6 +38,12 @@ After downloads finish on both ranks:
 # https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
 ./scripts/deploy-recipe-dp.sh
 
+# Prefill/Decode disaggregation (2×8 H200 adaptation of recipe 4-node P/D)
+# https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster
+# Recipe 4×8 layout: TEP16 prefill (pods 0–1) + TEP16 decode (pods 2–3) + router :8000
+./scripts/deploy-recipe-pd.sh
+./scripts/wait-pd-and-sweep.sh
+
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
