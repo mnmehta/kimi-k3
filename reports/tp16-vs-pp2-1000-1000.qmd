@@ -853,6 +853,23 @@ show.rename(
 )
 ```
 
+# Torch profiler (minimal-layer)
+
+Dummy weights, shallow architecture (`num_hidden_layers=4`, `num_experts=32`, top-2 + 1 shared), warmup + **10 in / 5 out**. Traces live under [`s3://michey-data/kimi-k3/minimal-layer-profiles/`](https://michey-data.s3.us-east-1.amazonaws.com/kimi-k3/minimal-layer-profiles/). Links open rank-0 **TP0** Chrome traces in [Perfetto UI](https://ui.perfetto.dev/).
+
+| Config | Perfetto (TP0 / rank-0) | S3 prefix |
+|--------|-------------------------|-----------|
+| TP16 | [Open in Perfetto](https://ui.perfetto.dev/?url=https://michey-data.s3.us-east-1.amazonaws.com/kimi-k3/minimal-layer-profiles/tp16/rank-0/dp0_pp0_tp0_dcp0_ep0_rank0.1785651011861121300.pt.trace.json.gz) | [`tp16/`](https://michey-data.s3.us-east-1.amazonaws.com/kimi-k3/minimal-layer-profiles/tp16/) |
+| TEP16 | [Open in Perfetto](https://ui.perfetto.dev/?url=https://michey-data.s3.us-east-1.amazonaws.com/kimi-k3/minimal-layer-profiles/tep16/rank-0/dp0_pp0_tp0_dcp0_ep0_rank0.1785651187934773139.pt.trace.json.gz) | [`tep16/`](https://michey-data.s3.us-east-1.amazonaws.com/kimi-k3/minimal-layer-profiles/tep16/) |
+| TP8×PP2 | Pending upload | `pp2/` |
+| TP8×DP2 | Pending upload | `dp2/` |
+| P/D | Pending upload | `pd/` |
+
+Raw TP0 objects:
+
+- TP16: [`dp0_pp0_tp0_….pt.trace.json.gz`](https://michey-data.s3.us-east-1.amazonaws.com/kimi-k3/minimal-layer-profiles/tp16/rank-0/dp0_pp0_tp0_dcp0_ep0_rank0.1785651011861121300.pt.trace.json.gz)
+- TEP16: [`dp0_pp0_tp0_….pt.trace.json.gz`](https://michey-data.s3.us-east-1.amazonaws.com/kimi-k3/minimal-layer-profiles/tep16/rank-0/dp0_pp0_tp0_dcp0_ep0_rank0.1785651187934773139.pt.trace.json.gz)
+
 # Artifacts
 
 | Kind | Path |
