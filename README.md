@@ -1,6 +1,13 @@
 # kimi-k3
 
-Harnesses for running / profiling `moonshotai/Kimi-K3` on the fozzie `kimi-k3` namespace with the [`vllm/vllm-openai:kimi-k3`](https://recipes.vllm.ai/moonshotai/Kimi-K3) image.
+Evaluation of Kimi K3 using vLLM parallelization recipes from
+[recipes.vllm.ai/moonshotai/Kimi-K3](https://recipes.vllm.ai/moonshotai/Kimi-K3).
+
+**Results report (GitHub Pages):** https://mnmehta.github.io/kimi-k3/
+
+Harnesses for running / profiling `moonshotai/Kimi-K3` on the fozzie `kimi-k3`
+namespace with the [`vllm/vllm-openai:kimi-k3`](https://recipes.vllm.ai/moonshotai/Kimi-K3)
+image. Report sources and data: [`reports/README.md`](reports/README.md).
 
 ```bash
 export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
@@ -100,24 +107,17 @@ kubectl -n $NS cp vllm:/tmp/vllm_profile ./vllm_profile
 
 Open `vllm_profile/dp0_pp0_tp0_*.pt.trace.json.gz` in [Perfetto](https://ui.perfetto.dev/).
 
-## Reports
+## Report setup / local render
 
-GitHub Pages: https://mnmehta.github.io/kimi-k3/ (primary report is `index.html`).
-
-Sources and data: see [`reports/README.md`](reports/README.md).
-
-### Setup
+Published report: https://mnmehta.github.io/kimi-k3/ (`index.html`).  
+Sources: [`reports/README.md`](reports/README.md).
 
 ```bash
 python3 -m venv reports/.venv
 reports/.venv/bin/pip install -r reports/requirements.txt
 reports/.venv/bin/python -m ipykernel install --user \
   --name=kimi-k3-reports --display-name="Python (kimi-k3 reports)"
-```
 
-### Local render
-
-```bash
 export PATH="$PWD/reports/bin:$PATH"
 export QUARTO_PYTHON="$PWD/reports/.venv/bin/python"
 quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
