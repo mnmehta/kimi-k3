@@ -33,3 +33,20 @@ div.datatables,
 table {
   max-width: 100%;
 }
+
+/*
+ * Darkly: table header + inline <code> often pairs light “highlight” chips
+ * with light/white text (unreadable). Keep thead readable on dark surfaces.
+ */
+table thead th,
+.table thead th {
+  color: #fff !important;
+  background-color: #303030 !important;
+}
+
+table thead th code,
+.table thead th code {
+  color: #ffc107 !important;
+  background-color: transparent !important;
+  padding: 0;
+}

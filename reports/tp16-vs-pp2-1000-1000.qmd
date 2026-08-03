@@ -1,8 +1,6 @@
 ---
-title: "Kimi-K3: vLLM recipe strategy evaluation"
-subtitle: "Real-weight concurrency sweeps on 2×8 H200 (TP/TEP/PP/DP) and 4×8 H200 (P/D) · 1000/1000 · all selectable H200 strategies measured"
-author: "kimi-k3 harness"
-date: "2026-08-02"
+title: "Kimi-K3 Parallelization Recipes Performance (H200)"
+date: "August 2, 2026"
 format:
   html:
     theme: darkly
@@ -285,13 +283,36 @@ peak_dp2 = df_dp2.loc[df_dp2["output_throughput"].idxmax()]
 peak_pd = df_pd.loc[df_pd["output_throughput"].idxmax()]
 ```
 
-# Goal
+# Introduction
 
-Evaluate the deployment strategies listed on the official [vLLM Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) (Strategy picker), on **fozzie** H200 with the real MXFP4 checkpoint. TP/TEP/PP/DP use **2×8** (16 GPUs); P/D uses the recipe **4×8** layout (32 GPUs). Recipe hardware target is **≥8× GB300**; this harness runs on H200 and records where configs must diverge.
+Evaluate the deployment strategies listed on the official
+[vLLM Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3)
+on H200 with the MXFP4 checkpoint. Compare the various
+parallelization strategies under a simple vllm bench workload (**1000 in / 1000 out**).
+The 5 selectable strategies are: TP/TEP/PP/DP on **2×8** (16 GPUs) and
+P/D on the recipe **4×8** layout (32 GPUs). 
+
+```{python}
+#| label: intro-outcome
+#| output: asis
+print(f"""
+**Outcome (brief):**
+
+- **PP2 is the throughput leader among 16-GPU strategies** — peak
+  **{peak_pp2['output_throughput']:.0f}** tok/s @C={int(peak_pp2['concurrency'])},
+  vs TP16 **{peak_tp16['output_throughput']:.0f}** @C={int(peak_tp16['concurrency'])}
+  and TEP16 **{peak_tep['output_throughput']:.0f}** @C={int(peak_tep['concurrency'])}
+- **DP2 saturates early** (~**{peak_dp2['output_throughput']:.0f}** tok/s) — H200 KV fits
+  ~1 in-flight 1000/1000 request per replica, so extra concurrency beyond C≈4 does not help.
+- **P/D on 4×8 is KV-limited** (~**{peak_pd['output_throughput']:.0f}** tok/s) despite 2×
+  the GPU count of the other strategies; treat it as a different capacity class, not a
+  direct 16-GPU comparison.
+""")
+```
 
 ## Recipe strategy coverage
 
-From the [Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) Strategy picker (page defaults to **NVIDIA H200**). Recipe metadata marks `multi_node_dep` as `strategy_hardware.h200: unsupported` (greyed out in the UI); it is not a target for this H200 harness.
+From the [Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) Strategy picker (page defaults to **NVIDIA H200**). 
 
 | Recipe strategy | Recipe id | Recipe intent (from page) | H200 recipe UI | This report | Harness shorthand |
 |-----------------|-----------|---------------------------|----------------|-------------|-------------------|
@@ -306,11 +327,11 @@ Head-to-head below is the **five measured** selectable strategies (TP/TEP/PP/DP 
 
 # Measured strategies (detail)
 
-Same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / TEP16 / PP2 / P/D cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-*.log` (`non-default args` / launch banner). Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-tep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-tep.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh) / [`deploy-recipe-pd.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pd.sh).
+Same MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / TEP16 / PP2 / P/D cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-*.log` (`non-default args` / launch banner). Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-tep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-tep.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh) / [`deploy-recipe-pd.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pd.sh).
 
-| | **TP16** (`multi_node_tp`) | **TEP16** (`multi_node_tep`) | **TP8×PP2** (`multi_node_tp_pp`) | **TP8×DP2** (`multi_node_tp_dp`) | **P/D** (`pd_cluster`) |
+| | **TP16** (multi_node_tp) | **TEP16** (multi_node_tep) | **TP8×PP2** (multi_node_tp_pp) | **TP8×DP2** (multi_node_tp_dp) | **P/D** (pd_cluster) |
 |:--|:--|:--|:--|:--|:--|
-| ***Differing CLI*** | | | | | |
+| **Differing CLI options** | | | | | |
 | `--tensor-parallel-size` | `16` | `16` | `8` | `8` | `16` (×2 engines) |
 | `--pipeline-parallel-size` | — (1) | — (1) | `2` | — (1) | — (1) |
 | `--data-parallel-size` | — (1) | — (1) | — (1) | `2` | — (1) |
@@ -333,10 +354,8 @@ Same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (*
 | `kv_transfer_config` | — | — | — | — | NixlConnector producer/consumer |
 | `COMPILATION_CONFIG` | — | — | — | — | decode: `FULL_DECODE_ONLY` |
 | Router | — | — | — | — | `disagg_proxy_demo` on `:8000` |
-| ***Shared CLI*** | | | | | |
+| **Shared CLI options** | | | | | |
 | `vllm serve` model | `/models/Kimi-K3` | `/models/Kimi-K3` | `/models/Kimi-K3` | `/models/Kimi-K3` | `/models/Kimi-K3` |
-| `--host` | `0.0.0.0` | `0.0.0.0` | `0.0.0.0` | `0.0.0.0` | `0.0.0.0` |
-| `--trust-remote-code` | set | set | set | set | set |
 | `--attention-backend` | `FLASHMLA` | `FLASHMLA` | `FLASHMLA` | `FLASHMLA` | `FLASHMLA` |
 | `--moe-backend` | `marlin` | `marlin` | `marlin` | `marlin` | `marlin` |
 | `--disable-custom-all-reduce` | set | set | set | set | set |
@@ -345,14 +364,14 @@ Same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (*
 | `--tool-call-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
 | `--reasoning-parser` | `kimi_k3` | `kimi_k3` | `kimi_k3` | `kimi_k3` | `kimi_k3` |
 | `--headless` | rank ≠ 0 | rank ≠ 0 | rank ≠ 0 | DP start-rank ≠ 0 | rank ≠ 0 per role |
-| ***Differing env (serve process)*** | | | | | |
+| **Differing env (serve process)** | | | | | |
 | `VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE` | default (~394 MiB) | default (~394 MiB) | default (~394 MiB) | `67108864` (64 MiB) | default (~394 MiB) |
 | `VLLM_USE_V2_MODEL_RUNNER` | `1` (script default) | `1` (script default) | `1` (script default) | `0` | `1` (script default) |
 | `VLLM_USE_RUST_FRONTEND` | `0` | `0` | `0` | `0` | `0` |
 | `VLLM_SSM_CONV_STATE_LAYOUT` | — | — | — | — | **`DS`** (required) |
 | `NCCL_IB_HCA` / `NCCL_IB_GID_INDEX` | unset | unset | `mlx5_5` / `3` | unset | unset |
 | `NCCL_DMABUF_ENABLE` | `0` | `0` | `0` | `0` | `0` |
-| ***Consequences (observed)*** | | | | | |
+| **Observed configuration** | | | | | |
 | GPUs | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) | **32× H200 (4×8)** |
 | Engine layout | 1 engine, cross-node TP | 1 engine, TP+EP (56/896 experts/rank) | 1 engine, PP stage / node | 2 DP replicas (1 / node) | 2 TEP16 engines + router |
 | Precision | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) |
@@ -363,16 +382,27 @@ Same real MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (*
 | Sweep seed | `{python} TP16_SEED` | `{python} TEP_SEED` | `{python} PP2_SEED` | `{python} DP2_SEED` | `{python} PD_SEED` |
 | Data | [`conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) | [`conc-sweep-tep-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-tep-1000-1000) | [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) | [`conc-sweep-dp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-dp2-1000-1000) | [`conc-sweep-pd-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pd-1000-1000) |
 
-TEP16 matches TP16 knobs plus `--enable-expert-parallel` (same `nnodes` / `node-rank` path). On H200, a TP8 replica is ~135.7 GiB/GPU (vs ~129.8 GiB under TP16/TEP16), so DP2 needs the differing knobs above (`--skip-mm-profiling`, 64 MiB FlashInfer workspace, tiny batched/KV). Cross-node PP P2P required the IPv4-mapped RoCE GID (`NCCL_IB_*`). P/D uses recipe 4×8 layout (TEP16 prefill on pods 0–1, TEP16 decode on pods 2–3, router on `:8000`); KV-limited (~1.66 GiB prefill / ~2.19 GiB decode per worker, max concurrency ~6.72× @ 8192, prefill `--max-num-seqs 5`) — plateaus ~229 tok/s from C≈16. Requires `VLLM_SSM_CONV_STATE_LAYOUT=DS` for hybrid Mamba KV transfer. Recipe target hardware is GB300; DP2 1000/1000 fits ~1 concurrent request/replica (~2 cluster-wide).
+- **TEP16:** same knobs as TP16 plus `--enable-expert-parallel` (same `nnodes` / `node-rank` path).
+- **DP2:** on H200 a TP8 replica is ~135.7 GiB/GPU (vs ~129.8 GiB under TP16/TEP16), so it needs the differing knobs above (`--skip-mm-profiling`, 64 MiB FlashInfer workspace, tiny batched/KV). Recipe target hardware is GB300; DP2 1000/1000 fits ~1 concurrent request/replica (~2 cluster-wide).
+- **PP2:** cross-node P2P required the IPv4-mapped RoCE GID (`NCCL_IB_*`).
+- **P/D:** recipe 4×8 layout (TEP16 prefill on pods 0–1, TEP16 decode on pods 2–3, router on `:8000`); KV-limited (~1.66 GiB prefill / ~2.19 GiB decode per worker, max concurrency ~6.72× @ 8192, prefill `--max-num-seqs 5`) — plateaus ~229 tok/s from C≈16. Requires `VLLM_SSM_CONV_STATE_LAYOUT=DS` for hybrid Mamba KV transfer.
 
 ```{python}
 #| label: method-meta
+def _tiers_line(name: str, df, base) -> str:
+    tiers = str(list(df["concurrency"]))
+    return f"{name:<5} tiers: {tiers:<44}  |  C=1 = {base['output_throughput']:.1f} tok/s"
+
 print(
-    f"TP16 tiers: {list(df_tp16['concurrency'])}  |  C=1 = {base_tp16['output_throughput']:.1f} tok/s\n"
-    f"TEP  tiers: {list(df_tep['concurrency'])}  |  C=1 = {base_tep['output_throughput']:.1f} tok/s\n"
-    f"PP2  tiers: {list(df_pp2['concurrency'])}  |  C=1 = {base_pp2['output_throughput']:.1f} tok/s\n"
-    f"DP2  tiers: {list(df_dp2['concurrency'])}  |  C=1 = {base_dp2['output_throughput']:.1f} tok/s\n"
-    f"P/D  tiers: {list(df_pd['concurrency'])}  |  C=1 = {base_pd['output_throughput']:.1f} tok/s"
+    "\n".join(
+        [
+            _tiers_line("TP16", df_tp16, base_tp16),
+            _tiers_line("TEP", df_tep, base_tep),
+            _tiers_line("PP2", df_pp2, base_pp2),
+            _tiers_line("DP2", df_dp2, base_dp2),
+            _tiers_line("P/D", df_pd, base_pd),
+        ]
+    )
 )
 ```
 
