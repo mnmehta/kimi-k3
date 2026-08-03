@@ -23,6 +23,19 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 - New data dirs (do not overwrite archives): `bench-results/conc-sweep-{real,tep,pp2,dp2}-1000-1000-repro-20260803/`
 - Pages: [/repro-1000-1000.html](https://mnmehta.github.io/kimi-k3/repro-1000-1000.html)
 
-## Report hub
+## PP2 MoE backend: Marlin vs Humming
 
-All published pages: [kimireports.html](https://mnmehta.github.io/kimi-k3/kimireports.html) (`index.html` remains the primary recipe report).
+- Source: [`pp2-marlin-vs-humming-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/pp2-marlin-vs-humming-1000-1000.qmd)
+- Data: [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) (Marlin) vs [`conc-sweep-pp2-humming-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-humming-1000-1000) (Humming)
+- Recipe: `./scripts/deploy.sh pp2-humming` (SiTU allowlist patch via [`scripts/lib/patch_humming_situ.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/lib/patch_humming_situ.sh))
+- Pages: [/pp2-marlin-vs-humming-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html)
+
+## Report hub / all published pages
+
+| Report | Pages URL |
+|--------|-----------|
+| Hub | [kimireports.html](https://mnmehta.github.io/kimi-k3/kimireports.html) |
+| Recipe strategy evaluation (primary) | [mnmehta.github.io/kimi-k3](https://mnmehta.github.io/kimi-k3/) (`index.html`) |
+| Full harness history | [/concurrency-sweep-1000-1000.html](https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html) |
+| Sweep reproducibility | [/repro-1000-1000.html](https://mnmehta.github.io/kimi-k3/repro-1000-1000.html) |
+| PP2 Marlin vs Humming | [/pp2-marlin-vs-humming-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html) |

@@ -1,0 +1,9 @@
+# Override MoE kernel backend (base default is marlin).
+# deploy_multi_node.sh patches fused_humming_moe.py for MoEActivation.SITU
+# (upstream PR https://github.com/vllm-project/vllm/pull/50510) while this
+# backend is selected, and unpatches on stop / non-humming deploys.
+name: moe-humming
+description: Use --moe-backend humming instead of marlin
+
+env:
+  MOE_BACKEND: humming

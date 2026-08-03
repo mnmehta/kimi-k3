@@ -1,0 +1,316 @@
+---
+title: "Kimi-K3 MoE Backend: Marlin vs Humming (TP8×PP2)"
+subtitle: "Real weights · 1000/1000 · H200"
+date: "August 3, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+RUN_COLORS = {
+    "Marlin": "#ff7f0e",
+    "Humming": "#9467bd",
+}
+
+DIR_MARLIN = ROOT / "bench-results" / "conc-sweep-pp2-1000-1000"
+DIR_HUMMING = ROOT / "bench-results" / "conc-sweep-pp2-humming-1000-1000"
+
+
+def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
+    paths = [
+        p
+        for p in data_dir.glob("conc-*.json")
+        if p.stem.split("-")[1].isdigit() and "topup" not in p.name
+    ]
+    rows = []
+    for path in sorted(paths, key=lambda p: int(p.stem.split("-")[1])):
+        d = json.loads(path.read_text())
+        rows.append(
+            {
+                "run": label,
+                "concurrency": int(d["max_concurrency"]),
+                "num_prompts": d["num_prompts"],
+                "duration_s": d["duration"],
+                "completed": d["completed"],
+                "failed": d["failed"],
+                "request_throughput": d["request_throughput"],
+                "output_throughput": d["output_throughput"],
+                "mean_ttft_ms": d["mean_ttft_ms"],
+                "p90_ttft_ms": d["p90_ttft_ms"],
+                "p99_ttft_ms": d["p99_ttft_ms"],
+                "mean_tpot_ms": d["mean_tpot_ms"],
+                "p90_tpot_ms": d["p90_tpot_ms"],
+                "p99_tpot_ms": d["p99_tpot_ms"],
+                "mean_e2el_ms": d["mean_e2el_ms"],
+            }
+        )
+    return pd.DataFrame(rows).sort_values("concurrency").reset_index(drop=True)
+
+
+def read_seed(data_dir: Path) -> str:
+    p = data_dir / "seed.txt"
+    return p.read_text().strip() if p.exists() else "n/a"
+
+
+df_marlin = load_sweep(DIR_MARLIN, "Marlin")
+df_humming = load_sweep(DIR_HUMMING, "Humming")
+both = pd.concat([df_marlin, df_humming], ignore_index=True)
+
+SEED_MARLIN = read_seed(DIR_MARLIN)
+SEED_HUMMING = read_seed(DIR_HUMMING)
+
+merged = df_marlin.merge(df_humming, on="concurrency", suffixes=("_marlin", "_humming"))
+for col in ("output_throughput", "mean_ttft_ms", "mean_tpot_ms", "mean_e2el_ms"):
+    merged[f"ratio_{col}"] = merged[f"{col}_humming"] / merged[f"{col}_marlin"]
+    merged[f"pct_{col}"] = (merged[f"ratio_{col}"] - 1.0) * 100
+
+peak_m = df_marlin.loc[df_marlin["output_throughput"].idxmax()]
+peak_h = df_humming.loc[df_humming["output_throughput"].idxmax()]
+base_m = df_marlin.loc[df_marlin["concurrency"] == 1].iloc[0]
+base_h = df_humming.loc[df_humming["concurrency"] == 1].iloc[0]
+
+
+def per_config_table(df):
+    show = df[
+        [
+            "concurrency",
+            "num_prompts",
+            "duration_s",
+            "request_throughput",
+            "output_throughput",
+            "mean_ttft_ms",
+            "mean_tpot_ms",
+            "mean_e2el_ms",
+        ]
+    ].copy()
+    show["concurrency"] = show["concurrency"].astype(int)
+    show["num_prompts"] = show["num_prompts"].astype(int)
+    show["duration_s"] = show["duration_s"].round(1)
+    show["request_throughput"] = show["request_throughput"].round(1)
+    show["output_throughput"] = show["output_throughput"].round(1)
+    show["mean_ttft_ms"] = show["mean_ttft_ms"].round(1)
+    show["mean_tpot_ms"] = show["mean_tpot_ms"].round(1)
+    show["mean_e2el_ms"] = (show["mean_e2el_ms"] / 1000).round(1)
+    show = show.rename(
+        columns={
+            "concurrency": "C",
+            "num_prompts": "prompts",
+            "duration_s": "dur (s)",
+            "request_throughput": "req/s",
+            "output_throughput": "out tok/s",
+            "mean_ttft_ms": "TTFT (ms)",
+            "mean_tpot_ms": "TPOT (ms)",
+            "mean_e2el_ms": "E2E (s)",
+        }
+    )
+    return show.style.hide(axis="index").format(
+        {
+            "C": "{:d}",
+            "prompts": "{:d}",
+            "dur (s)": "{:.1f}",
+            "req/s": "{:.1f}",
+            "out tok/s": "{:.1f}",
+            "TTFT (ms)": "{:.1f}",
+            "TPOT (ms)": "{:.1f}",
+            "E2E (s)": "{:.1f}",
+        }
+    )
+```
+
+# Goal
+
+Same **TP8×PP2** recipe layout (`multi_node_tp_pp` on 2×8 H200), same MXFP4 checkpoint and 1000/1000 harness — only `--moe-backend` changes: **marlin** ([published report](https://mnmehta.github.io/kimi-k3/)) vs **humming** (this run).
+
+# Configuration
+
+| | **Marlin** | **Humming** |
+|:--|:--|:--|
+| Recipe | `pp2` | `pp2-humming` |
+| `--moe-backend` | `marlin` | `humming` |
+| Parallelism | TP8 × PP2 | TP8 × PP2 |
+| GPUs | 16× H200 | 16× H200 |
+| `--gpu-memory-utilization` | `0.90` | `0.90` |
+| `--max-num-seqs` | `256` | `256` |
+| `--max-model-len` | `8192` | `8192` |
+| Sweep | C ∈ {1…512}, 1000/1000 | C ∈ {1…512}, 1000/1000 |
+| Seed | `{python} SEED_MARLIN` | `{python} SEED_HUMMING` |
+| Data | [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) | [`conc-sweep-pp2-humming-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-humming-1000-1000) |
+
+Humming on this image needs the SiTU allowlist patch ([vLLM PR #50510](https://github.com/vllm-project/vllm/pull/50510)); deploy applies/unpatches it via [`scripts/lib/patch_humming_situ.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/lib/patch_humming_situ.sh) when `MOE_BACKEND=humming`.
+
+```{python}
+#| label: headline
+#| output: asis
+print(
+    f"- **Marlin peak:** {peak_m['output_throughput']:.0f} tok/s @ C={int(peak_m['concurrency'])} "
+    f"(C=1: {base_m['output_throughput']:.1f} tok/s)\n"
+    f"- **Humming peak:** {peak_h['output_throughput']:.0f} tok/s @ C={int(peak_h['concurrency'])} "
+    f"(C=1: {base_h['output_throughput']:.1f} tok/s)\n"
+    f"- **Peak ratio (humming/marlin):** "
+    f"{peak_h['output_throughput'] / peak_m['output_throughput']:.3f}×"
+)
+```
+
+# Comparison charts
+
+## Throughput
+
+```{python}
+#| label: fig-tok
+#| fig-cap: "Output token throughput vs concurrency (Marlin vs Humming)."
+
+fig = px.line(
+    both,
+    x="concurrency",
+    y="output_throughput",
+    color="run",
+    color_discrete_map=RUN_COLORS,
+    markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+## Latency
+
+```{python}
+#| label: fig-latency
+#| fig-cap: "Mean TTFT (left) and TPOT (right)."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT (ms)", "TPOT (ms)"))
+for run, dfx in [("Marlin", df_marlin), ("Humming", df_humming)]:
+    color = RUN_COLORS[run]
+    fig.add_trace(
+        go.Scatter(
+            x=dfx["concurrency"],
+            y=dfx["mean_ttft_ms"],
+            mode="lines+markers",
+            name=run,
+            legendgroup=run,
+            line=dict(color=color),
+            showlegend=True,
+        ),
+        row=1,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=dfx["concurrency"],
+            y=dfx["mean_tpot_ms"],
+            mode="lines+markers",
+            name=run,
+            legendgroup=run,
+            line=dict(color=color),
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
+    )
+for col in (1, 2):
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+## Ratio (Humming ÷ Marlin)
+
+```{python}
+#| label: fig-ratio
+#| fig-cap: "Humming / Marlin ratio by concurrency (1.0 = parity)."
+
+fig = make_subplots(
+    rows=1,
+    cols=3,
+    subplot_titles=("tok/s", "TTFT", "TPOT"),
+)
+metrics = [
+    ("ratio_output_throughput", 1),
+    ("ratio_mean_ttft_ms", 2),
+    ("ratio_mean_tpot_ms", 3),
+]
+for col, cidx in metrics:
+    fig.add_trace(
+        go.Scatter(
+            x=merged["concurrency"],
+            y=merged[col],
+            mode="lines+markers",
+            name=col.replace("ratio_", ""),
+            line=dict(color="#9467bd"),
+            showlegend=False,
+        ),
+        row=1,
+        col=cidx,
+    )
+    fig.add_hline(y=1.0, line_dash="dot", line_color="#adb5bd", row=1, col=cidx)
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=cidx)
+fig.update_layout(margin=dict(t=50), height=420)
+fig.show()
+```
+
+# Per-config detail
+
+## Marlin ([published report](https://mnmehta.github.io/kimi-k3/))
+
+```{python}
+#| label: tbl-marlin
+#| tbl-cap: "PP2 Marlin sweep."
+per_config_table(df_marlin)
+```
+
+## Humming
+
+```{python}
+#| label: tbl-humming
+#| tbl-cap: "PP2 Humming sweep."
+per_config_table(df_humming)
+```
+
+# Artifacts
+
+- Marlin: [`bench-results/conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000)
+- Humming: [`bench-results/conc-sweep-pp2-humming-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-humming-1000-1000)
+- Recipe: [`configs/recipes/pp2-humming.yaml`](https://github.com/mnmehta/kimi-k3/blob/main/configs/recipes/pp2-humming.yaml)
+- Deploy: [`./scripts/deploy.sh pp2-humming`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy.sh)
+- Report source: [`reports/pp2-marlin-vs-humming-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/pp2-marlin-vs-humming-1000-1000.qmd)
+
+# GitHub Repository
+
+Source, scripts, and bench results: [github.com/mnmehta/kimi-k3](https://github.com/mnmehta/kimi-k3).

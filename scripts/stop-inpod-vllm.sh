@@ -36,3 +36,8 @@ sleep 3
 echo '--- remaining ---'
 ps -eo pid=,args= | grep -E 'vllm serve|vllm-rs|EngineCore|Worker_TP|Worker_PP|bench-concurrency' | grep -v grep || echo NONE
 nvidia-smi --query-gpu=index,memory.used --format=csv,noheader
+
+# Restore stock fused_humming_moe.py if we patched SiTU for a humming run.
+if [[ -x /tmp/patch_humming_situ.sh ]] || [[ -f /tmp/patch_humming_situ.sh ]]; then
+  bash /tmp/patch_humming_situ.sh unpatch 2>/dev/null || true
+fi

@@ -86,6 +86,7 @@ echo "==> Copying in-pod serve + stop scripts ($SERVE_SCRIPT)"
 for i in $(seq 0 $((NNODES - 1))); do
   kubectl -n "$NS" cp "$SERVE_SCRIPT_HOST" "vllm-recipe-$i:/tmp/run-recipe.sh"
   kubectl -n "$NS" cp "$ROOT/scripts/stop-inpod-vllm.sh" "vllm-recipe-$i:/tmp/stop-inpod-vllm.sh"
+  kubectl -n "$NS" cp "$ROOT/scripts/lib/patch_humming_situ.sh" "vllm-recipe-$i:/tmp/patch_humming_situ.sh"
 done
 
 echo "==> Stopping any previous serve processes"
@@ -93,6 +94,18 @@ for i in $(seq 0 $((NNODES - 1))); do
   kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/stop-inpod-vllm.sh >/dev/null || true
 done
 sleep 2
+
+# PR #50510 allowlist: Humming rejects MoEActivation.SITU until upstream lands.
+# Patch only while MOE_BACKEND=humming; always unpatch first for a clean image state.
+echo "==> Humming SiTU allowlist (MOE_BACKEND=${MOE_BACKEND:-})"
+for i in $(seq 0 $((NNODES - 1))); do
+  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/patch_humming_situ.sh unpatch >/dev/null || true
+  if [[ "${MOE_BACKEND:-}" == "humming" ]]; then
+    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/patch_humming_situ.sh patch
+  else
+    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/patch_humming_situ.sh status || true
+  fi
+done
 
 # Forward optional knobs if set in the environment.
 OPT_ENV=""

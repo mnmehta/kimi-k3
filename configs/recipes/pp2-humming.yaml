@@ -1,0 +1,8 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-pp2.yaml
+  - ../layers/moe-humming.yaml
+
+name: pp2-humming
+description: Real-weight TP8×PP2 with Humming MoE backend

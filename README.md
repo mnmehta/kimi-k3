@@ -3,7 +3,15 @@
 Evaluation of Kimi K3 using vLLM parallelization recipes from
 [recipes.vllm.ai/moonshotai/Kimi-K3](https://recipes.vllm.ai/moonshotai/Kimi-K3).
 
-**Results report (GitHub Pages):** https://mnmehta.github.io/kimi-k3/
+**Published reports (GitHub Pages):**
+
+| Report | URL |
+|--------|-----|
+| Hub | https://mnmehta.github.io/kimi-k3/kimireports.html |
+| Recipe strategy evaluation (primary / `index.html`) | https://mnmehta.github.io/kimi-k3/ |
+| Full harness history (incl. dummy) | https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html |
+| Sweep reproducibility | https://mnmehta.github.io/kimi-k3/repro-1000-1000.html |
+| PP2 Marlin vs Humming | https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html |
 
 Harnesses for running / profiling `moonshotai/Kimi-K3` in the `kimi-k3`
 namespace with the [`vllm/vllm-openai:kimi-k3`](https://recipes.vllm.ai/moonshotai/Kimi-K3)
@@ -105,7 +113,14 @@ Open `vllm_profile/dp0_pp0_tp0_*.pt.trace.json.gz` in [Perfetto](https://ui.perf
 
 ## Report setup / local render
 
-Published report: https://mnmehta.github.io/kimi-k3/ (`index.html`).  
+Published pages (also listed at the top of this README):
+
+- Hub: https://mnmehta.github.io/kimi-k3/kimireports.html
+- Primary: https://mnmehta.github.io/kimi-k3/
+- History: https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html
+- Repro: https://mnmehta.github.io/kimi-k3/repro-1000-1000.html
+- PP2 Marlin vs Humming: https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html
+
 Sources: [`reports/README.md`](reports/README.md).
 
 Install the [Quarto CLI](https://quarto.org/docs/get-started/) first (not bundled with this repo). On macOS:
@@ -127,4 +142,6 @@ reports/.venv/bin/python -m ipykernel install --user \
 export QUARTO_PYTHON="$PWD/reports/.venv/bin/python"
 quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
 quarto render reports/concurrency-sweep-1000-1000.qmd --to html
+quarto render reports/repro-1000-1000.qmd --to html
+quarto render reports/pp2-marlin-vs-humming-1000-1000.qmd --to html
 ```

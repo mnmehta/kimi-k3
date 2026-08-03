@@ -1,0 +1,282 @@
+patched /usr/local/lib/python3.12/dist-packages/vllm/models/kimi_k3/nvidia/mla.py
+patched /usr/local/lib/python3.12/dist-packages/vllm/distributed/device_communicators/shm_broadcast.py
+Launching recipe-shaped REAL-WEIGHT serve:
+  MODEL=/models/Kimi-K3 TP=8 PP=2 DP=1 DP_LOCAL=1 DP_START=0
+  EP=0 EP_WEIGHT_FILTER=0
+  NNODES=2 NODE_RANK=1 MASTER_ADDR=10.202.210.23 DP_ADDR=10.202.210.23
+  IFACE=enp157s0np0 LOAD_FORMAT=<auto>
+  max-num-seqs=256 max-model-len=8192 gpu-mem-util=0.90
+  kv-cache-memory-bytes=<auto> V2_RUNNER=1 RUST_FE=0
+  kv-transfer=<none> enforce-eager=0 hybrid-kv=0 cumem=0
+  nixl-host=<unset> nixl-port=<unset>
+downloaded_at=2026-08-02T00:24:14Z
+MODEL_ID=moonshotai/Kimi-K3
+LOCAL_DIR=/models/Kimi-K3
+INFO 08-03 19:45:56 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:15 [model.py:636] Resolved architecture: KimiK3ForConditionalGeneration
+INFO 08-03 19:46:15 [model.py:654] Defaulting to tokenizer_mode='kimi_k3' for KimiK3ForConditionalGeneration
+INFO 08-03 19:46:15 [model.py:1810] Using max model len 8192
+INFO 08-03 19:46:15 [arg_utils.py:2088] Inferred data_parallel_rank 0 from node_rank 1
+INFO 08-03 19:46:15 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=4096.
+INFO 08-03 19:46:15 [vllm.py:1141] Asynchronous scheduling is enabled.
+INFO 08-03 19:46:15 [vllm.py:1232] Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1. Set VLLM_USE_BREAKABLE_CUDAGRAPH=0 to opt out.
+WARNING 08-03 19:46:15 [vllm.py:1238] VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's torch.compile pipeline. Equivalent to -cc.mode=none.
+WARNING 08-03 19:46:15 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 08-03 19:46:15 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+WARNING 08-03 19:46:15 [vllm.py:2263] Model Runner V2 does not yet support the thinking_token_budget request parameter. Set VLLM_USE_V2_MODEL_RUNNER=0 if this is required.
+INFO 08-03 19:46:15 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-03 19:46:16 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-03 19:46:16 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant, allreduce_rms
+INFO 08-03 19:46:16 [serve.py:212] Launching vLLM (v0.1.dev19262+gb6bbf29dd.d20260727) headless multiproc executor, with head node address 10.202.210.23:29501 for torch.distributed process group.
+WARNING 08-03 19:46:16 [multiproc_executor.py:1081] Reducing Torch parallelism from 64 threads to 1 to avoid unnecessary CPU contention. Set OMP_NUM_THREADS in the external environment to tune this value as needed.
+INFO 08-03 19:46:28 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-03 19:46:28 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-03 19:46:28 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=908) INFO 08-03 19:46:28 [parallel_state.py:1612] world_size=16 rank=15 local_rank=7 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-03 19:46:29 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-03 19:46:29 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-03 19:46:29 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-03 19:46:29 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+WARNING 08-03 19:46:29 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+WARNING 08-03 19:46:29 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=901) INFO 08-03 19:46:29 [parallel_state.py:1612] world_size=16 rank=8 local_rank=0 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+WARNING 08-03 19:46:29 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-03 19:46:29 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=905) INFO 08-03 19:46:30 [parallel_state.py:1612] world_size=16 rank=12 local_rank=4 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+(Worker pid=904) INFO 08-03 19:46:30 [parallel_state.py:1612] world_size=16 rank=11 local_rank=3 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+(Worker pid=906) INFO 08-03 19:46:30 [parallel_state.py:1612] world_size=16 rank=13 local_rank=5 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+(Worker pid=907) INFO 08-03 19:46:30 [parallel_state.py:1612] world_size=16 rank=14 local_rank=6 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+(Worker pid=903) INFO 08-03 19:46:30 [parallel_state.py:1612] world_size=16 rank=10 local_rank=2 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+(Worker pid=902) INFO 08-03 19:46:30 [parallel_state.py:1612] world_size=16 rank=9 local_rank=1 distributed_init_method=tcp://10.202.210.23:29501 backend=nccl
+(Worker pid=901) INFO 08-03 19:46:46 [pynccl.py:113] vLLM is using nccl==2.30.7
+(Worker pid=901) INFO 08-03 19:46:50 [parallel_state.py:1943] rank 8 in world size 16 is assigned as DP rank 0, PP rank 1, PCP rank 0, TP rank 0, EP rank 0, EPLB rank N/A
+(Worker pid=901) INFO 08-03 19:46:50 [gpu_worker.py:373] Using V2 Model Runner
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:46:50 [model_runner.py:288] Loading model from scratch...
+(Worker_PP1_TP0 pid=901) WARNING 08-03 19:46:50 [vision.py:153] The number of vision attention heads is not divisible by the tensor parallel size. Falling back to data parallelism for the vision encoder.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:46:50 [cuda.py:541] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:46:50 [mm_encoder_attention.py:373] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+(Worker_PP1_TP2 pid=903) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP4 pid=905) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP1 pid=902) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP5 pid=906) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP7 pid=908) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP3 pid=904) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_PP1_TP1 pid=902) (Worker_PP1_TP2 pid=903) INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [vllm.py:1141] Asynchronous scheduling is enabled.
+(Worker_PP1_TP0 pid=901) WARNING 08-03 19:47:02 [vllm.py:1238] VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's torch.compile pipeline. Equivalent to -cc.mode=none.
+(Worker_PP1_TP0 pid=901) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP0 pid=901) WARNING 08-03 19:47:02 [vllm.py:2263] Model Runner V2 does not yet support the thinking_token_budget request parameter. Set VLLM_USE_V2_MODEL_RUNNER=0 if this is required.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP6 pid=907) WARNING 08-03 19:47:02 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:47:02 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:47:02 [utils.py:162] Hidden layers were unevenly partitioned: [47,46]. This can be manually overridden using the VLLM_PP_LAYER_PARTITION environment variable
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [selector.py:174] Using FLASH_ATTN MLA prefill backend.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:47:02 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [fused_humming_moe.py:81] Using indexed gemm for humming moe
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [mxfp4.py:419] Using 'HUMMING' Mxfp4 MoE backend.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [kda.py:311] Fused KDA decode kernel (conv+KDA+norm) is enabled.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:02 [kda.py:163] Using FlashKDA KDA prefill backend.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:03 [weight_utils.py:869] Filesystem type for checkpoints: XFS. Checkpoint size: 1453.74 GiB. Available RAM: 1905.70 GiB.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:47:03 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (XFS) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:41 [default_loader.py:430] Loading weights took 97.95 seconds
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:41 [mxfp4.py:1718] Using MoEPrepareAndFinalizeNoDPEPModular
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:41 [mxfp4.py:1719] Using HummingIndexedExperts
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:48:42 [model_runner.py:309] Model loading took 96.47 GiB and 111.797000 seconds
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:48:42 [model_runner.py:309] Model loading took 96.47 GiB and 111.782932 seconds
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:48:42 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP7 pid=908) WARNING 08-03 19:48:42 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:48:42 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:48:42 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP1 pid=902) WARNING 08-03 19:48:42 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:48:42 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP7 pid=908) WARNING 08-03 19:48:42 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:48:42 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP1 pid=902) WARNING 08-03 19:48:42 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:48:42 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:48:42 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:48:42 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:48:42 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:48:42 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:43 [model_runner.py:309] Model loading took 96.47 GiB and 112.565170 seconds
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:43 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP0 pid=901) WARNING 08-03 19:48:43 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:43 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP0 pid=901) WARNING 08-03 19:48:43 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:43 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:43 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:48:43 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:48:44 [model_runner.py:309] Model loading took 96.47 GiB and 113.662492 seconds
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:48:44 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP6 pid=907) WARNING 08-03 19:48:44 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:48:44 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP6 pid=907) WARNING 08-03 19:48:44 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:48:44 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:48:44 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:48:44 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:48:45 [model_runner.py:309] Model loading took 96.47 GiB and 114.880286 seconds
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:48:45 [model_runner.py:309] Model loading took 96.47 GiB and 114.894622 seconds
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:48:45 [model_runner.py:309] Model loading took 96.47 GiB and 114.717029 seconds
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:48:45 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:48:45 [model_runner.py:309] Model loading took 96.47 GiB and 114.891218 seconds
+(Worker_PP1_TP2 pid=903) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP2 pid=903) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:48:45 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP5 pid=906) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:48:45 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:48:45 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:48:45 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP5 pid=906) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP3 pid=904) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:48:45 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP4 pid=905) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:48:45 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:48:45 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP3 pid=904) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP4 pid=905) WARNING 08-03 19:48:45 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:48:45 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:48:45 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:48:45 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:48:45 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:48:45 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:01 [gpu_worker.py:547] Available KV cache memory: 27.26 GiB
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_PP1_TP4 pid=905) (Worker_PP1_TP1 pid=902) INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_PP1_TP4 pid=905) (Worker_PP1_TP1 pid=902) INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_PP1_TP6 pid=907) (Worker_PP1_TP7 pid=908) INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:49:05 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:49:05 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:49:13 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:17 [breakable_cudagraph.py:288] Breakable CUDA graph enabled
+(Worker_PP1_TP1 pid=902) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP1 pid=902)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP4 pid=905) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP5 pid=906) (Worker_PP1_TP4 pid=905)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+/usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP7 pid=908) (Worker_PP1_TP5 pid=906)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+/usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP7 pid=908)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP3 pid=904) (Worker_PP1_TP0 pid=901) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP3 pid=904) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+  warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP6 pid=907) (Worker_PP1_TP0 pid=901) (Worker_PP1_TP2 pid=903)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+/usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+/usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP6 pid=907) (Worker_PP1_TP2 pid=903)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+  warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:41 [flashinfer_all_reduce.py:121] Auto-selected flashinfer allreduce backend: mnnvl
+(Worker_PP1_TP0 pid=901) /usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+(Worker_PP1_TP0 pid=901)   return func(*args, **kwargs)
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:42 [flashinfer_all_reduce.py:170] Initialized FlashInfer Allreduce norm fusion workspace with backend=mnnvl
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+(Worker_PP1_TP7 pid=908) INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.75/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26466138829` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39278538240` (36.58 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.72/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26466138829` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39236595200` (36.54 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+(Worker_PP1_TP5 pid=906) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.75/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26466138829` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39278538240` (36.58 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+(Worker_PP1_TP2 pid=903) (Worker_PP1_TP5 pid=906) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.75/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26466138829` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39278538240` (36.58 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.75/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26468235981` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39280635392` (36.58 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.75/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26468235981` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39280635392` (36.58 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:49:57 [model_runner.py:766] Graph capturing finished in 41 secs, took 2.46 GiB
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.75/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26468235981` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39280635392` (36.58 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:49:57 [gpu_worker.py:773] Free memory on device (137.75/139.8 GiB) on startup. Desired GPU memory utilization is (0.9, 125.82 GiB). Actual usage is 97.65 GiB for consumed memory (weights + non-torch), 0.92 GiB for peak activation, and 2.46 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=26468235981` (24.65 GiB) to fit into requested memory, or `--kv-cache-memory=39280635392` (36.58 GiB) to fully utilize gpu memory. Current kv cache memory in use is 27.26 GiB.
+[rank14]:[W803 19:49:59.172381955 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+[rank12]:[W803 19:49:59.172412904 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+[rank11]:[W803 19:49:59.172488228 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+[rank15]:[W803 19:49:59.172870101 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+[rank13]:[W803 19:49:59.181689126 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+[rank10]:[W803 19:49:59.185898059 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+[rank8]:[W803 19:49:59.209091867 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+[rank9]:[W803 19:49:59.214419175 ProcessGroupNCCL.cpp:4173] Warning: An unbatched P2P op (send/recv) was called on this ProcessGroup with size 2.  In lazy initialization mode, this will result in a new 2-rank NCCL communicator to be created. (function operator())
+(Worker_PP1_TP5 pid=906) (Worker_PP1_TP7 pid=908) INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_PP1_TP4 pid=905) INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_PP1_TP1 pid=902) INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_PP1_TP2 pid=903) INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_PP1_TP0 pid=901) INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_PP1_TP6 pid=907) INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_PP1_TP3 pid=904) INFO 08-03 19:50:03 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_PP1_TP7 pid=908) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP7 pid=908)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP4 pid=905) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP4 pid=905)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP5 pid=906) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP5 pid=906)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP2 pid=903) (Worker_PP1_TP1 pid=902) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP2 pid=903) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+  warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP1 pid=902)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP3 pid=904) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP3 pid=904)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP0 pid=901) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP0 pid=901)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP6 pid=907) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_PP1_TP6 pid=907)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_PP1_TP0 pid=901) WARNING 08-03 20:18:46 [jit_monitor.py:135] Triton kernel JIT compilation during inference: layer_norm_gated_fwd_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_PP1_TP0 pid=901) WARNING 08-03 20:19:54 [jit_monitor.py:135] Triton kernel JIT compilation during inference: mask_empty_context_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.

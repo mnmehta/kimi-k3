@@ -64,29 +64,54 @@
       color: var(--muted);
       font-size: 0.95rem;
     }
+    a.card .url {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
   <main>
     <h1>Kimi-K3 reports</h1>
-    <p class="lede">Published Quarto reports on GitHub Pages.</p>
+    <p class="lede">All published Quarto reports on GitHub Pages.</p>
     <ul>
       <li>
         <a class="card" href="./">
           <span class="title">Recipe strategy evaluation (H200)</span>
-          <span class="desc">Primary report — TP16 / TEP16 / PP2 / DP2 / P/D concurrency sweeps. Also at <code>index.html</code>.</span>
+          <span class="desc">Primary report — TP16 / TEP16 / PP2 / DP2 / P/D concurrency sweeps (<code>index.html</code>).</span>
+          <span class="url">https://mnmehta.github.io/kimi-k3/</span>
         </a>
       </li>
       <li>
         <a class="card" href="./concurrency-sweep-1000-1000.html">
           <span class="title">Full harness history (incl. dummy)</span>
           <span class="desc">Earlier TP16 / PP2 / dummy-weight concurrency sweeps.</span>
+          <span class="url">https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html</span>
         </a>
       </li>
       <li>
         <a class="card" href="./repro-1000-1000.html">
           <span class="title">Sweep reproducibility</span>
           <span class="desc">Original archives vs <code>repro-20260803</code> re-runs (16-GPU configs).</span>
+          <span class="url">https://mnmehta.github.io/kimi-k3/repro-1000-1000.html</span>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="./pp2-marlin-vs-humming-1000-1000.html">
+          <span class="title">PP2 MoE backend: Marlin vs Humming</span>
+          <span class="desc">Same TP8×PP2 layout — only <code>--moe-backend</code> differs.</span>
+          <span class="url">https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html</span>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="./kimireports.html">
+          <span class="title">Report hub (this page)</span>
+          <span class="desc">Index of all published reports.</span>
+          <span class="url">https://mnmehta.github.io/kimi-k3/kimireports.html</span>
         </a>
       </li>
     </ul>
