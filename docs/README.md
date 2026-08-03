@@ -11,3 +11,6 @@ Post-mortems for each measured [vLLM Kimi-K3 recipe](https://recipes.vllm.ai/moo
 | Prefill/Decode Disaggregation (`pd_cluster`) — **blocked on H200** | [pd-h200-deployment-issues.md](pd-h200-deployment-issues.md) |
 
 Comparative results: [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
+
+Torch profiler (GPU 0 / replica 0) across `tp16` / `tep16` / `pp2` / `dp2`:
+[profiler-parallelism-gpu0-comparison.md](profiler-parallelism-gpu0-comparison.md).
