@@ -325,7 +325,7 @@ From the [Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) Strategy p
 
 Comparison charts below cover the **five measured** selectable strategies (TP/TEP/PP/DP on 2×8; P/D on 4×8). `multi_node_dep` remains out of scope on H200. P/D peak throughput is **not** apples-to-apples with the 16-GPU strategies — it uses twice the GPU count.
 
-# Measured strategies (detail)
+# Configuration
 
 Same MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / TEP16 / PP2 / P/D cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-*.log` (`non-default args` / launch banner). Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-tep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-tep.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh) / [`deploy-recipe-pd.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pd.sh).
 
@@ -374,7 +374,7 @@ Same MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000
 | **Observed configuration** | | | | | |
 | GPUs | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) | 16× H200 (2×8) | **32× H200 (4×8)** |
 | Engine layout | 1 engine, cross-node TP | 1 engine, TP+EP (56/896 experts/rank) | 1 engine, PP stage / node | 2 DP replicas (1 / node) | 2 TEP16 engines + router |
-| Precision | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) | MXFP4 (marlin MoE) |
+| Precision | MXFP4 | MXFP4 | MXFP4 | MXFP4 | MXFP4 |
 | Available KV cache | `{python} TP16_KV_GIB` | `{python} TEP_KV_GIB` | `{python} PP2_KV_GIB` | `{python} DP2_KV_GIB` | `{python} PD_KV_GIB` |
 | GPU KV cache size | `{python} TP16_KV_TOKENS` | `{python} TEP_KV_TOKENS` | `{python} PP2_KV_TOKENS` | `{python} DP2_KV_TOKENS` | `{python} PD_KV_TOKENS` |
 | Max concurrency (at max-model-len) | `{python} TP16_KV_MAXCONC` | `{python} TEP_KV_MAXCONC` | `{python} PP2_KV_MAXCONC` | `{python} DP2_KV_MAXCONC` | `{python} PD_KV_MAXCONC` |
