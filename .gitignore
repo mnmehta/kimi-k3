@@ -4,6 +4,7 @@
 *.log
 # Keep vLLM serve logs archived with each sweep (metrics stay as *.json).
 !bench-results/**/vllm-recipe-*.log
+!profiler-results/**/vllm-recipe-*.log
 *.log.rc
 *.pid
 nohup.out

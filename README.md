@@ -56,12 +56,22 @@ Same STS layout with `--load-format dummy`:
 
 ```bash
 ./scripts/deploy-recipe-dummy.sh       # TP16
+./scripts/deploy-recipe-dummy-tep.sh   # TEP16
 ./scripts/deploy-recipe-dummy-pp.sh    # TP8 × PP2
 ./scripts/deploy-recipe-dummy-dp.sh    # TP8 × DP2
+./scripts/deploy-recipe-dummy-pd.sh    # P/D 4×8
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
 In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe-dummy.sh`.
+
+### Minimal-depth torch.profiler sweep (5 strategies)
+
+See [`profiler_sweep.md`](profiler_sweep.md) / [`profiler-results/README.md`](profiler-results/README.md):
+
+```bash
+./scripts/run-profiler-sweep.sh
+```
 
 ## Single-pod torch.profiler smoke (TP=2)
 
