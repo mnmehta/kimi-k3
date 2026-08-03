@@ -112,13 +112,22 @@ Open `vllm_profile/dp0_pp0_tp0_*.pt.trace.json.gz` in [Perfetto](https://ui.perf
 Published report: https://mnmehta.github.io/kimi-k3/ (`index.html`).  
 Sources: [`reports/README.md`](reports/README.md).
 
+Install the [Quarto CLI](https://quarto.org/docs/get-started/) first (not bundled with this repo). On macOS:
+
+```bash
+brew install quarto
+```
+
+Other platforms: download from [quarto.org/docs/get-started](https://quarto.org/docs/get-started/), or see the [install docs](https://quarto.org/docs/download/). CI installs Quarto via [`quarto-dev/quarto-actions/setup`](https://github.com/quarto-dev/quarto-actions).
+
+Then set up the Python kernel and render:
+
 ```bash
 python3 -m venv reports/.venv
 reports/.venv/bin/pip install -r reports/requirements.txt
 reports/.venv/bin/python -m ipykernel install --user \
   --name=kimi-k3-reports --display-name="Python (kimi-k3 reports)"
 
-export PATH="$PWD/reports/bin:$PATH"
 export QUARTO_PYTHON="$PWD/reports/.venv/bin/python"
 quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
 quarto render reports/concurrency-sweep-1000-1000.qmd --to html

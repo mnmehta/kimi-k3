@@ -1,6 +1,6 @@
 # Reports
 
-Quarto sources for publishing harness results. Setup and local render: [repo README — Reports](../README.md#reports).
+Quarto sources for publishing harness results. Setup and local render (including Quarto CLI install): [repo README — Report setup](../README.md#report-setup--local-render).
 
 ## vLLM Kimi-K3 recipe strategy evaluation (primary)
 
