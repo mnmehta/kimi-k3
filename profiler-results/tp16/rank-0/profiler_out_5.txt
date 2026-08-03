@@ -1,0 +1,107 @@
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                   execute_context_0(0)_generation_1(1)         0.00%       0.000us         0.00%       0.000us       0.000us      23.094ms       109.31%      23.094ms       1.443ms            16  
+ncclDevKernel_AllReduce_Sum_bf16_TREE_LL(ncclDevKern...         0.00%       0.000us         0.00%       0.000us       0.000us      13.315ms        63.02%      13.315ms     256.052us            52  
+                  execute_context_1(10)_generation_0(0)         0.00%       0.000us         0.00%       0.000us       0.000us      12.422ms        58.80%      12.422ms       1.553ms             8  
+                                       vllm::all_reduce         0.01%      30.631us         0.16%     515.509us     103.102us      11.083ms        52.46%      11.083ms       2.217ms             5  
+ncclDevKernel_AllReduce_Sum_bf16_RING_LL(ncclDevKern...         0.00%       0.000us         0.00%       0.000us       0.000us       3.584ms        16.97%       3.584ms     448.044us             8  
+                                       vllm::all_gather         0.01%      28.669us         0.18%     571.845us     114.369us     493.630us         2.34%     493.630us      98.726us             5  
+ncclDevKernel_AllGather_RING_LL(ncclDevKernelArgsSto...         0.00%       0.000us         0.00%       0.000us       0.000us     493.630us         2.34%     493.630us      98.726us             5  
+          nvjet_sm90_tst_64x8_64x16_2x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us     376.192us         1.78%     376.192us      15.675us            24  
+          nvjet_sm90_tst_64x8_64x16_4x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us     338.272us         1.60%     338.272us      10.571us            32  
+void marlin_moe_wna16::Marlin<1125899906909960l, 562...         0.00%       0.000us         0.00%       0.000us       0.000us     246.720us         1.17%     246.720us      20.560us            12  
+                                       _attn_res_kernel         0.00%       0.000us         0.00%       0.000us       0.000us     235.584us         1.12%     235.584us       5.235us            45  
+                                               aten::mm         0.05%     171.351us         0.06%     198.940us      39.788us     188.928us         0.89%     188.928us      37.786us             5  
+                nvjet_sm90_tst_128x8_64x12_4x1_v_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us     188.928us         0.89%     188.928us      37.786us             5  
+                 nvjet_sm90_tst_64x8_64x16_4x1_v_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us     170.559us         0.81%     170.559us       5.330us            32  
+void sm90::flash_fwd_splitkv_mla_kernel<Traits<cutla...         0.00%       0.000us         0.00%       0.000us       0.000us     147.135us         0.70%     147.135us      29.427us             5  
+void marlin_moe_wna16::Marlin<1125899906909960l, 562...         0.00%       0.000us         0.00%       0.000us       0.000us     145.310us         0.69%     145.310us       9.687us            15  
+smxx::decode::get_mla_metadata_kernel(GetDecodeSched...         0.00%       0.000us         0.00%       0.000us       0.000us     137.633us         0.65%     137.633us      27.527us             5  
+void cublasLt::splitKreduce_kernel<32, 16, int, floa...         0.00%       0.000us         0.00%       0.000us       0.000us     133.766us         0.63%     133.766us       1.858us            72  
+void vllm::moe::moe_align_block_size_small_batch_exp...         0.00%       0.000us         0.00%       0.000us       0.000us      94.655us         0.45%      94.655us       6.310us            15  
+                                            aten::copy_         0.12%     364.037us         0.30%     938.539us       8.938us      92.158us         0.44%      97.918us       0.933us           105  
+                nvjet_sm90_tst_64x16_64x16_4x1_v_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      91.682us         0.43%      91.682us       8.335us            11  
+void smxx::decode::flash_fwd_mla_combine_kernel<cutl...         0.00%       0.000us         0.00%       0.000us       0.000us      86.048us         0.41%      86.048us      17.210us             5  
+         nvjet_sm90_tst_64x16_64x16_4x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      78.241us         0.37%      78.241us       9.780us             8  
+                                       _flashkda_C::fwd         0.02%      69.060us         0.07%     224.909us      74.970us      76.446us         0.36%      80.349us      26.783us             3  
+                          _flashmla_C::dense_decode_fwd         0.02%      47.541us         0.04%     123.405us     123.405us      74.912us         0.35%      74.912us      74.912us             1  
+         nvjet_sm90_tst_128x8_64x12_4x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      71.968us         0.34%      71.968us      17.992us             4  
+        nvjet_sm90_tst_128x16_64x11_4x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      68.288us         0.32%      68.288us      17.072us             4  
+void vllm::situ_and_mul_kernel<c10::BFloat16>(c10::B...         0.00%       0.000us         0.00%       0.000us       0.000us      68.190us         0.32%      68.190us       1.948us            35  
+                                  _gumbel_sample_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      65.631us         0.31%      65.631us      13.126us             5  
+_Z25_flash_kda_fwd_recurrenceIN4cute9TiledCopyINS0_9...         0.00%       0.000us         0.00%       0.000us       0.000us      62.880us         0.30%      62.880us      20.960us             3  
+                 nvjet_sm90_tst_8x64_64x16_4x1_v_bz_TNN         0.00%       0.000us         0.00%       0.000us       0.000us      52.736us         0.25%      52.736us       3.102us            17  
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      51.938us         0.25%      51.938us       1.105us            47  
+void vllm::rms_norm_kernel<c10::BFloat16, 8, 2, true...         0.00%       0.000us         0.00%       0.000us       0.000us      47.998us         0.23%      47.998us       2.400us            20  
+                              _causal_conv1d_fwd_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      45.602us         0.22%      45.602us       5.067us             9  
+void vllm::moe::single_group_topk::detail::single_gr...         0.00%       0.000us         0.00%       0.000us       0.000us      43.521us         0.21%      43.521us       2.901us            15  
+               fused_recurrent_kda_packed_decode_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      40.767us         0.19%      40.767us       3.397us            12  
+                                            aten::index         0.06%     183.077us         0.09%     297.449us      19.830us      36.513us         0.17%      36.513us       2.434us            15  
+kernel_cutlass_kernel_vllmmodel_executorkernelslinea...         0.00%       0.000us         0.00%       0.000us       0.000us      31.010us         0.15%      31.010us       2.584us            12  
+                           _causal_conv1d_update_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      29.379us         0.14%      29.379us       2.448us            12  
+void marlin_moe_wna16::Marlin<1125899906909960l, 562...         0.00%       0.000us         0.00%       0.000us       0.000us      29.121us         0.14%      29.121us       9.707us             3  
+                            layer_norm_gated_fwd_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      26.081us         0.12%      26.081us       1.739us            15  
+                nvjet_sm90_tst_16x64_64x16_4x1_v_bz_TNN         0.00%       0.000us         0.00%       0.000us       0.000us      24.159us         0.11%      24.159us       6.040us             4  
+                         Memcpy DtoH (Device -> Pinned)         0.00%       0.000us         0.00%       0.000us       0.000us      23.232us         0.11%      23.232us       2.323us            10  
+void at::native::elementwise_kernel<128, 2, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us      22.305us         0.11%      22.305us       1.487us            15  
+                         Memcpy DtoD (Device -> Device)         0.00%       0.000us         0.00%       0.000us       0.000us      21.278us         0.10%      21.278us       1.064us            20  
+void vllm::moe::moe_sum_vec_kernel<c10::BFloat16, in...         0.00%       0.000us         0.00%       0.000us       0.000us      21.249us         0.10%      21.249us       1.417us            15  
+                         Memcpy HtoD (Pinned -> Device)         0.00%       0.000us         0.00%       0.000us       0.000us      21.151us         0.10%      21.151us       1.007us            21  
+                                           aten::argmax         0.02%      60.112us         0.03%      84.032us      16.806us      20.833us         0.10%      20.833us       4.167us             5  
+void at::native::reduce_kernel<512, 1, at::native::R...         0.00%       0.000us         0.00%       0.000us       0.000us      20.833us         0.10%      20.833us       4.167us             5  
+                            _gather_block_tables_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      20.161us         0.10%      20.161us       4.032us             5  
+                                    _post_update_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      19.424us         0.09%      19.424us       3.885us             5  
+                                            aten::fill_         0.05%     154.970us         0.59%       1.865ms      35.183us      19.010us         0.09%      19.842us       0.374us            53  
+void at::native::vectorized_elementwise_kernel<8, at...         0.00%       0.000us         0.00%       0.000us       0.000us      18.815us         0.09%      18.815us       1.254us            15  
+                                          memcpy32_post         0.00%       0.000us         0.00%       0.000us       0.000us      17.344us         0.08%      17.344us       1.084us            16  
+void at::native::index_elementwise_kernel<128, 4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      17.057us         0.08%      17.057us       3.411us             5  
+               _combine_sampled_and_draft_tokens_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      15.776us         0.07%      15.776us       3.155us             5  
+void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us      15.713us         0.07%      15.713us       3.143us             5  
+                   _get_num_sampled_and_rejected_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      15.201us         0.07%      15.201us       3.040us             5  
+                                    _apply_write_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      15.106us         0.07%      15.106us       3.776us             4  
+                 nvjet_sm90_tst_64x8_64x16_4x2_h_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      14.273us         0.07%      14.273us       3.568us             4  
+                          _compute_slot_mappings_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      13.888us         0.07%      13.888us       2.778us             5  
+void _flash_kda_fwd_prepare<cute::TiledCopy<cute::Co...         0.00%       0.000us         0.00%       0.000us       0.000us      13.566us         0.06%      13.566us       4.522us             3  
+                                     aten::index_select         0.02%      60.972us         0.04%     128.957us      25.791us      13.216us         0.06%      13.216us       2.643us             5  
+void at::native::(anonymous namespace)::indexSelectS...         0.00%       0.000us         0.00%       0.000us       0.000us      13.216us         0.06%      13.216us       2.643us             5  
+                                           _C::rms_norm         0.02%      48.118us         0.02%      74.711us      14.942us      12.448us         0.06%      12.448us       2.490us             5  
+                                     aten::masked_fill_         0.02%      48.974us         0.03%      95.878us      19.176us      11.777us         0.06%      11.777us       2.355us             5  
+void at::native::elementwise_kernel<128, 4, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us      11.777us         0.06%      11.777us       2.355us             5  
+                                 aten::_index_put_impl_         0.01%      36.342us         0.03%     106.384us      35.461us      11.490us         0.05%      15.075us       5.025us             3  
+void at::native::index_elementwise_kernel<128, 4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      11.490us         0.05%      11.490us       3.830us             3  
+                 nvjet_sm90_tst_64x8_64x16_4x1_v_bz_NNT         0.00%       0.000us         0.00%       0.000us       0.000us      11.104us         0.05%      11.104us       2.776us             4  
+kernel_cutlass_kernel_vllmmodel_executorkernelslinea...         0.00%       0.000us         0.00%       0.000us       0.000us      11.104us         0.05%      11.104us       3.701us             3  
+                             _fused_q_kv_rmsnorm_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      10.623us         0.05%      10.623us       2.125us             5  
+void at::native::index_elementwise_kernel<128, 4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      10.240us         0.05%      10.240us       2.048us             5  
+void vllm::kimi_k3_fused_ops::fusedKimiK3MLADecodeQC...         0.00%       0.000us         0.00%       0.000us       0.000us       9.440us         0.04%       9.440us       1.888us             5  
+void at::native::index_elementwise_kernel<128, 4, at...         0.00%       0.000us         0.00%       0.000us       0.000us       9.216us         0.04%       9.216us       1.843us             5  
+                                           aten::gather         0.02%      50.758us         0.02%      76.035us      15.207us       8.703us         0.04%       8.703us       1.741us             5  
+void at::native::_scatter_gather_elementwise_kernel<...         0.00%       0.000us         0.00%       0.000us       0.000us       8.703us         0.04%       8.703us       1.741us             5  
+                          _gather_initial_states_kernel         0.00%       0.000us         0.00%       0.000us       0.000us       7.265us         0.03%       7.265us       2.422us             3  
+                                              aten::bmm         0.01%      36.931us         0.04%     124.104us      62.052us       6.880us         0.03%       6.880us       3.440us             2  
+                           _prepare_pos_seq_lens_kernel         0.00%       0.000us         0.00%       0.000us       0.000us       6.369us         0.03%       6.369us       1.274us             5  
+                                              aten::sub         0.02%      77.244us         0.03%     105.075us       4.776us       5.984us         0.03%       5.984us       0.272us            22  
+                           _scatter_num_accepted_kernel         0.00%       0.000us         0.00%       0.000us       0.000us       5.313us         0.03%       5.313us       1.063us             5  
+                         triton_poi_fused_mul_sigmoid_0         0.00%       0.000us         0.00%       0.000us       0.000us       5.312us         0.03%       5.312us       1.062us             5  
+void at::native::vectorized_elementwise_kernel<8, at...         0.00%       0.000us         0.00%       0.000us       0.000us       4.448us         0.02%       4.448us       0.890us             5  
+                                  cudaStreamIsCapturing         0.01%      23.914us         0.01%      23.914us       0.311us       4.000us         0.02%       4.000us       0.052us            77  
+                                           aten::arange         0.02%      47.369us         0.06%     183.037us      18.304us       3.904us         0.02%       7.808us       0.781us            10  
+void (anonymous namespace)::elementwise_kernel_with_...         0.00%       0.000us         0.00%       0.000us       0.000us       3.904us         0.02%       3.904us       0.781us             5  
+void at::native::elementwise_kernel<128, 4, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us       3.903us         0.02%       3.903us       1.301us             3  
+triton_poi_fused_add_bitwise_and_bitwise_or_ge_lt_mu...         0.01%      25.136us         0.04%     117.614us      29.404us       3.649us         0.02%       3.649us       0.912us             4  
+triton_poi_fused_add_bitwise_and_bitwise_or_ge_lt_mu...         0.00%       0.000us         0.00%       0.000us       0.000us       3.649us         0.02%       3.649us       0.912us             4  
+                         _prepare_prefill_inputs_kernel         0.00%       0.000us         0.00%       0.000us       0.000us       3.648us         0.02%       3.648us       3.648us             1  
+triton_poi_fused_bitwise_and_bitwise_not_bitwise_or_...         0.01%      17.893us         0.02%      61.528us      15.382us       3.616us         0.02%       3.616us       0.904us             4  
+triton_poi_fused_bitwise_and_bitwise_not_bitwise_or_...         0.00%       0.000us         0.00%       0.000us       0.000us       3.616us         0.02%       3.616us       0.904us             4  
+void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us       3.585us         0.02%       3.585us       1.195us             3  
+void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us       3.296us         0.02%       3.296us       1.099us             3  
+                                               aten::gt         0.01%      27.455us         0.01%      40.299us      13.433us       3.168us         0.01%       3.168us       1.056us             3  
+void at::native::vectorized_elementwise_kernel<8, at...         0.00%       0.000us         0.00%       0.000us       0.000us       3.168us         0.01%       3.168us       1.056us             3  
+                 nvjet_sm90_tst_64x8_64x16_4x2_h_bz_NNT         0.00%       0.000us         0.00%       0.000us       0.000us       3.168us         0.01%       3.168us       3.168us             1  
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us       3.104us         0.01%       3.104us       1.035us             3  
+void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us       2.880us         0.01%       2.880us       0.960us             3  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 314.293ms
+Self CUDA time total: 21.126ms
+
