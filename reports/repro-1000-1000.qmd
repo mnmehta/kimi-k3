@@ -1,0 +1,351 @@
+---
+title: "Kimi-K3 Sweep Reproducibility (H200)"
+subtitle: "Original archives vs repro-20260803 re-runs"
+date: "August 3, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+TAG = "repro-20260803"
+
+RUN_COLORS = {
+    "original": "#1f77b4",
+    "repro": "#ff7f0e",
+}
+
+CONFIGS = [
+    ("TP16", "conc-sweep-real-1000-1000"),
+    ("TEP16", "conc-sweep-tep-1000-1000"),
+    ("TP8×PP2", "conc-sweep-pp2-1000-1000"),
+    ("TP8×DP2", "conc-sweep-dp2-1000-1000"),
+]
+
+
+def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
+    if not data_dir.exists():
+        return pd.DataFrame()
+    paths = [
+        p
+        for p in data_dir.glob("conc-*.json")
+        if p.stem.split("-")[1].isdigit() and "topup" not in p.name
+    ]
+    if not paths:
+        return pd.DataFrame()
+    rows = []
+    for path in sorted(paths, key=lambda p: int(p.stem.split("-")[1])):
+        d = json.loads(path.read_text())
+        rows.append(
+            {
+                "run": label,
+                "concurrency": int(d["max_concurrency"]),
+                "num_prompts": d["num_prompts"],
+                "duration_s": d["duration"],
+                "completed": d["completed"],
+                "failed": d["failed"],
+                "request_throughput": d["request_throughput"],
+                "output_throughput": d["output_throughput"],
+                "mean_ttft_ms": d["mean_ttft_ms"],
+                "mean_tpot_ms": d["mean_tpot_ms"],
+                "mean_e2el_ms": d["mean_e2el_ms"],
+            }
+        )
+    return pd.DataFrame(rows).sort_values("concurrency").reset_index(drop=True)
+
+
+def read_seed(data_dir: Path) -> str:
+    p = data_dir / "seed.txt"
+    return p.read_text().strip() if p.exists() else "n/a"
+
+
+def compare_pair(name: str, base: str):
+    old_dir = ROOT / "bench-results" / base
+    new_dir = ROOT / "bench-results" / f"{base}-{TAG}"
+    df_old = load_sweep(old_dir, "original")
+    df_new = load_sweep(new_dir, "repro")
+    status = "ready" if not df_new.empty else ("missing" if not new_dir.exists() else "incomplete")
+    m = pd.DataFrame()
+    if status == "ready" and not df_old.empty:
+        m = df_old.merge(df_new, on="concurrency", suffixes=("_old", "_new"), how="inner")
+        for col in ("output_throughput", "mean_ttft_ms", "mean_tpot_ms"):
+            m[f"pct_{col}"] = (m[f"{col}_new"] / m[f"{col}_old"] - 1.0) * 100
+    return {
+        "name": name,
+        "old_dir": old_dir,
+        "new_dir": new_dir,
+        "df_old": df_old,
+        "df_new": df_new,
+        "seed_old": read_seed(old_dir),
+        "seed_new": read_seed(new_dir),
+        "status": status,
+        "merged": m,
+    }
+
+
+pairs = {name: compare_pair(name, base) for name, base in CONFIGS}
+missing = [n for n, p in pairs.items() if p["status"] != "ready"]
+
+
+def worst_delta_cell(m: pd.DataFrame, pct_col: str) -> str:
+    """Signed % delta at the concurrency with largest |delta|."""
+    if m.empty or pct_col not in m.columns:
+        return "—"
+    i = m[pct_col].abs().idxmax()
+    pct = float(m.loc[i, pct_col])
+    c = int(m.loc[i, "concurrency"])
+    return f"{pct:+.1f}% @ C={c}"
+
+
+def overlay_fig(p):
+    fig = make_subplots(
+        rows=1,
+        cols=3,
+        subplot_titles=("Output tok/s", "TTFT (ms)", "TPOT (ms)"),
+    )
+    for run, dfx, showleg in [
+        ("original", p["df_old"], True),
+        ("repro", p["df_new"], True),
+    ]:
+        color = RUN_COLORS[run]
+        fig.add_trace(
+            go.Scatter(
+                x=dfx["concurrency"],
+                y=dfx["output_throughput"],
+                mode="lines+markers",
+                name=run,
+                legendgroup=run,
+                line=dict(color=color),
+                showlegend=showleg,
+            ),
+            row=1,
+            col=1,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=dfx["concurrency"],
+                y=dfx["mean_ttft_ms"],
+                mode="lines+markers",
+                name=run,
+                legendgroup=run,
+                line=dict(color=color),
+                showlegend=False,
+            ),
+            row=1,
+            col=2,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=dfx["concurrency"],
+                y=dfx["mean_tpot_ms"],
+                mode="lines+markers",
+                name=run,
+                legendgroup=run,
+                line=dict(color=color),
+                showlegend=False,
+            ),
+            row=1,
+            col=3,
+        )
+    for col in (1, 2, 3):
+        fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+    fig.update_yaxes(type="log", row=1, col=2)
+    fig.update_layout(
+        legend=dict(orientation="h", yanchor="bottom", y=1.08),
+        margin=dict(t=50),
+        height=420,
+    )
+    return fig
+```
+
+# Goal
+
+Re-run the four **16-GPU** recipe strategies (TP16 / TEP16 / TP8×PP2 / TP8×DP2) with the same harness knobs as the published archives, write results into **new** directories (`*-repro-20260803`), and quantify how close the re-runs track the originals. P/D is out of scope for this pass. The primary report [`tp16-vs-pp2-1000-1000.qmd`](tp16-vs-pp2-1000-1000.qmd) is unchanged.
+
+# Method
+
+Same shape as the primary report: **1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`, concurrency tiers powers of two. DP2 limited to C ∈ {1…16} (KV-limited). Orchestrator: [`scripts/run-repro-sweeps.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-repro-sweeps.sh). Seeds are **not** reused — this measures run-to-run reproducibility under random prompts, not bit-identical replay.
+
+| Config | Original archive | Repro archive | Status |
+|--------|------------------|---------------|--------|
+```{python}
+#| label: status-table
+#| output: asis
+for name, p in pairs.items():
+    print(
+        f"| {name} | [`{p['old_dir'].name}/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/{p['old_dir'].name}) "
+        f"(seed {p['seed_old']}) | [`{p['new_dir'].name}/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/{p['new_dir'].name}) "
+        f"(seed {p['seed_new']}) | **{p['status']}** |"
+    )
+```
+
+```{python}
+#| label: missing-note
+#| output: asis
+if missing:
+    print(
+        f"> **Incomplete:** waiting on repro data for: {', '.join(missing)}. "
+        f"Re-render after `./scripts/run-repro-sweeps.sh` finishes."
+    )
+else:
+    print("> All four repro sweeps present — full comparison below.")
+```
+
+# Worst delta vs original
+
+For each metric, the cell is the **largest absolute** `(repro − original) / original` across shared concurrency tiers, shown as a signed percent at that concurrency.
+
+```{python}
+#| label: tbl-worst
+#| tbl-cap: "Worst % delta (repro vs original) and concurrency where it occurs."
+
+rows = []
+for name, p in pairs.items():
+    m = p["merged"]
+    rows.append(
+        {
+            "Config": name,
+            "Throughput": worst_delta_cell(m, "pct_output_throughput"),
+            "TTFT": worst_delta_cell(m, "pct_mean_ttft_ms"),
+            "TPOT": worst_delta_cell(m, "pct_mean_tpot_ms"),
+        }
+    )
+pd.DataFrame(rows).style.hide(axis="index")
+```
+
+# TP16
+
+```{python}
+#| label: tp16-body
+#| output: asis
+p = pairs["TP16"]
+if p["status"] != "ready":
+    print(f"_Repro data not ready yet (`{p['new_dir'].name}`)._")
+else:
+    print(
+        f"Original seed `{p['seed_old']}` · repro seed `{p['seed_new']}` · "
+        f"{len(p['merged'])} shared concurrency tiers."
+    )
+```
+
+```{python}
+#| label: fig-tp16-overlay
+#| fig-cap: "TP16 original vs repro — throughput, TTFT, and TPOT."
+p = pairs["TP16"]
+if p["status"] == "ready":
+    overlay_fig(p).show()
+```
+
+# TEP16
+
+```{python}
+#| label: tep-body
+#| output: asis
+p = pairs["TEP16"]
+if p["status"] != "ready":
+    print(f"_Repro data not ready yet (`{p['new_dir'].name}`)._")
+else:
+    print(
+        f"Original seed `{p['seed_old']}` · repro seed `{p['seed_new']}` · "
+        f"{len(p['merged'])} shared concurrency tiers."
+    )
+```
+
+```{python}
+#| label: fig-tep-overlay
+#| fig-cap: "TEP16 original vs repro — throughput, TTFT, and TPOT."
+p = pairs["TEP16"]
+if p["status"] == "ready":
+    overlay_fig(p).show()
+```
+
+# TP8×PP2
+
+```{python}
+#| label: pp2-body
+#| output: asis
+p = pairs["TP8×PP2"]
+if p["status"] != "ready":
+    print(f"_Repro data not ready yet (`{p['new_dir'].name}`)._")
+else:
+    print(
+        f"Original seed `{p['seed_old']}` · repro seed `{p['seed_new']}` · "
+        f"{len(p['merged'])} shared concurrency tiers."
+    )
+```
+
+```{python}
+#| label: fig-pp2-overlay
+#| fig-cap: "TP8×PP2 original vs repro — throughput, TTFT, and TPOT."
+p = pairs["TP8×PP2"]
+if p["status"] == "ready":
+    overlay_fig(p).show()
+```
+
+# TP8×DP2
+
+```{python}
+#| label: dp2-body
+#| output: asis
+p = pairs["TP8×DP2"]
+if p["status"] != "ready":
+    print(f"_Repro data not ready yet (`{p['new_dir'].name}`)._")
+else:
+    print(
+        f"Original seed `{p['seed_old']}` · repro seed `{p['seed_new']}` · "
+        f"{len(p['merged'])} shared concurrency tiers."
+    )
+```
+
+```{python}
+#| label: fig-dp2-overlay
+#| fig-cap: "TP8×DP2 original vs repro — throughput, TTFT, and TPOT."
+p = pairs["TP8×DP2"]
+if p["status"] == "ready":
+    overlay_fig(p).show()
+```
+
+# Artifacts
+
+| Kind | Path |
+|------|------|
+| Orchestrator | [`scripts/run-repro-sweeps.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-repro-sweeps.sh) |
+| Host sweep log | `bench-results/repro-sweep-repro-20260803.log` |
+| Primary report (unchanged) | [`tp16-vs-pp2-1000-1000.qmd`](tp16-vs-pp2-1000-1000.qmd) |
+
+# GitHub Repository
+
+Source and bench results: [github.com/mnmehta/kimi-k3](https://github.com/mnmehta/kimi-k3).

@@ -22,12 +22,12 @@ for n in $(seq 1 "$MAX_POLLS"); do
   echo "$(date -u +%H:%M:%S) $st"
   case "$st" in
     DONE*)
-      RESULT="$RESULT" LOCAL_OUT="$LOCAL_OUT" "$ROOT/scripts/copy-sweep-results.sh"
+      RESULT="$RESULT" LOCAL_OUT="$LOCAL_OUT" NNODES="${NNODES:-2}" "$ROOT/scripts/copy-sweep-results.sh"
       exit 0
       ;;
     DEAD*)
       echo "sweep process died before completion" >&2
-      RESULT="$RESULT" LOCAL_OUT="$LOCAL_OUT" "$ROOT/scripts/copy-sweep-results.sh" || true
+      RESULT="$RESULT" LOCAL_OUT="$LOCAL_OUT" NNODES="${NNODES:-2}" "$ROOT/scripts/copy-sweep-results.sh" || true
       exit 1
       ;;
   esac
