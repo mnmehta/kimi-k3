@@ -21,3 +21,8 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 - Source: [`repro-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/repro-1000-1000.qmd)
 - Orchestrator: [`scripts/run-repro-sweeps.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-repro-sweeps.sh)
 - New data dirs (do not overwrite archives): `bench-results/conc-sweep-{real,tep,pp2,dp2}-1000-1000-repro-20260803/`
+- Pages: [/repro-1000-1000.html](https://mnmehta.github.io/kimi-k3/repro-1000-1000.html)
+
+## Report hub
+
+All published pages: [kimireports.html](https://mnmehta.github.io/kimi-k3/kimireports.html) (`index.html` remains the primary recipe report).

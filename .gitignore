@@ -18,5 +18,6 @@ reports/.venv/
 reports/.quarto-cli/
 reports/bin/
 reports/*.html
+!reports/kimireports.html
 reports/*_files/
 reports/*.quarto_ipynb

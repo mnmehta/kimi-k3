@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kimi-K3 reports</title>
+  <style>
+    :root {
+      --bg: #222;
+      --fg: #dee2e6;
+      --muted: #adb5bd;
+      --link: #6ea8fe;
+      --card: #2b3035;
+      --border: #495057;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+    }
+    main {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+    }
+    .lede {
+      color: var(--muted);
+      margin: 0 0 2rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.85rem;
+    }
+    a.card {
+      display: block;
+      padding: 1rem 1.15rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: inherit;
+      text-decoration: none;
+    }
+    a.card:hover {
+      border-color: var(--link);
+    }
+    a.card .title {
+      color: var(--link);
+      font-weight: 600;
+    }
+    a.card .desc {
+      display: block;
+      margin-top: 0.25rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Kimi-K3 reports</h1>
+    <p class="lede">Published Quarto reports on GitHub Pages.</p>
+    <ul>
+      <li>
+        <a class="card" href="./">
+          <span class="title">Recipe strategy evaluation (H200)</span>
+          <span class="desc">Primary report — TP16 / TEP16 / PP2 / DP2 / P/D concurrency sweeps. Also at <code>index.html</code>.</span>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="./concurrency-sweep-1000-1000.html">
+          <span class="title">Full harness history (incl. dummy)</span>
+          <span class="desc">Earlier TP16 / PP2 / dummy-weight concurrency sweeps.</span>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="./repro-1000-1000.html">
+          <span class="title">Sweep reproducibility</span>
+          <span class="desc">Original archives vs <code>repro-20260803</code> re-runs (16-GPU configs).</span>
+        </a>
+      </li>
+    </ul>
+  </main>
+</body>
+</html>
