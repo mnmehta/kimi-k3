@@ -1,0 +1,10 @@
+# Dummy weights (HF id + --load-format dummy).
+name: weights-dummy
+serve_script: scripts/run-vllm-kimi-k3-recipe-dummy.sh
+verify_weights: false
+health_timeout_polls: 120
+
+env:
+  MODEL: moonshotai/Kimi-K3
+  MODEL_PATH: moonshotai/Kimi-K3
+  LOAD_FORMAT: dummy

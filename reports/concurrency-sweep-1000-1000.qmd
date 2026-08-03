@@ -205,7 +205,7 @@ Primary comparison is **TP16 vs TP8×PP2** on real `/models/Kimi-K3` weights. Cr
 | `--max-model-len` | 32768 | 8192 | 8192 | **8192** |
 | Data | [`conc-sweep-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-1000-1000) | [`conc-sweep-full-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-full-1000-1000) | [`conc-sweep-real-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000) | [`conc-sweep-pp2-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000) |
 
-Bring-up: [`scripts/deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) (TP16) or [`scripts/deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) (TP8×PP2).
+Bring-up: [`./scripts/deploy.sh tp16`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy.sh) or [`./scripts/deploy.sh pp2`](https://github.com/mnmehta/kimi-k3/blob/main/configs/recipes/pp2.yaml) (see [`configs/`](https://github.com/mnmehta/kimi-k3/tree/main/configs)).
 
 ## Benchmark method
 
@@ -692,8 +692,7 @@ Scripts:
 
 - [`scripts/bench-concurrency-sweep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/bench-concurrency-sweep.sh)
 - [`scripts/copy-sweep-results.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/copy-sweep-results.sh)
-- [`scripts/deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh)
-- [`scripts/deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh)
+- [`scripts/deploy.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy.sh) + [`configs/`](https://github.com/mnmehta/kimi-k3/tree/main/configs)
 - [`scripts/run-vllm-kimi-k3-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-vllm-kimi-k3-recipe.sh)
 
 # Render this report

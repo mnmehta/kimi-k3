@@ -1,0 +1,9 @@
+include:
+  - pd-dummy.yaml
+
+name: pd-dummy-profiler
+description: Dummy P/D + shallow torch.profiler
+
+env:
+  ENABLE_TORCH_PROFILER: 1
+  PROFILE_DIR: /tmp/vllm_profile/pd

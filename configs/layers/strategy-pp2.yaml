@@ -1,0 +1,20 @@
+# multi_node_tp_pp — TP8 × PP2.
+name: strategy-pp2
+description: Multi-Node TP + Pipeline Parallel (TP8×PP2)
+
+env:
+  TP_SIZE: 8
+  PP_SIZE: 2
+  DP_SIZE: 1
+  NNODES: 2
+  GPU_MEM_UTIL: "0.90"
+  MAX_NUM_SEQS: 256
+  MAX_MODEL_LEN: 8192
+  MAX_NUM_BATCHED_TOKENS: 4096
+  # Empty → run script unsets expandable_segments (PP prefers default allocator).
+  PYTORCH_CUDA_ALLOC_CONF: ""
+  NCCL_IB_HCA: mlx5_5
+  NCCL_IB_GID_INDEX: 3
+  NCCL_DMABUF_ENABLE: 0
+  # Explicitly clear if inherited
+  NCCL_IB_DISABLE: null

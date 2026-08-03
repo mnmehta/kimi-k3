@@ -1,0 +1,9 @@
+# multi_node_tep — TP16 + expert parallel.
+include:
+  - strategy-tp16.yaml
+
+name: strategy-tep16
+description: Multi-Node Tensor + Expert Parallel (TEP16)
+
+env:
+  ENABLE_EXPERT_PARALLEL: 1

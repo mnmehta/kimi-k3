@@ -28,32 +28,27 @@ Optional HF auth: `kubectl -n kimi-k3 create secret generic hf-token --from-lite
 
 ## Recipe-shaped multi-node (real weights)
 
-After downloads finish on both ranks:
+After downloads finish on both ranks. Deploys are **config-driven** — see [`configs/README.md`](configs/README.md).
 
 ```bash
-# TP16 — hostPath /mnt/local/kimi-k3/models (default)
-./scripts/deploy-recipe.sh
-
-# TEP16 — TP16 + --enable-expert-parallel
-# https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep
-./scripts/deploy-recipe-tep.sh
-
-# TP8 × PP2
-./scripts/deploy-recipe-pp.sh
-
-# TP8 × DP2 (one replica per node)
-# https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
-./scripts/deploy-recipe-dp.sh
-
-# Prefill/Decode disaggregation (2×8 H200 adaptation of recipe 4-node P/D)
-# https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster
-# Recipe 4×8 layout: TEP16 prefill (pods 0–1) + TEP16 decode (pods 2–3) + router :8000
-./scripts/deploy-recipe-pd.sh
+# Preferred entrypoint
+./scripts/deploy.sh tp16      # multi_node_tp
+./scripts/deploy.sh tep16     # multi_node_tep
+./scripts/deploy.sh pp2       # multi_node_tp_pp
+./scripts/deploy.sh dp2       # multi_node_tp_dp
+./scripts/deploy.sh pd        # pd_cluster (4×8)
 ./scripts/wait-pd-and-sweep.sh
+
+# Compose / inspect
+./scripts/deploy.sh --print tp16
+./scripts/deploy.sh configs/layers/base.yaml \
+  configs/layers/weights-real.yaml \
+  configs/layers/strategy-pp2.yaml
 
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
+Legacy `./scripts/deploy-recipe*.sh` wrappers still work (they call `deploy.sh`).  
 In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe.sh`.  
 Manifests: `vllm-recipe.yaml` (hostPath) / `vllm-recipe-overlay.yaml` (ephemeral legacy).
 
@@ -62,14 +57,15 @@ Manifests: `vllm-recipe.yaml` (hostPath) / `vllm-recipe-overlay.yaml` (ephemeral
 Same STS layout with `--load-format dummy`:
 
 ```bash
-./scripts/deploy-recipe-dummy.sh       # TP16
-./scripts/deploy-recipe-dummy-tep.sh   # TEP16
-./scripts/deploy-recipe-dummy-pp.sh    # TP8 × PP2
-./scripts/deploy-recipe-dummy-dp.sh    # TP8 × DP2
-./scripts/deploy-recipe-dummy-pd.sh    # P/D 4×8
+./scripts/deploy.sh tp16-dummy
+./scripts/deploy.sh tep16-dummy
+./scripts/deploy.sh pp2-dummy
+./scripts/deploy.sh dp2-dummy
+./scripts/deploy.sh pd-dummy
 kubectl -n $NS exec vllm-recipe-0 -- curl -sS http://127.0.0.1:8000/v1/models
 ```
 
+Profiler presets: `tp16-dummy-profiler`, `tep16-dummy-profiler`, `pp2-dummy-profiler`, `dp2-dummy-profiler`, `pd-dummy-profiler`.  
 In-pod entrypoint: `scripts/run-vllm-kimi-k3-recipe-dummy.sh`.
 
 ### Minimal-depth torch.profiler sweep (5 strategies)

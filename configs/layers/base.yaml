@@ -1,0 +1,32 @@
+# Shared cluster + serve defaults (all strategies).
+name: base
+description: Common STS / CLI / env defaults
+deploy_mode: multi_node
+storage_backend: hostpath
+health_port: 8000
+health_timeout_polls: 360
+
+env:
+  NS: kimi-k3
+  NNODES: 2
+  GPUS_PER_NODE: 8
+  PP_SIZE: 1
+  DP_SIZE: 1
+  DP_SIZE_LOCAL: 1
+  DP_RPC_PORT: 13345
+  PORT: 8000
+  MOE_BACKEND: marlin
+  ATTENTION_BACKEND: FLASHMLA
+  GPU_MEM_UTIL: "0.97"
+  MAX_NUM_SEQS: 128
+  MAX_MODEL_LEN: 8192
+  MAX_NUM_BATCHED_TOKENS: 4096
+  VLLM_USE_RUST_FRONTEND: 0
+  VLLM_USE_V2_MODEL_RUNNER: 1
+  NCCL_DMABUF_ENABLE: 0
+  PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+  ENABLE_EXPERT_PARALLEL: 0
+  ENABLE_EP_WEIGHT_FILTER: 0
+  SKIP_MM_PROFILING: 0
+  ENABLE_TORCH_PROFILER: 0
+  VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION: 0

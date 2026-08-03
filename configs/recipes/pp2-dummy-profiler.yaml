@@ -1,0 +1,12 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-dummy.yaml
+  - ../layers/strategy-pp2.yaml
+  - ../layers/profiler-shallow.yaml
+
+name: pp2-dummy-profiler
+description: Dummy TP8×PP2 + shallow torch.profiler
+
+env:
+  PROFILE_DIR: /tmp/vllm_profile/pp2
+  MAX_NUM_SEQS: 32

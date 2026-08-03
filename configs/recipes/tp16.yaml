@@ -1,0 +1,7 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-tp16.yaml
+
+name: tp16
+description: Real-weight TP16 (multi_node_tp)

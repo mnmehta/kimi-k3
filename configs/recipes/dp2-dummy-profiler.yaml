@@ -1,0 +1,19 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-dummy.yaml
+  - ../layers/strategy-dp2.yaml
+  - ../layers/profiler-shallow.yaml
+
+name: dp2-dummy-profiler
+description: Dummy TP8×DP2 + shallow torch.profiler
+
+env:
+  PROFILE_DIR: /tmp/vllm_profile/dp2
+  MAX_NUM_SEQS: 8
+  # Profiler dummy DP does not need the ultra-tight real-weight KV pin.
+  KV_CACHE_MEMORY_BYTES: null
+  SKIP_MM_PROFILING: 0
+  VLLM_USE_V2_MODEL_RUNNER: 0
+  MAX_MODEL_LEN: 1024
+  MAX_NUM_BATCHED_TOKENS: 4096
+  GPU_MEM_UTIL: "0.97"

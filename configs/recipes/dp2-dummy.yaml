@@ -1,0 +1,12 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-dummy.yaml
+  - ../layers/strategy-dp2.yaml
+
+name: dp2-dummy
+description: Dummy-weight TP8×DP2
+# Dummy DP sweeps often use a looser seq budget than the real H200-tight knobs.
+env:
+  MAX_NUM_SEQS: 8
+  MAX_MODEL_LEN: 2048
+  MAX_NUM_BATCHED_TOKENS: 256

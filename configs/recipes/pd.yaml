@@ -1,0 +1,7 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-pd.yaml
+
+name: pd
+description: Real-weight P/D disaggregation (pd_cluster)

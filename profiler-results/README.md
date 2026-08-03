@@ -27,11 +27,11 @@ export KUBECONFIG=...
 
 | Config | Deploy | Capture |
 |--------|--------|---------|
-| `pd` | `deploy-recipe-dummy-pd.sh` | `profile-pd-short-query.sh` (dual engine start/stop + router) |
-| `tp16` | `deploy-recipe-dummy.sh` | `profile-short-query.sh` |
-| `tep16` | `deploy-recipe-dummy-tep.sh` | `profile-short-query.sh` |
-| `pp2` | `deploy-recipe-dummy-pp.sh` | `profile-short-query.sh` |
-| `dp2` | `deploy-recipe-dummy-dp.sh` | `profile-short-query.sh` |
+| `pd` | `./scripts/deploy.sh pd-dummy-profiler` | `profile-pd-short-query.sh` (dual engine start/stop + router) |
+| `tp16` | `./scripts/deploy.sh tp16-dummy-profiler` | `profile-short-query.sh` |
+| `tep16` | `./scripts/deploy.sh tep16-dummy-profiler` | `profile-short-query.sh` |
+| `pp2` | `./scripts/deploy.sh pp2-dummy-profiler` | `profile-short-query.sh` |
+| `dp2` | `./scripts/deploy.sh dp2-dummy-profiler` | `profile-short-query.sh` |
 
 Collect: `CONFIG=… PROFILE_DIR=… NNODES=… ./scripts/copy-profiler-traces.sh`  
 (also archives `vllm-recipe-<rank>.log` per pod alongside `rank-<i>/` traces)

@@ -1,0 +1,10 @@
+# multi_node_tp — TP16 across 2×8.
+name: strategy-tp16
+description: Multi-Node Tensor Parallel (TP16)
+
+env:
+  TP_SIZE: 16
+  PP_SIZE: 1
+  DP_SIZE: 1
+  NNODES: 2
+  ENABLE_EXPERT_PARALLEL: 0

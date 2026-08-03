@@ -1,0 +1,11 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-dummy.yaml
+  - ../layers/strategy-tp16.yaml
+  - ../layers/profiler-shallow.yaml
+
+name: tp16-dummy-profiler
+description: Dummy TP16 + shallow torch.profiler
+
+env:
+  PROFILE_DIR: /tmp/vllm_profile/tp16

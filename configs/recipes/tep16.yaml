@@ -1,0 +1,7 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-tep16.yaml
+
+name: tep16
+description: Real-weight TEP16 (multi_node_tep)

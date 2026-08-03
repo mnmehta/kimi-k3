@@ -1,0 +1,7 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-dummy.yaml
+  - ../layers/strategy-pp2.yaml
+
+name: pp2-dummy
+description: Dummy-weight TP8×PP2

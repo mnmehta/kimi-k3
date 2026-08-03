@@ -88,14 +88,14 @@ run_pd() {
   echo "==> Waiting for 4 Ready nodes for P/D"
   wait_ready_nodes 4 3600
   echo "==> Deploy dummy P/D"
-  "$ROOT/scripts/deploy-recipe-dummy-pd.sh"
+  "$ROOT/scripts/deploy.sh" pd-dummy-profiler
   echo "==> Capture P/D"
   PROFILE_DIR="$PROFILE_DIR" "$ROOT/scripts/profile-pd-short-query.sh"
   CONFIG=pd PROFILE_DIR="$PROFILE_DIR" NNODES=4 \
     NUM_LAYERS="$NUM_LAYERS" NUM_EXPERTS="$NUM_EXPERTS" \
     NUM_EXPERTS_PER_TOKEN="$NUM_EXPERTS_PER_TOKEN" NUM_SHARED_EXPERTS="$NUM_SHARED_EXPERTS" \
     MAX_MODEL_LEN="$MAX_MODEL_LEN" \
-    META_EXTRA="deploy=deploy-recipe-dummy-pd.sh" \
+    META_EXTRA="deploy=deploy.sh pd-dummy-profiler" \
     "$ROOT/scripts/copy-profiler-traces.sh"
   stop_all 4
 }
@@ -104,7 +104,7 @@ run_tp16() {
   export PROFILE_DIR=/tmp/vllm_profile/tp16
   export NNODES=2
   kubectl -n "$NS" scale statefulset/vllm-recipe --replicas=2
-  "$ROOT/scripts/deploy-recipe-dummy.sh"
+  "$ROOT/scripts/deploy.sh" tp16-dummy-profiler
   capture_2node tp16
   stop_all 2
 }
@@ -113,7 +113,7 @@ run_tep16() {
   export PROFILE_DIR=/tmp/vllm_profile/tep16
   export NNODES=2
   kubectl -n "$NS" scale statefulset/vllm-recipe --replicas=2
-  "$ROOT/scripts/deploy-recipe-dummy-tep.sh"
+  "$ROOT/scripts/deploy.sh" tep16-dummy-profiler
   capture_2node tep16
   stop_all 2
 }
@@ -121,25 +121,19 @@ run_tep16() {
 run_pp2() {
   export PROFILE_DIR=/tmp/vllm_profile/pp2
   export NNODES=2
-  # PP may need slightly larger seq budget; keep model-len 1024.
-  export MAX_NUM_SEQS="${MAX_NUM_SEQS:-32}"
   kubectl -n "$NS" scale statefulset/vllm-recipe --replicas=2
-  "$ROOT/scripts/deploy-recipe-dummy-pp.sh"
+  "$ROOT/scripts/deploy.sh" pp2-dummy-profiler
   capture_2node pp2
   stop_all 2
-  unset MAX_NUM_SEQS
 }
 
 run_dp2() {
   export PROFILE_DIR=/tmp/vllm_profile/dp2
   export NNODES=2
-  # Dummy DP2 with shallow model: keep modest seqs.
-  export MAX_NUM_SEQS="${MAX_NUM_SEQS:-8}"
   kubectl -n "$NS" scale statefulset/vllm-recipe --replicas=2
-  "$ROOT/scripts/deploy-recipe-dummy-dp.sh"
+  "$ROOT/scripts/deploy.sh" dp2-dummy-profiler
   capture_2node dp2
   stop_all 2
-  unset MAX_NUM_SEQS
 }
 
 # Quiet cluster first

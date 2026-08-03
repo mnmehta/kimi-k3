@@ -4,7 +4,7 @@ Notes from running [vLLM Prefill/Decode Disaggregation](https://recipes.vllm.ai/
 
 **Status (2026-08-02): measured on 4×8 H200.** Earlier 2×8 TP8-per-role adaptation OOMed during MXFP4 `create_weights` (below). Completed sweep: [`bench-results/conc-sweep-pd-1000-1000/`](../bench-results/conc-sweep-pd-1000-1000/) (C=1…512, 1000/1000 via router). Required env: `VLLM_SSM_CONV_STATE_LAYOUT=DS` for hybrid Mamba KV transfer over NIXL.
 
-Entrypoint: [`scripts/deploy-recipe-pd.sh`](../scripts/deploy-recipe-pd.sh) → [`scripts/wait-pd-and-sweep.sh`](../scripts/wait-pd-and-sweep.sh).  
+Entrypoint: [`./scripts/deploy.sh pd`](../scripts/deploy.sh) → [`scripts/wait-pd-and-sweep.sh`](../scripts/wait-pd-and-sweep.sh).  
 Weight sync: [`scripts/sync-model-hostpath.sh`](../scripts/sync-model-hostpath.sh).  
 Report: [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
@@ -48,7 +48,7 @@ torch.OutOfMemoryError: Tried to allocate 588.00 MiB.
 
 Fails in `mxfp4.create_weights` during `make_layers` (before `Model loading took`). Same numbers with EP on/off, enforce-eager on/off, DP CLI flags at `data_parallel_size=1`, fresh pods on weight nodes.
 
-**Control that works:** [`deploy-recipe-dp.sh`](../scripts/deploy-recipe-dp.sh) TP8×DP2 on the same nodes → `Model loading took 135.69 GiB` and `/health`.
+**Control that works:** [`./scripts/deploy.sh dp2`](../scripts/deploy.sh) TP8×DP2 on the same nodes → `Model loading took 135.69 GiB` and `/health`.
 
 **Implication:** P/D needs **two independent** TP8 engines (one per node). That path is exactly the configuration that OOMs. DP2 proves the weights fit only when launched as a multi-rank DP cluster (`data_parallel_size=2`).
 

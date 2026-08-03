@@ -1,0 +1,7 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-pp2.yaml
+
+name: pp2
+description: Real-weight TP8×PP2 (multi_node_tp_pp)

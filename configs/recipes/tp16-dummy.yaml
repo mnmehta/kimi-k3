@@ -1,0 +1,7 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-dummy.yaml
+  - ../layers/strategy-tp16.yaml
+
+name: tp16-dummy
+description: Dummy-weight TP16

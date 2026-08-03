@@ -2,7 +2,7 @@
 
 Post-mortem of bringing up [vLLM multi-node tensor + expert parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tep) for `moonshotai/Kimi-K3` on 2×8 H200.
 
-Working entrypoint: [`scripts/deploy-recipe-tep.sh`](../scripts/deploy-recipe-tep.sh) → [`scripts/deploy-recipe.sh`](../scripts/deploy-recipe.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh) with `ENABLE_EXPERT_PARALLEL=1`.  
+Working entrypoint: [`./scripts/deploy.sh tep16`](../scripts/deploy.sh) → recipe [`configs/recipes/tep16.yaml`](../configs/recipes/tep16.yaml) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh) with `ENABLE_EXPERT_PARALLEL=1`.  
 Results / report: [`bench-results/conc-sweep-tep-1000-1000/`](../bench-results/conc-sweep-tep-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
 Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`tp8-pp2-h200-deployment-issues.md`](tp8-pp2-h200-deployment-issues.md), [`tp8-dp2-h200-deployment-issues.md`](tp8-dp2-h200-deployment-issues.md).
@@ -52,7 +52,7 @@ Slightly tighter KV than TP16 at the same `gpu-memory-utilization=0.97` / `max-n
 
 **Cause:** Recipe UI groups TEP next to DEP/DP strategies; H200 DEP is unsupported.
 
-**Fix:** `ENABLE_EXPERT_PARALLEL=1` on the existing TP16 deploy path (`deploy-recipe-tep.sh`). Do **not** pass `--data-parallel-*` for TEP16.
+**Fix:** `ENABLE_EXPERT_PARALLEL=1` on the existing TP16 deploy path ([`configs/layers/strategy-tep16.yaml`](../configs/layers/strategy-tep16.yaml)). Do **not** pass `--data-parallel-*` for TEP16.
 
 ---
 
@@ -113,7 +113,7 @@ Same gaps as TP16 (H200 vs GB300, 8192 context, `max-num-seqs` 128, Rust FE off,
 ## Timeline (condensed)
 
 1. Inherit TP16 storage / Gloo / MLA / ZMQ / Mamba fixes.  
-2. Add `ENABLE_EXPERT_PARALLEL` to recipe serve + `deploy-recipe-tep.sh`.  
+2. Add `ENABLE_EXPERT_PARALLEL` to recipe serve + TEP recipe layer (`configs/layers/strategy-tep16.yaml`).  
 3. In-pod stop DP2 → start TEP16 (workers first).  
 4. Confirm EP map 56/896, load 129.75 GiB/GPU, KV ~1.58 GiB, `/health`.  
 5. Sweep C=1…512 → `bench-results/conc-sweep-tep-1000-1000/`.

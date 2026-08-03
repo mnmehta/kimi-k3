@@ -2,7 +2,7 @@
 
 Post-mortem of bringing up [vLLM multi-node tensor parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp) for `moonshotai/Kimi-K3` on 2×8 H200.
 
-Working entrypoint: [`scripts/deploy-recipe.sh`](../scripts/deploy-recipe.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
+Working entrypoint: [`./scripts/deploy.sh tp16`](../scripts/deploy.sh) → recipe [`configs/recipes/tp16.yaml`](../configs/recipes/tp16.yaml) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-real-1000-1000/`](../bench-results/conc-sweep-real-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
 Siblings: [`tep16-h200-deployment-issues.md`](tep16-h200-deployment-issues.md), [`tp8-pp2-h200-deployment-issues.md`](tp8-pp2-h200-deployment-issues.md), [`tp8-dp2-h200-deployment-issues.md`](tp8-dp2-h200-deployment-issues.md).
@@ -86,7 +86,7 @@ max_num_seqs (256) exceeds available Mamba cache blocks (161)
 
 **Cause:** Full MXFP4 weights leave a limited Mamba/KDA block budget; recipe-ish 256 seqs cannot finish CUDA graph capture.
 
-**Fix:** **`MAX_NUM_SEQS=128`** for TP16 real (`deploy-recipe.sh` default). Lowering `max-model-len` alone did not free enough blocks.
+**Fix:** **`MAX_NUM_SEQS=128`** for TP16 real ([`configs/layers/base.yaml`](../configs/layers/base.yaml) / `tp16` recipe default). Lowering `max-model-len` alone did not free enough blocks.
 
 ---
 

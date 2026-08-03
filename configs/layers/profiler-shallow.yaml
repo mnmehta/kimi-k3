@@ -1,0 +1,14 @@
+# Shallow dummy + torch.profiler (minimal-layer traces).
+name: profiler-shallow
+description: 4 hidden layers / 32 experts + torch.profiler
+
+env:
+  NUM_LAYERS: 4
+  NUM_EXPERTS: 32
+  NUM_EXPERTS_PER_TOKEN: 2
+  NUM_SHARED_EXPERTS: 1
+  MAX_MODEL_LEN: 1024
+  MAX_NUM_BATCHED_TOKENS: 1024
+  ENABLE_TORCH_PROFILER: 1
+  VLLM_RPC_TIMEOUT: 1800000
+  VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION: 0

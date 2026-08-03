@@ -11,11 +11,11 @@ using **`--load-format dummy`** and a **shallow architecture** via `--hf-overrid
 
 | # | Shorthand | Recipe id | Deploy entrypoint | Nodes |
 |---|-----------|-----------|-------------------|-------|
-| 1 | TP16 | `multi_node_tp` | `./scripts/deploy-recipe-dummy.sh` (+ profiler env) | 2 |
-| 2 | TEP16 | `multi_node_tep` | dummy TP16 deploy + `ENABLE_EXPERT_PARALLEL=1` (add thin wrapper if missing) | 2 |
-| 3 | TP8×PP2 | `multi_node_tp_pp` | `./scripts/deploy-recipe-dummy-pp.sh` | 2 |
-| 4 | TP8×DP2 | `multi_node_tp_dp` | `./scripts/deploy-recipe-dummy-dp.sh` | 2 |
-| 5 | P/D | `pd_cluster` | dummy-capable P/D bring-up (extend `deploy-recipe-pd.sh` or add `deploy-recipe-dummy-pd.sh`) | 4 |
+| 1 | TP16 | `multi_node_tp` | `./scripts/deploy.sh tp16-dummy-profiler` | 2 |
+| 2 | TEP16 | `multi_node_tep` | `./scripts/deploy.sh tep16-dummy-profiler` | 2 |
+| 3 | TP8×PP2 | `multi_node_tp_pp` | `./scripts/deploy.sh pp2-dummy-profiler` | 2 |
+| 4 | TP8×DP2 | `multi_node_tp_dp` | `./scripts/deploy.sh dp2-dummy-profiler` | 2 |
+| 5 | P/D | `pd_cluster` | `./scripts/deploy.sh pd-dummy-profiler` | 4 |
 
 Out of scope: `multi_node_dep` (unsupported on H200 in the recipe UI).
 
@@ -150,20 +150,19 @@ Also keep / set for parity with single-pod smoke where harmless on multi-node:
 - Forward `ENABLE_TORCH_PROFILER`, `PROFILE_DIR`, `VLLM_RPC_TIMEOUT`,
   `NUM_LAYERS`, `NUM_EXPERTS`, `NUM_EXPERTS_PER_TOKEN`, `NUM_SHARED_EXPERTS`,
   `MAX_MODEL_LEN` through `OPT_ENV` / env into in-pod `run-recipe` dummy script.
-- Example:
+- Prefer named recipes under [`configs/recipes/`](configs/recipes/) (e.g.
+  `tp16-dummy-profiler`). Example override on top of a recipe:
 
   ```bash
   ENABLE_TORCH_PROFILER=1 \
   PROFILE_DIR=/tmp/vllm_profile/tp16 \
   NUM_LAYERS=4 NUM_EXPERTS=8 NUM_EXPERTS_PER_TOKEN=2 NUM_SHARED_EXPERTS=1 \
   MAX_MODEL_LEN=1024 \
-  ./scripts/deploy-recipe-dummy.sh
+  ./scripts/deploy.sh tp16-dummy
   ```
 
-- Add **`deploy-recipe-dummy-tep.sh`** if missing (`ENABLE_EXPERT_PARALLEL=1` on
-  top of dummy TP16).
-- P/D: either teach `deploy-recipe-pd.sh` a `LOAD_FORMAT=dummy` + hf-overrides
-  path, or add `deploy-recipe-dummy-pd.sh`. Profiler must be on all four roles.
+- Or compose layers: `./scripts/deploy.sh configs/layers/base.yaml … configs/layers/profiler-shallow.yaml`.
+- P/D profiler: `./scripts/deploy.sh pd-dummy-profiler` (profiler on all four roles).
 
 ### C. `scripts/profile-short-query.sh`
 

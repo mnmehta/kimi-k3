@@ -327,7 +327,7 @@ Comparison charts below cover the **five measured** selectable strategies (TP/TE
 
 # Configuration
 
-Same MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / TEP16 / PP2 / P/D cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-*.log` (`non-default args` / launch banner). Bring-up: [`deploy-recipe.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe.sh) / [`deploy-recipe-tep.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-tep.sh) / [`deploy-recipe-pp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pp.sh) / [`deploy-recipe-dp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-dp.sh) / [`deploy-recipe-pd.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy-recipe-pd.sh).
+Same MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). TP16 / TEP16 / PP2 / P/D cover C ∈ {1…512}; DP2 stops at C ∈ {1…16} — KV-limited (~1 req/replica), so throughput already plateaus by C=4. Flags from each sweep’s archived `vllm-recipe-*.log` (`non-default args` / launch banner). Bring-up is config-driven: [`./scripts/deploy.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/deploy.sh) with recipes `tp16` / `tep16` / `pp2` / `dp2` / `pd` (see [`configs/`](https://github.com/mnmehta/kimi-k3/tree/main/configs)).
 
 | | **TP16** (multi_node_tp) | **TEP16** (multi_node_tep) | **TP8×PP2** (multi_node_tp_pp) | **TP8×DP2** (multi_node_tp_dp) | **P/D** (pd_cluster) |
 |:--|:--|:--|:--|:--|:--|

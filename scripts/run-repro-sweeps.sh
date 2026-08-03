@@ -75,7 +75,7 @@ launch_sweep() {
 
 run_config() {
   local key="$1"          # real|tep|pp2|dp2
-  local deploy="$2"
+  local recipe="$2"       # deploy.sh recipe name
   local start_wrapper="$3"
   local concs="$4"
 
@@ -94,9 +94,8 @@ run_config() {
   echo "# CONCURRENCIES=$concs"
   echo "######################################################################"
 
-  echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) deploy $key"
-  # shellcheck disable=SC2086
-  bash $deploy
+  echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) deploy $key ($recipe)"
+  "$ROOT/scripts/deploy.sh" "$recipe"
 
   wait_healthy "$key"
 
@@ -121,28 +120,16 @@ DP2_C="1 2 4 8 16"  # match archived DP2 (KV-limited; higher C not informative)
 for cfg in $CONFIGS; do
   case "$cfg" in
     real)
-      run_config real \
-        "$ROOT/scripts/deploy-recipe.sh" \
-        start-real-sweep.sh \
-        "$FULL_C"
+      run_config real tp16 start-real-sweep.sh "$FULL_C"
       ;;
     tep)
-      run_config tep \
-        "$ROOT/scripts/deploy-recipe-tep.sh" \
-        start-tep-sweep.sh \
-        "$FULL_C"
+      run_config tep tep16 start-tep-sweep.sh "$FULL_C"
       ;;
     pp2)
-      run_config pp2 \
-        "$ROOT/scripts/deploy-recipe-pp.sh" \
-        start-pp2-sweep.sh \
-        "$FULL_C"
+      run_config pp2 pp2 start-pp2-sweep.sh "$FULL_C"
       ;;
     dp2)
-      run_config dp2 \
-        "$ROOT/scripts/deploy-recipe-dp.sh" \
-        start-dp2-sweep.sh \
-        "$DP2_C"
+      run_config dp2 dp2 start-dp2-sweep.sh "$DP2_C"
       ;;
     *)
       echo "unknown CONFIGS entry: $cfg" >&2

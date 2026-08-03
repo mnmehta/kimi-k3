@@ -2,7 +2,7 @@
 
 Post-mortem of bringing up [vLLM multi-node TP+DP](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp) for `moonshotai/Kimi-K3` on 2×8 H200 (hostPath weights).
 
-Working entrypoint: [`scripts/deploy-recipe-dp.sh`](../scripts/deploy-recipe-dp.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
+Working entrypoint: [`./scripts/deploy.sh dp2`](../scripts/deploy.sh) → recipe [`configs/recipes/dp2.yaml`](../configs/recipes/dp2.yaml) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-dp2-1000-1000/`](../bench-results/conc-sweep-dp2-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
 Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`tep16-h200-deployment-issues.md`](tep16-h200-deployment-issues.md), [`tp8-pp2-h200-deployment-issues.md`](tp8-pp2-h200-deployment-issues.md).
@@ -49,7 +49,7 @@ Seen with recipe-like settings (`max-model-len=8192`, `max-num-seqs=256`, Rust/V
 
 **Cause:** Kimi-K3 mm-encoder `profile_run` path allocates ~**396 MiB**, larger than free VRAM after TP8 weights. Shrinking FlashInfer / KV does **not** avoid this alloc.
 
-**Fix:** `--skip-mm-profiling` (`SKIP_MM_PROFILING=1` in `deploy-recipe-dp.sh`).
+**Fix:** `--skip-mm-profiling` (`SKIP_MM_PROFILING=1` in [`configs/layers/strategy-dp2.yaml`](../configs/layers/strategy-dp2.yaml)).
 
 ---
 
@@ -107,7 +107,7 @@ Please lower max_num_seqs to at most 7 ...
 
 **Symptom:** Extra bring-up fragility / failed cores when enabling `VLLM_USE_RUST_FRONTEND=1` and `VLLM_USE_V2_MODEL_RUNNER=1` on the already memory-tight TP8 path.
 
-**Fix:** Leave both **off** by default in `deploy-recipe-dp.sh` (override still allowed). TP16/PP2 recipe paths can keep recipe defaults separately.
+**Fix:** Leave both **off** by default in [`configs/layers/strategy-dp2.yaml`](../configs/layers/strategy-dp2.yaml) (override still allowed). TP16/PP2 recipe paths can keep recipe defaults separately.
 
 ---
 
@@ -143,7 +143,7 @@ So for 1000/1000:
 
 ## Working config (H200 TP8×DP2)
 
-Defaults baked into `deploy-recipe-dp.sh`:
+Defaults baked into [`configs/layers/strategy-dp2.yaml`](../configs/layers/strategy-dp2.yaml):
 
 | Knob | Value | Why |
 |------|-------|-----|

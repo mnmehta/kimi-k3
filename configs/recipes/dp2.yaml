@@ -1,0 +1,7 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-dp2.yaml
+
+name: dp2
+description: Real-weight TP8×DP2 (multi_node_tp_dp)

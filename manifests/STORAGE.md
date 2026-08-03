@@ -19,7 +19,8 @@ Node path: **`/mnt/local/kimi-k3/models`** → container `/models`.
 ```bash
 ./scripts/download-model.sh                 # fill /models on both recipe ranks
 ./scripts/monitor-model-download.sh
-STORAGE_BACKEND=hostpath ./scripts/deploy-recipe.sh
+STORAGE_BACKEND=hostpath ./scripts/deploy.sh tp16
+# or set storage_backend: hostpath in configs (default in recipes)
 ```
 
 Manifest: `manifests/vllm-recipe.yaml`.

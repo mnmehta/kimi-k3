@@ -2,7 +2,7 @@
 
 Post-mortem of bringing up [vLLM multi-node TP + pipeline parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_pp) for `moonshotai/Kimi-K3` on 2×8 H200.
 
-Working entrypoint: [`scripts/deploy-recipe-pp.sh`](../scripts/deploy-recipe-pp.sh) → [`scripts/deploy-recipe.sh`](../scripts/deploy-recipe.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
+Working entrypoint: [`./scripts/deploy.sh pp2`](../scripts/deploy.sh) → recipe [`configs/recipes/pp2.yaml`](../configs/recipes/pp2.yaml) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-pp2-1000-1000/`](../bench-results/conc-sweep-pp2-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
 Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`tep16-h200-deployment-issues.md`](tep16-h200-deployment-issues.md), [`tp8-dp2-h200-deployment-issues.md`](tp8-dp2-h200-deployment-issues.md).
@@ -48,7 +48,7 @@ on **IPv6 link-local** RoCE GIDs (`fe80::…`), typically via **`mlx5_0`**.
 
 **Interim fix (debug only):** `NCCL_IB_DISABLE=1` (Socket) — proves PP topology, **not** fair vs TP16 for interconnect-sensitive compare.
 
-**Real fix (current `deploy-recipe-pp.sh` defaults):**
+**Real fix (current [`configs/layers/strategy-pp2.yaml`](../configs/layers/strategy-pp2.yaml) defaults):**
 
 | Env | Value |
 |-----|--------|
