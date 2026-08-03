@@ -1,0 +1,39 @@
+config=pp2
+utc=2026-08-02T06:40:53Z
+git_sha=9ecb283
+profile_dir=/tmp/vllm_profile/pp2
+nnodes=2
+num_layers=4
+num_experts=32
+num_experts_per_token=2
+num_shared_experts=1
+max_model_len=1024
+prompt=10/5 warmup=1
+meta_extra=config=pp2
+
+== non-default args (rank-0 log) ==
+Launching recipe-shaped dummy serve:
+  EP=0 IFACE=enp157s0np0 hf-overrides={"text_config": {"num_hidden_layers": 4, "num_experts": 32, "num_experts_per_token": 2, "num_shared_experts": 1}}
+  max-num-seqs=32 profiler=1 profile_dir=/tmp/vllm_profile/pp2
+(APIServer pid=198) INFO 08-02 06:38:09 [api_utils.py:273] non-default args: {'model_tag': '/models/Kimi-K3', 'enable_auto_tool_choice': True, 'tool_call_parser': 'kimi_k3', 'host': '0.0.0.0', 'model': '/models/Kimi-K3', 'trust_remote_code': True, 'max_model_len': 1024, 'hf_overrides': {'text_config': {'num_hidden_layers': 4, 'num_experts': 32, 'num_experts_per_token': 2, 'num_shared_experts': 1}}, 'load_format': 'dummy', 'attention_backend': 'FLASHMLA', 'reasoning_parser': 'kimi_k3', 'pipeline_parallel_size': 2, 'master_addr': '10.202.208.117', 'nnodes': 2, 'tensor_parallel_size': 8, 'disable_custom_all_reduce': True, 'gpu_memory_utilization': 0.97, 'max_num_batched_tokens': 4096, 'max_num_seqs': 32, 'enable_flashinfer_autotune': False, 'moe_backend': 'marlin', 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': None, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {'fuse_allreduce_rms': False}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/vllm_profile/pp2', torch_profiler_with_stack=True, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=32, wait_iterations=0)}
+(APIServer pid=198) INFO 08-02 06:40:03 [async_llm.py:183] Torch profiler enabled. AsyncLLM CPU traces will be collected under /tmp/vllm_profile/pp2
+(APIServer pid=198) INFO 08-02 06:40:09 [api_router.py:23] Starting profiler...
+USDT:2026-08-02 06:40:09 198:2585 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1135:1135 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1137:1137 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1138:1138 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1139:1139 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1141:1141 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1140:1140 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1136:1136 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:40:09 1142:1142 SyncActivityProfilerHandler.cpp:52] profiler_start
+(APIServer pid=198) INFO 08-02 06:40:09 [api_router.py:31] Stopping profiler...
+USDT:2026-08-02 06:40:09 198:2585 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:09 1142:1142 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:09 1136:1136 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:09 1140:1140 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:09 1141:1141 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:10 1139:1139 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:10 1138:1138 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:10 1137:1137 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:40:10 1135:1135 SyncActivityProfilerHandler.cpp:59] profiler_stop
