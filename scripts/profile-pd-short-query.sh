@@ -8,7 +8,6 @@
 
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 PREFILL_POD="${PREFILL_POD:-vllm-recipe-0}"
 DECODE_POD="${DECODE_POD:-vllm-recipe-2}"

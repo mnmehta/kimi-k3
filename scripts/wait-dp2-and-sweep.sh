@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Wait for DP2 /health, run C=1..512 sweep, copy results locally.
 set -euo pipefail
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

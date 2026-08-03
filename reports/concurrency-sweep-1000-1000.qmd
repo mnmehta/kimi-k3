@@ -183,7 +183,7 @@ tpot_ratio_c1_sf = sf_cmp.loc[sf_cmp["concurrency"] == 1, "tpot_ratio"].iloc[0]
 
 # Overview
 
-`vllm bench serve` concurrency sweeps on fozzie (2×8 H200, FLASHMLA / marlin), all **1000/1000**, `--ignore-eos`, `--request-rate inf`:
+`vllm bench serve` concurrency sweeps on 2×8 H200 (FLASHMLA / marlin), all **1000/1000**, `--ignore-eos`, `--request-rate inf`:
 
 1. **TP16 real weights** — `--tensor-parallel-size 16`, C ∈ {1…256}, seed `{python} SWEEP_SEED`
 2. **TP8×PP2 real weights** — `--tensor-parallel-size 8 --pipeline-parallel-size 2`, seed `{python} PP2_SEED`

@@ -13,7 +13,6 @@
 
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 NNODES="${NNODES:-4}"
 RESULT="${RESULT:?RESULT required (in-pod sweep dir, e.g. /tmp/vllm-bench-sweep-pp2-256)}"

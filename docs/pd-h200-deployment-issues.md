@@ -1,6 +1,6 @@
 # Prefill/Decode disaggregation (`pd_cluster`) on H200: deployment issues
 
-Notes from running [vLLM Prefill/Decode Disaggregation](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster) for `moonshotai/Kimi-K3` on **fozzie**.
+Notes from running [vLLM Prefill/Decode Disaggregation](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster) for `moonshotai/Kimi-K3` on H200.
 
 **Status (2026-08-02): measured on 4×8 H200.** Earlier 2×8 TP8-per-role adaptation OOMed during MXFP4 `create_weights` (below). Completed sweep: [`bench-results/conc-sweep-pd-1000-1000/`](../bench-results/conc-sweep-pd-1000-1000/) (C=1…512, 1000/1000 via router). Required env: `VLLM_SSM_CONV_STATE_LAYOUT=DS` for hybrid Mamba KV transfer over NIXL.
 
@@ -14,7 +14,7 @@ Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`
 
 | Item | Value |
 |------|--------|
-| Cluster | fozzie (`kubeconfig.fozzie`), ns `kimi-k3` |
+| Cluster | ns `kimi-k3` (`export KUBECONFIG=...`) |
 | Hardware | 4×8 H200 (140 GiB); recipe target **≥8× GB300** |
 | Recipe default P/D | **4 nodes / 32 GPUs** (TEP16 prefill + TEP16 decode) |
 | This harness | **4 nodes / 32 GPUs** (recipe layout) |

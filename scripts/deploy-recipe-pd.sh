@@ -8,14 +8,13 @@
 #   Router:  disagg_proxy_demo on prefill head :8000  (wait-pd-and-sweep)
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   NNODES=4 ./scripts/download-model.sh   # or sync-model-hostpath.sh
 #   ./scripts/deploy-recipe-pd.sh
 #   ./scripts/wait-pd-and-sweep.sh
 
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

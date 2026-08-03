@@ -5,14 +5,13 @@
 # Router:  disagg_proxy_demo on prefill head :8000
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ENABLE_TORCH_PROFILER=1 PROFILE_DIR=/tmp/vllm_profile/pd \
 #     NUM_LAYERS=4 NUM_EXPERTS=8 NUM_EXPERTS_PER_TOKEN=2 NUM_SHARED_EXPERTS=1 \
 #     MAX_MODEL_LEN=1024 ./scripts/deploy-recipe-dummy-pd.sh
 
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

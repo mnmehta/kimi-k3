@@ -3,13 +3,12 @@
 # Uses short-lived no-GPU pods (so HPC/GPU occupancy does not block the copy).
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/sync-model-to-nodes.sh
 #   SRC_POD=vllm-recipe-0 DST_NODES="g11cd44 gf2a612" ./scripts/sync-model-to-nodes.sh
 
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${PORT:-19001}"

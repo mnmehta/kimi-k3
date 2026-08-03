@@ -3,7 +3,7 @@
 # Recipe strategy: Multi-Node TP + Pipeline Parallel
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/deploy-recipe-dummy-pp.sh
 
 set -euo pipefail

@@ -1,6 +1,5 @@
-KUBECONFIG ?= /Users/mimehta/kubeconfigs/kubeconfig.fozzie
+# Requires KUBECONFIG in the environment: export KUBECONFIG=...
 NAMESPACE  ?= kimi-k3
-export KUBECONFIG
 
 .PHONY: apply status pods logs
 

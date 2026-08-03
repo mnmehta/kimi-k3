@@ -2,7 +2,6 @@
 # Host helper: wait for in-pod sweep to finish, then copy results + vLLM logs.
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NS="${NS:-kimi-k3}"
 RESULT="${RESULT:?RESULT required}"

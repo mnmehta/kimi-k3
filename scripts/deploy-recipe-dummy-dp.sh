@@ -4,7 +4,7 @@
 #   https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/deploy-recipe-dummy-dp.sh
 
 set -euo pipefail

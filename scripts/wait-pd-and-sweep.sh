@@ -6,7 +6,6 @@
 # Decode head:  vllm-recipe-2 :8002
 # Router:       vllm-recipe-0 :8000
 set -euo pipefail
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PREFILL_PORT="${PREFILL_PORT:-8001}"

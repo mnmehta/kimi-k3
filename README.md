@@ -5,12 +5,12 @@ Evaluation of Kimi K3 using vLLM parallelization recipes from
 
 **Results report (GitHub Pages):** https://mnmehta.github.io/kimi-k3/
 
-Harnesses for running / profiling `moonshotai/Kimi-K3` on the fozzie `kimi-k3`
+Harnesses for running / profiling `moonshotai/Kimi-K3` in the `kimi-k3`
 namespace with the [`vllm/vllm-openai:kimi-k3`](https://recipes.vllm.ai/moonshotai/Kimi-K3)
 image. Report sources and data: [`reports/README.md`](reports/README.md).
 
 ```bash
-export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+export KUBECONFIG=...
 NS=kimi-k3
 ```
 

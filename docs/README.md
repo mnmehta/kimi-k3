@@ -1,6 +1,6 @@
 # Deployment lessons
 
-Post-mortems for each measured [vLLM Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) strategy on fozzie (2×8 H200):
+Post-mortems for each measured [vLLM Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) strategy on 2×8 H200:
 
 | Strategy | Doc |
 |----------|-----|

@@ -7,7 +7,7 @@
 # Stops any prior TP16 serve on those pods before starting.
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/deploy-recipe-pp.sh
 
 set -euo pipefail

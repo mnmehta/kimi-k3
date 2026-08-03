@@ -3,7 +3,7 @@
 # (real hostPath /mnt/local/kimi-k3/models when using manifests/vllm-recipe.yaml).
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/download-model.sh
 #   FOLLOW=0 ./scripts/download-model.sh     # start downloads and return
 #   ./scripts/monitor-model-download.sh      # watch progress
@@ -11,7 +11,6 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 FOLLOW="${FOLLOW:-1}"
 NNODES="${NNODES:-2}"

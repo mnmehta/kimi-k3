@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 RESULT="${RESULT:-/tmp/vllm-bench-sweep-dp2-512}"
 INTERVAL_S="${INTERVAL_S:-30}"

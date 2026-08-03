@@ -1,6 +1,6 @@
 # TP8×DP2 on H200: deployment issues
 
-Post-mortem of bringing up [vLLM multi-node TP+DP](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp) for `moonshotai/Kimi-K3` on **fozzie** (2×8 H200, hostPath weights).
+Post-mortem of bringing up [vLLM multi-node TP+DP](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp) for `moonshotai/Kimi-K3` on 2×8 H200 (hostPath weights).
 
 Working entrypoint: [`scripts/deploy-recipe-dp.sh`](../scripts/deploy-recipe-dp.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-dp2-1000-1000/`](../bench-results/conc-sweep-dp2-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).

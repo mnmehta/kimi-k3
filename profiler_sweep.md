@@ -194,7 +194,7 @@ For each `CONFIG` in `tp16`, `tep16`, `pp2`, `dp2`:
 ### 1. Deploy
 
 ```bash
-export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+export KUBECONFIG=...
 NS=kimi-k3
 export ENABLE_TORCH_PROFILER=1
 export PROFILE_DIR=/tmp/vllm_profile/$CONFIG

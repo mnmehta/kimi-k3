@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -u
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NS=kimi-k3
 RESULT=/tmp/vllm-bench-sweep-pp2-512

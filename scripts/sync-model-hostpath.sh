@@ -4,14 +4,13 @@
 # have a verified hostPath copy.
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/sync-model-hostpath.sh              # auto: sources → empty ranks
 #   SRC_RANK=0 DST_RANKS="2 3" ./scripts/sync-model-hostpath.sh
 #   PORT=19001 ./scripts/sync-model-hostpath.sh
 
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 PORT="${PORT:-19001}"
 MODEL_DIR="${MODEL_DIR:-/models/Kimi-K3}"

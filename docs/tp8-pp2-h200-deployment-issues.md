@@ -1,6 +1,6 @@
 # TP8×PP2 on H200: deployment issues
 
-Post-mortem of bringing up [vLLM multi-node TP + pipeline parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_pp) for `moonshotai/Kimi-K3` on **fozzie** (2×8 H200).
+Post-mortem of bringing up [vLLM multi-node TP + pipeline parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_pp) for `moonshotai/Kimi-K3` on 2×8 H200.
 
 Working entrypoint: [`scripts/deploy-recipe-pp.sh`](../scripts/deploy-recipe-pp.sh) → [`scripts/deploy-recipe.sh`](../scripts/deploy-recipe.sh) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-pp2-1000-1000/`](../bench-results/conc-sweep-pp2-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).

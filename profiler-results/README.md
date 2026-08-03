@@ -6,7 +6,7 @@ Minimal-depth torch.profiler capture across five H200 recipe strategies
 ## How to run
 
 ```bash
-export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+export KUBECONFIG=...
 ./scripts/run-profiler-sweep.sh
 # subset: CONFIGS="tp16 tep16" ./scripts/run-profiler-sweep.sh
 ```

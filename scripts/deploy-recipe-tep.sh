@@ -7,7 +7,7 @@
 # Reuses manifests/vllm-recipe.yaml + scripts/run-vllm-kimi-k3-recipe.sh.
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/deploy-recipe-tep.sh
 
 set -euo pipefail

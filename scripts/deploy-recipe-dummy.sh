@@ -7,13 +7,12 @@
 #   TP8×DP2: ./scripts/deploy-recipe-dummy-dp.sh
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/deploy-recipe-dummy.sh
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 NNODES="${NNODES:-2}"
 PP_SIZE="${PP_SIZE:-1}"

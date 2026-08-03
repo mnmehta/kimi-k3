@@ -4,6 +4,4 @@ metadata:
   name: kimi-k3
   labels:
     app.kubernetes.io/name: kimi-k3
-    llm-d.ai/cluster: fozzie
-    llm-d.ai/user: mimehta
     team: llm-d

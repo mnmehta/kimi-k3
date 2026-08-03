@@ -3,13 +3,12 @@
 # See profiler_sweep.md.
 #
 # Usage:
-#   export KUBECONFIG=/Users/mimehta/kubeconfigs/kubeconfig.fozzie
+#   export KUBECONFIG=...
 #   ./scripts/run-profiler-sweep.sh
 #   CONFIGS="tp16 tep16" ./scripts/run-profiler-sweep.sh   # subset
 
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG="${LOG:-/tmp/profiler-sweep.log}"

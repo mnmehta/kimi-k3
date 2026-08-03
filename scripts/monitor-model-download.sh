@@ -2,7 +2,6 @@
 # Poll per-rank model download progress on vllm-recipe pods.
 set -euo pipefail
 
-export KUBECONFIG="${KUBECONFIG:-/Users/mimehta/kubeconfigs/kubeconfig.fozzie}"
 NS="${NS:-kimi-k3}"
 NNODES="${NNODES:-2}"
 INTERVAL_S="${INTERVAL_S:-60}"
