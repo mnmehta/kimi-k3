@@ -56,14 +56,19 @@ done
 
 echo "==> Stopping any previous serve processes"
 for i in $(seq 0 $((NNODES - 1))); do
-  kubectl -n "$NS" exec "vllm-recipe-$i" -- \
-    bash -c 'pkill -f "vllm serve" || true' || true
+  kubectl -n "$NS" cp "$ROOT/scripts/stop-inpod-vllm.sh" "vllm-recipe-$i:/tmp/stop-inpod-vllm.sh"
+  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/stop-inpod-vllm.sh 2>/dev/null || true
 done
 sleep 2
 
 OPT_ENV=""
 for v in GPU_MEM_UTIL MAX_NUM_SEQS MAX_MODEL_LEN MAX_NUM_BATCHED_TOKENS \
-         VLLM_USE_RUST_FRONTEND VLLM_USE_V2_MODEL_RUNNER DP_RPC_PORT; do
+         VLLM_USE_RUST_FRONTEND VLLM_USE_V2_MODEL_RUNNER DP_RPC_PORT \
+         ENABLE_EXPERT_PARALLEL NUM_LAYERS NUM_EXPERTS NUM_EXPERTS_PER_TOKEN \
+         NUM_SHARED_EXPERTS ENABLE_TORCH_PROFILER PROFILE_DIR VLLM_RPC_TIMEOUT \
+         VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION NCCL_DMABUF_ENABLE \
+         NCCL_IB_HCA NCCL_IB_GID_INDEX NCCL_IB_DISABLE \
+         PYTORCH_CUDA_ALLOC_CONF MODEL; do
   if [[ -n "${!v+x}" ]]; then
     OPT_ENV+=" $v=${!v}"
   fi

@@ -14,11 +14,16 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:8000}"
-MODEL="${MODEL:-moonshotai/Kimi-K3}"
+MODEL="${MODEL:-}"
 PROMPT_TOKENS="${PROMPT_TOKENS:-10}"
 MAX_TOKENS="${MAX_TOKENS:-5}"
 PROFILE_DIR="${PROFILE_DIR:-/tmp/vllm_profile}"
 WARMUP="${WARMUP:-1}"
+
+if [[ -z "$MODEL" || "$MODEL" == "auto" ]]; then
+  MODEL="$(curl -sS "$BASE_URL/v1/models" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["data"][0]["id"])')"
+fi
+echo "MODEL=$MODEL BASE_URL=$BASE_URL PROFILE_DIR=$PROFILE_DIR"
 
 echo "Building a ${PROMPT_TOKENS}-token prompt via /tokenize ..."
 # Use a long wordy prompt, then trim token ids to exactly PROMPT_TOKENS.

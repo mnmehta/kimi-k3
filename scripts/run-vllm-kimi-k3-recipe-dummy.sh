@@ -52,6 +52,14 @@ NUM_EXPERTS="${NUM_EXPERTS:-}"
 NUM_EXPERTS_PER_TOKEN="${NUM_EXPERTS_PER_TOKEN:-}"
 NUM_SHARED_EXPERTS="${NUM_SHARED_EXPERTS:-}"
 
+ENABLE_EXPERT_PARALLEL="${ENABLE_EXPERT_PARALLEL:-0}"
+KV_TRANSFER_CONFIG="${KV_TRANSFER_CONFIG:-}"
+ENFORCE_EAGER="${ENFORCE_EAGER:-0}"
+COMPILATION_CONFIG="${COMPILATION_CONFIG:-}"
+NO_DISABLE_HYBRID_KV_CACHE_MANAGER="${NO_DISABLE_HYBRID_KV_CACHE_MANAGER:-0}"
+ENABLE_TORCH_PROFILER="${ENABLE_TORCH_PROFILER:-0}"
+PROFILE_DIR="${PROFILE_DIR:-/tmp/vllm_profile}"
+
 # Recipe defaults
 GPU_MEM_UTIL="${GPU_MEM_UTIL:-0.97}"
 # Full-weight dummy leaves ~161 Mamba blocks on 8×H200 @ 0.97 util;
@@ -102,8 +110,23 @@ export VLLM_USE_V2_MODEL_RUNNER="${VLLM_USE_V2_MODEL_RUNNER:-1}"
 # Nested --hf-overrides JSON currently breaks the Rust frontend --args-json parser.
 export VLLM_USE_RUST_FRONTEND="${VLLM_USE_RUST_FRONTEND:-0}"
 export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
+export NCCL_DMABUF_ENABLE="${NCCL_DMABUF_ENABLE:-0}"
+# Latent-MoE tail fusion requires SM100 (GB300). H200 is SM90 — keep off.
 export VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION="${VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION:-0}"
+# Optional PP cross-node RoCE overrides (set by deploy-recipe-dummy-pp.sh).
+[[ -n "${NCCL_IB_DISABLE:-}" ]] && export NCCL_IB_DISABLE
+[[ -n "${NCCL_IB_GID_INDEX:-}" ]] && export NCCL_IB_GID_INDEX
+[[ -n "${NCCL_IB_HCA:-}" ]] && export NCCL_IB_HCA
 export PYTHONUNBUFFERED=1
+if [[ -n "$KV_TRANSFER_CONFIG" ]]; then
+  export VLLM_SSM_CONV_STATE_LAYOUT="${VLLM_SSM_CONV_STATE_LAYOUT:-DS}"
+fi
+if [[ "$ENABLE_TORCH_PROFILER" == "1" ]]; then
+  export VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+  mkdir -p "$PROFILE_DIR"
+fi
+[[ -n "${VLLM_NIXL_SIDE_CHANNEL_HOST:-}" ]] && export VLLM_NIXL_SIDE_CHANNEL_HOST
+[[ -n "${VLLM_NIXL_SIDE_CHANNEL_PORT:-}" ]] && export VLLM_NIXL_SIDE_CHANNEL_PORT
 
 # MLA dcp_world_size lazy-init workaround (same as smoke script).
 MLA_PY="/usr/local/lib/python3.12/dist-packages/vllm/models/kimi_k3/nvidia/mla.py"
@@ -243,10 +266,79 @@ else
   OVERRIDE_DESC="full HF config (no hf-overrides)"
 fi
 
+if [[ "$ENABLE_EXPERT_PARALLEL" == "1" ]]; then
+  SERVE_ARGS+=(--enable-expert-parallel)
+fi
+
+if [[ -n "$KV_TRANSFER_CONFIG" ]]; then
+  SERVE_ARGS+=(--kv-transfer-config "$KV_TRANSFER_CONFIG")
+fi
+if [[ "$ENFORCE_EAGER" == "1" ]]; then
+  SERVE_ARGS+=(--enforce-eager)
+fi
+if [[ -n "$COMPILATION_CONFIG" ]]; then
+  SERVE_ARGS+=(--compilation-config "$COMPILATION_CONFIG")
+fi
+if [[ "$NO_DISABLE_HYBRID_KV_CACHE_MANAGER" == "1" ]]; then
+  SERVE_ARGS+=(--no-disable-hybrid-kv-cache-manager)
+fi
+
+# Parity with single-pod profiler smoke (and safer under shallow MoE).
+if [[ "$ENABLE_TORCH_PROFILER" == "1" || -n "$NUM_LAYERS" ]]; then
+  SERVE_ARGS+=(-cc.pass_config.fuse_allreduce_rms=False)
+fi
+
+if [[ "$ENABLE_TORCH_PROFILER" == "1" ]]; then
+  PROFILER_CONFIG="${PROFILER_CONFIG:-{\"profiler\":\"torch\",\"torch_profiler_dir\":\"${PROFILE_DIR}\",\"torch_profiler_with_stack\":true,\"active_iterations\":32}}"
+  SERVE_ARGS+=(--profiler-config "$PROFILER_CONFIG")
+fi
+
+# NIXL + expandable_segments validation (same harness patch as real-weight P/D).
+VLLM_CFG_PY="/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py"
+if [[ -n "${KV_TRANSFER_CONFIG:-}" && -f "$VLLM_CFG_PY" ]] \
+  && ! grep -q "Kimi-K3 harness: allow expandable_segments with KV connector" "$VLLM_CFG_PY"; then
+  python3 - <<'PY'
+from pathlib import Path
+path = Path("/usr/local/lib/python3.12/dist-packages/vllm/config/vllm.py")
+src = path.read_text()
+needle = """        if "expandable_segments:True" not in os.environ.get(
+            "PYTORCH_CUDA_ALLOC_CONF", ""
+        ):
+            return
+        if self.model_config is not None and (self.model_config.enable_cumem_allocator):
+            return
+
+        raise ValueError(
+            f"KV connector {self.kv_transfer_config.kv_connector} is "
+            "incompatible with PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True "
+"""
+patch = """        if "expandable_segments:True" not in os.environ.get(
+            "PYTORCH_CUDA_ALLOC_CONF", ""
+        ):
+            return
+        if self.model_config is not None and (self.model_config.enable_cumem_allocator):
+            return
+        # Kimi-K3 harness: allow expandable_segments with KV connector on H200.
+        # CuMem+NIXL path OOMs TP8 weight load; DP2-style expandable is required.
+        return
+
+        raise ValueError(
+            f"KV connector {self.kv_transfer_config.kv_connector} is "
+            "incompatible with PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True "
+"""
+if needle not in src:
+    print(f"expandable/nixl validation patch needle missing in {path}")
+else:
+    path.write_text(src.replace(needle, patch, 1))
+    print(f"patched {path}")
+PY
+fi
+
 echo "Launching recipe-shaped dummy serve:"
 echo "  MODEL=$MODEL TP=$TP_SIZE PP=$PP_SIZE DP=$DP_SIZE DP_LOCAL=$DP_SIZE_LOCAL DP_START=$DP_START_RANK"
 echo "  NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR"
-echo "  IFACE=$GLOO_SOCKET_IFNAME $OVERRIDE_DESC"
-echo "  max-num-seqs=$MAX_NUM_SEQS"
+echo "  EP=$ENABLE_EXPERT_PARALLEL IFACE=$GLOO_SOCKET_IFNAME $OVERRIDE_DESC"
+echo "  max-num-seqs=$MAX_NUM_SEQS profiler=$ENABLE_TORCH_PROFILER profile_dir=$PROFILE_DIR"
+echo "  kv-transfer=${KV_TRANSFER_CONFIG:-<none>} enforce-eager=$ENFORCE_EAGER"
 
 exec vllm serve "$MODEL" "${SERVE_ARGS[@]}"
