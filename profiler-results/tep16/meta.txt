@@ -1,0 +1,41 @@
+config=tep16
+utc=2026-08-02T06:13:32Z
+git_sha=92d2970
+profile_dir=/tmp/vllm_profile/tep16
+nnodes=2
+num_layers=4
+num_experts=32
+num_experts_per_token=2
+num_shared_experts=1
+max_model_len=1024
+prompt=10/5 warmup=1
+meta_extra=config=tep16
+
+== non-default args (rank-0 log) ==
+Launching recipe-shaped dummy serve:
+  EP=1 IFACE=enp157s0np0 hf-overrides={"text_config": {"num_hidden_layers": 4, "num_experts": 32, "num_experts_per_token": 2, "num_shared_experts": 1}}
+  max-num-seqs=128 profiler=1 profile_dir=/tmp/vllm_profile/tep16
+(APIServer pid=2879) INFO 08-02 06:11:31 [api_utils.py:273] non-default args: {'model_tag': '/models/Kimi-K3', 'enable_auto_tool_choice': True, 'tool_call_parser': 'kimi_k3', 'host': '0.0.0.0', 'model': '/models/Kimi-K3', 'trust_remote_code': True, 'max_model_len': 1024, 'hf_overrides': {'text_config': {'num_hidden_layers': 4, 'num_experts': 32, 'num_experts_per_token': 2, 'num_shared_experts': 1}}, 'load_format': 'dummy', 'attention_backend': 'FLASHMLA', 'reasoning_parser': 'kimi_k3', 'master_addr': '10.202.208.117', 'nnodes': 2, 'tensor_parallel_size': 16, 'enable_expert_parallel': True, 'disable_custom_all_reduce': True, 'gpu_memory_utilization': 0.97, 'max_num_batched_tokens': 4096, 'max_num_seqs': 128, 'enable_flashinfer_autotune': False, 'moe_backend': 'marlin', 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': None, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {'fuse_allreduce_rms': False}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/vllm_profile/tep16', torch_profiler_with_stack=True, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=32, wait_iterations=0)}
+(APIServer pid=2879) INFO 08-02 06:12:54 [async_llm.py:183] Torch profiler enabled. AsyncLLM CPU traces will be collected under /tmp/vllm_profile/tep16
+(APIServer pid=2879) INFO 08-02 06:13:07 [api_router.py:23] Starting profiler...
+USDT:2026-08-02 06:13:07 2879:4852 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3449:3449 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3446:3446 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3451:3451 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3448:3448 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3452:3452 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3447:3447 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3450:3450 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 06:13:07 3453:3453 SyncActivityProfilerHandler.cpp:52] profiler_start
+(APIServer pid=2879) INFO 08-02 06:13:07 [api_router.py:31] Stopping profiler...
+USDT:2026-08-02 06:13:07 2879:4852 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3453:3453 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3446:3446 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3448:3448 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3452:3452 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3450:3450 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3447:3447 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3451:3451 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 06:13:07 3449:3449 SyncActivityProfilerHandler.cpp:59] profiler_stop
+(Worker_TP7_EP7 pid=3453) WARNING 08-02 06:13:09 [wrapper.py:68] Failed to stop profiler: 'utf-8' codec can't decode byte 0x80 in position 37: invalid start byte
+(Worker_TP0_EP0 pid=3446) WARNING 08-02 06:13:10 [wrapper.py:68] Failed to stop profiler: 'utf-8' codec can't decode byte 0xd0 in position 37: invalid continuation byte
