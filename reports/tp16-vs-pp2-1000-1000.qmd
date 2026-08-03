@@ -323,7 +323,7 @@ From the [Kimi-K3 recipe](https://recipes.vllm.ai/moonshotai/Kimi-K3) Strategy p
 | [Multi-Node TP + Data Parallel](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=multi_node_tp_dp) | `multi_node_tp_dp` | Balanced; one full replica / node (e.g. TP8·DP2) | Selectable | **Measured** (C=1…16) | TP8×DP2 |
 | [Prefill/Decode Disaggregation](https://recipes.vllm.ai/moonshotai/Kimi-K3?strategy=pd_cluster) | `pd_cluster` | Production; separate prefill/decode + NIXL KV transfer | Selectable | **Measured** (C=1…512) on **4×8 H200** | P/D |
 
-Head-to-head below is the **five measured** selectable strategies (TP/TEP/PP/DP on 2×8; P/D on 4×8). `multi_node_dep` remains out of scope on H200. P/D peak throughput is **not** apples-to-apples with the 16-GPU strategies — it uses twice the GPU count.
+Comparison charts below cover the **five measured** selectable strategies (TP/TEP/PP/DP on 2×8; P/D on 4×8). `multi_node_dep` remains out of scope on H200. P/D peak throughput is **not** apples-to-apples with the 16-GPU strategies — it uses twice the GPU count.
 
 # Measured strategies (detail)
 
@@ -406,106 +406,7 @@ print(
 )
 ```
 
-# Head-to-head
-
-```{python}
-#| label: tbl-compare
-#| tbl-cap: "Shared concurrency tiers — throughput and latency."
-
-show = cmp.copy()
-for col in ("tp16_tok_s", "tep_tok_s", "pp2_tok_s", "dp2_tok_s", "pd_tok_s"):
-    show[col] = show[col].round(1)
-for col in ("tep_tp16", "pp2_tp16", "dp2_tp16", "pd_tp16", "dp2_pp2"):
-    show[col] = show[col].round(3)
-for col in ("tp16_tpot", "tep_tpot", "pp2_tpot", "dp2_tpot", "pd_tpot"):
-    show[col] = show[col].round(2)
-for col in ("tp16_ttft", "tep_ttft", "pp2_ttft", "dp2_ttft", "pd_ttft"):
-    show[col] = show[col].round(1)
-for col in ("tp16_e2el_s", "tep_e2el_s", "pp2_e2el_s", "dp2_e2el_s", "pd_e2el_s"):
-    show[col] = show[col].round(1)
-for col in ("tp16_eff", "tep_eff", "pp2_eff", "dp2_eff", "pd_eff"):
-    show[col] = (show[col] * 100).round(1)
-show[
-    [
-        "concurrency",
-        "tp16_tok_s",
-        "tep_tok_s",
-        "pp2_tok_s",
-        "dp2_tok_s",
-        "pd_tok_s",
-        "tep_tp16",
-        "pp2_tp16",
-        "dp2_tp16",
-        "pd_tp16",
-        "tp16_tpot",
-        "tep_tpot",
-        "pp2_tpot",
-        "dp2_tpot",
-        "pd_tpot",
-        "tp16_ttft",
-        "tep_ttft",
-        "pp2_ttft",
-        "dp2_ttft",
-        "pd_ttft",
-        "tp16_e2el_s",
-        "tep_e2el_s",
-        "pp2_e2el_s",
-        "dp2_e2el_s",
-        "pd_e2el_s",
-        "tp16_eff",
-        "tep_eff",
-        "pp2_eff",
-        "dp2_eff",
-        "pd_eff",
-    ]
-].rename(
-    columns={
-        "concurrency": "C",
-        "tp16_tok_s": "TP16 tok/s",
-        "tep_tok_s": "TEP tok/s",
-        "pp2_tok_s": "PP2 tok/s",
-        "dp2_tok_s": "DP2 tok/s",
-        "pd_tok_s": "P/D tok/s",
-        "tep_tp16": "TEP/TP16",
-        "pp2_tp16": "PP2/TP16",
-        "dp2_tp16": "DP2/TP16",
-        "pd_tp16": "P/D/TP16",
-        "tp16_tpot": "TP16 TPOT",
-        "tep_tpot": "TEP TPOT",
-        "pp2_tpot": "PP2 TPOT",
-        "dp2_tpot": "DP2 TPOT",
-        "pd_tpot": "P/D TPOT",
-        "tp16_ttft": "TP16 TTFT",
-        "tep_ttft": "TEP TTFT",
-        "pp2_ttft": "PP2 TTFT",
-        "dp2_ttft": "DP2 TTFT",
-        "pd_ttft": "P/D TTFT",
-        "tp16_e2el_s": "TP16 E2EL s",
-        "tep_e2el_s": "TEP E2EL s",
-        "pp2_e2el_s": "PP2 E2EL s",
-        "dp2_e2el_s": "DP2 E2EL s",
-        "pd_e2el_s": "P/D E2EL s",
-        "tp16_eff": "TP16 scale%",
-        "tep_eff": "TEP scale%",
-        "pp2_eff": "PP2 scale%",
-        "dp2_eff": "DP2 scale%",
-        "pd_eff": "P/D scale%",
-    }
-)
-```
-
-```{python}
-#| label: findings-compare
-#| output: asis
-hi = cmp.loc[cmp["concurrency"] >= 4]
-hi_full = cmp_hi.loc[cmp_hi["concurrency"] >= 4]
-print(f"""
-- **@C=1:** TEP/TP16 = **{tep_tp16_c1:.3f}** ({base_tep['output_throughput']:.0f} vs {base_tp16['output_throughput']:.0f} tok/s); PP2/TP16 = **{pp2_tp16_c1:.3f}** ({base_pp2['output_throughput']:.0f} tok/s); DP2/TP16 = **{dp2_tp16_c1:.3f}** ({base_dp2['output_throughput']:.0f} tok/s); P/D/TP16 = **{pd_tp16_c1:.3f}** ({base_pd['output_throughput']:.0f} tok/s, 32 GPUs). TPOT: TP16 {base_tp16['mean_tpot_ms']:.1f} / TEP {base_tep['mean_tpot_ms']:.1f} / PP2 {base_pp2['mean_tpot_ms']:.1f} / DP2 {base_dp2['mean_tpot_ms']:.1f} / P/D {base_pd['mean_tpot_ms']:.1f} ms.
-- **Peak tok/s:** TP16 **{peak_tp16['output_throughput']:.0f}** @C={int(peak_tp16['concurrency'])}; TEP **{peak_tep['output_throughput']:.0f}** @C={int(peak_tep['concurrency'])}; PP2 **{peak_pp2['output_throughput']:.0f}** @C={int(peak_pp2['concurrency'])}; DP2 **{peak_dp2['output_throughput']:.0f}** @C={int(peak_dp2['concurrency'])}; P/D **{peak_pd['output_throughput']:.0f}** @C={int(peak_pd['concurrency'])} (32 GPUs, KV-limited).
-- **@C≥4 (high-C shared):** TEP/TP16 ~**{hi_full['tep_tp16'].min():.2f}–{hi_full['tep_tp16'].max():.2f}**; PP2/TP16 ~**{hi_full['pp2_tp16'].min():.2f}–{hi_full['pp2_tp16'].max():.2f}**; P/D/TP16 ~**{hi_full['pd_tp16'].min():.2f}–{hi_full['pd_tp16'].max():.2f}** (not apples-to-apples — 2× GPU count).
-- **@C≥4 (DP2 saturated):** DP2/TP16 tok/s ~**{hi['dp2_tp16'].min():.2f}–{hi['dp2_tp16'].max():.2f}**. DP2 plateaus ~{peak_dp2['output_throughput']:.0f} tok/s (≈2× C=1) — expected with ~1 in-flight request per DP replica.
-""")
-```
+# Comparison charts
 
 ## Throughput
 
@@ -527,112 +428,23 @@ fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin
 fig.show()
 ```
 
-```{python}
-#| label: fig-req
-#| fig-cap: "Request throughput vs concurrency."
-
-fig = px.line(
-    both,
-    x="concurrency",
-    y="request_throughput",
-    color="run",
-    color_discrete_map=RUN_COLORS,
-    markers=True,
-    labels={"concurrency": "max concurrency", "request_throughput": "req/s", "run": ""},
-)
-fig.update_xaxes(type="log", dtick=1)
-fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
-fig.show()
-```
-
-```{python}
-#| label: fig-ratio
-#| fig-cap: "Throughput ratios vs TP16 (parity = 1.0)."
-
-fig = go.Figure()
-fig.add_trace(
-    go.Scatter(
-        x=cmp_hi["concurrency"],
-        y=cmp_hi["tep_tp16"],
-        mode="lines+markers",
-        name="TEP÷TP16",
-        line=dict(color=RUN_COLORS["TEP16"]),
-        hovertemplate="C=%{x}<br>TEP/TP16=%{y:.3f}<extra></extra>",
-    )
-)
-fig.add_trace(
-    go.Scatter(
-        x=cmp_hi["concurrency"],
-        y=cmp_hi["pp2_tp16"],
-        mode="lines+markers",
-        name="PP2÷TP16",
-        line=dict(color=RUN_COLORS["TP8×PP2"]),
-        hovertemplate="C=%{x}<br>PP2/TP16=%{y:.3f}<extra></extra>",
-    )
-)
-fig.add_trace(
-    go.Scatter(
-        x=cmp["concurrency"],
-        y=cmp["dp2_tp16"],
-        mode="lines+markers",
-        name="DP2÷TP16",
-        line=dict(color=RUN_COLORS["TP8×DP2"]),
-        hovertemplate="C=%{x}<br>DP2/TP16=%{y:.3f}<extra></extra>",
-    )
-)
-fig.add_trace(
-    go.Scatter(
-        x=cmp_hi["concurrency"],
-        y=cmp_hi["pd_tp16"],
-        mode="lines+markers",
-        name="P/D÷TP16",
-        line=dict(color=RUN_COLORS["P/D"]),
-        hovertemplate="C=%{x}<br>P/D/TP16=%{y:.3f}<extra></extra>",
-    )
-)
-fig.add_hline(y=1.0, line_dash="dash", annotation_text="parity", annotation_position="top right")
-fig.update_xaxes(title_text="max concurrency", type="log", dtick=1)
-fig.update_yaxes(title_text="tok/s ÷ TP16")
-fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
-fig.show()
-```
-
-```{python}
-#| label: fig-efficiency
-#| fig-cap: "Scaling efficiency vs C · tok/s@1."
-
-fig = px.line(
-    both,
-    x="concurrency",
-    y="scaling_efficiency",
-    color="run",
-    color_discrete_map=RUN_COLORS,
-    markers=True,
-    labels={"concurrency": "max concurrency", "scaling_efficiency": "efficiency vs C·tok₁", "run": ""},
-)
-fig.update_xaxes(type="log", dtick=1)
-fig.update_yaxes(tickformat=".0%", range=[0, 1.15])
-fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
-fig.show()
-```
-
 ## Latency
 
 ```{python}
 #| label: fig-latency
-#| fig-cap: "Mean TPOT, TTFT, and E2EL."
+#| fig-cap: "Mean TTFT and TPOT."
 
 fig = make_subplots(
     rows=1,
-    cols=3,
-    subplot_titles=("TPOT (ms)", "TTFT (ms)", "E2EL (s)"),
+    cols=2,
+    subplot_titles=("TTFT (ms)", "TPOT (ms)"),
 )
 for run, dfx in [("TP16", df_tp16), ("TEP16", df_tep), ("TP8×PP2", df_pp2), ("TP8×DP2", df_dp2), ("P/D", df_pd)]:
     color = RUN_COLORS[run]
     fig.add_trace(
         go.Scatter(
             x=dfx["concurrency"],
-            y=dfx["mean_tpot_ms"],
+            y=dfx["mean_ttft_ms"],
             mode="lines+markers",
             name=run,
             legendgroup=run,
@@ -645,7 +457,7 @@ for run, dfx in [("TP16", df_tp16), ("TEP16", df_tep), ("TP8×PP2", df_pp2), ("T
     fig.add_trace(
         go.Scatter(
             x=dfx["concurrency"],
-            y=dfx["mean_ttft_ms"],
+            y=dfx["mean_tpot_ms"],
             mode="lines+markers",
             name=run,
             legendgroup=run,
@@ -655,23 +467,9 @@ for run, dfx in [("TP16", df_tp16), ("TEP16", df_tep), ("TP8×PP2", df_pp2), ("T
         row=1,
         col=2,
     )
-    fig.add_trace(
-        go.Scatter(
-            x=dfx["concurrency"],
-            y=dfx["mean_e2el_ms"] / 1000,
-            mode="lines+markers",
-            name=run,
-            legendgroup=run,
-            line=dict(color=color),
-            showlegend=False,
-        ),
-        row=1,
-        col=3,
-    )
-for col in (1, 2, 3):
+for col in (1, 2):
     fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
-fig.update_yaxes(type="log", row=1, col=2)
-fig.update_yaxes(type="log", row=1, col=3)
+fig.update_yaxes(type="log", row=1, col=1)
 fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
 fig.show()
 ```
