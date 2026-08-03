@@ -1,0 +1,479 @@
+patched /usr/local/lib/python3.12/dist-packages/vllm/models/kimi_k3/nvidia/mla.py
+patched /usr/local/lib/python3.12/dist-packages/vllm/distributed/device_communicators/shm_broadcast.py
+Launching recipe-shaped dummy serve:
+  MODEL=/models/Kimi-K3 TP=8 PP=1 DP=2 DP_LOCAL=1 DP_START=0
+  NNODES=2 NODE_RANK=0 MASTER_ADDR=10.202.208.117
+  EP=0 IFACE=enp157s0np0 hf-overrides={"text_config": {"num_hidden_layers": 4, "num_experts": 32, "num_experts_per_token": 2, "num_shared_experts": 1}}
+  max-num-seqs=8 profiler=1 profile_dir=/tmp/vllm_profile/dp2
+  kv-transfer=<none> enforce-eager=0
+(APIServer pid=198) INFO 08-02 07:05:31 [api_utils.py:345] 
+(APIServer pid=198) INFO 08-02 07:05:31 [api_utils.py:345]        █     █     █▄   ▄█
+(APIServer pid=198) INFO 08-02 07:05:31 [api_utils.py:345]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.1.dev19262+gb6bbf29dd.d20260727
+(APIServer pid=198) INFO 08-02 07:05:31 [api_utils.py:345]   █▄█▀ █     █     █     █  model   /models/Kimi-K3
+(APIServer pid=198) INFO 08-02 07:05:31 [api_utils.py:345]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(APIServer pid=198) INFO 08-02 07:05:31 [api_utils.py:345] 
+(APIServer pid=198) INFO 08-02 07:05:32 [api_utils.py:273] non-default args: {'model_tag': '/models/Kimi-K3', 'enable_auto_tool_choice': True, 'tool_call_parser': 'kimi_k3', 'host': '0.0.0.0', 'model': '/models/Kimi-K3', 'trust_remote_code': True, 'max_model_len': 1024, 'hf_overrides': {'text_config': {'num_hidden_layers': 4, 'num_experts': 32, 'num_experts_per_token': 2, 'num_shared_experts': 1}}, 'load_format': 'dummy', 'attention_backend': 'FLASHMLA', 'reasoning_parser': 'kimi_k3', 'tensor_parallel_size': 8, 'data_parallel_size': 2, 'data_parallel_start_rank': 0, 'data_parallel_size_local': 1, 'data_parallel_address': '10.202.208.117', 'data_parallel_rpc_port': 13345, 'disable_custom_all_reduce': True, 'gpu_memory_utilization': 0.97, 'max_num_batched_tokens': 4096, 'max_num_seqs': 8, 'enable_flashinfer_autotune': False, 'moe_backend': 'marlin', 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': None, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {'fuse_allreduce_rms': False}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/vllm_profile/dp2', torch_profiler_with_stack=True, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=32, wait_iterations=0)}
+(APIServer pid=198) WARNING 08-02 07:05:32 [envs.py:2125] Unknown vLLM environment variable detected: VLLM_RPC_TIMEOUT
+(APIServer pid=198) INFO 08-02 07:05:32 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:05:50 [model.py:636] Resolved architecture: KimiK3ForConditionalGeneration
+(APIServer pid=198) INFO 08-02 07:05:50 [model.py:654] Defaulting to tokenizer_mode='kimi_k3' for KimiK3ForConditionalGeneration
+(APIServer pid=198) INFO 08-02 07:05:50 [model.py:1810] Using max model len 1024
+(APIServer pid=198) INFO 08-02 07:05:50 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=4096.
+(APIServer pid=198) INFO 08-02 07:05:50 [vllm.py:1141] Asynchronous scheduling is enabled.
+(APIServer pid=198) INFO 08-02 07:05:50 [vllm.py:1151] Disabling NCCL for DP synchronization when using async scheduling.
+(APIServer pid=198) INFO 08-02 07:05:50 [vllm.py:1232] Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1. Set VLLM_USE_BREAKABLE_CUDAGRAPH=0 to opt out.
+(APIServer pid=198) WARNING 08-02 07:05:50 [vllm.py:1238] VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's torch.compile pipeline. Equivalent to -cc.mode=none.
+(APIServer pid=198) WARNING 08-02 07:05:50 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(APIServer pid=198) INFO 08-02 07:05:50 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(APIServer pid=198) WARNING 08-02 07:05:50 [vllm.py:2263] Model Runner V2 does not yet support the thinking_token_budget request parameter. Set VLLM_USE_V2_MODEL_RUNNER=0 if this is required.
+(APIServer pid=198) INFO 08-02 07:05:50 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) WARNING 08-02 07:05:51 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+(APIServer pid=198) INFO 08-02 07:05:51 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+(APIServer pid=198) INFO 08-02 07:05:51 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:05:57 [utils.py:1127] Started DP Coordinator process (PID: 932)
+(EngineCore_DP0 pid=1131) INFO 08-02 07:06:05 [core.py:116] Initializing a V1 LLM engine (v0.1.dev19262+gb6bbf29dd.d20260727) with config: model='/models/Kimi-K3', speculative_config=None, tokenizer='/models/Kimi-K3', skip_tokenizer_init=False, tokenizer_mode=kimi_k3, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=1024, download_dir=None, load_format=dummy, tensor_parallel_size=8, pipeline_parallel_size=1, data_parallel_size=2, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=mxfp4, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='kimi_k3', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/models/Kimi-K3, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [4096], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 16, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=False, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='marlin', linear_backend='auto')
+(EngineCore_DP0 pid=1131) WARNING 08-02 07:06:05 [multiproc_executor.py:1081] Reducing Torch parallelism from 64 threads to 1 to avoid unnecessary CPU contention. Set OMP_NUM_THREADS in the external environment to tune this value as needed.
+(EngineCore_DP0 pid=1131) INFO 08-02 07:06:05 [multiproc_executor.py:140] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=10.202.208.117 (local), world_size=8, local_world_size=8
+INFO 08-02 07:06:17 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:18 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=1344) INFO 08-02 07:06:18 [parallel_state.py:1612] world_size=16 rank=2 local_rank=2 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:18 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:18 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-02 07:06:18 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:19 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-02 07:06:19 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:19 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-02 07:06:19 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:19 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+(Worker pid=1342) INFO 08-02 07:06:19 [parallel_state.py:1612] world_size=16 rank=0 local_rank=0 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+INFO 08-02 07:06:19 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:19 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-02 07:06:19 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+WARNING 08-02 07:06:19 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+INFO 08-02 07:06:19 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(Worker pid=1343) INFO 08-02 07:06:20 [parallel_state.py:1612] world_size=16 rank=1 local_rank=1 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+(Worker pid=1345) INFO 08-02 07:06:20 [parallel_state.py:1612] world_size=16 rank=3 local_rank=3 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+(Worker pid=1348) INFO 08-02 07:06:20 [parallel_state.py:1612] world_size=16 rank=6 local_rank=6 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+(Worker pid=1346) INFO 08-02 07:06:20 [parallel_state.py:1612] world_size=16 rank=4 local_rank=4 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+(Worker pid=1347) INFO 08-02 07:06:20 [parallel_state.py:1612] world_size=16 rank=5 local_rank=5 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+(Worker pid=1349) INFO 08-02 07:06:20 [parallel_state.py:1612] world_size=16 rank=7 local_rank=7 distributed_init_method=tcp://10.202.208.117:39535 backend=nccl
+(Worker pid=1342) INFO 08-02 07:06:20 [pynccl.py:113] vLLM is using nccl==2.30.7
+(Worker pid=1342) INFO 08-02 07:06:23 [cuda_communicator.py:264] Using ['SYMM_MEM', 'PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=1342) INFO 08-02 07:06:23 [cuda_communicator.py:264] Using ['PYNCCL'] all-reduce backends (in dispatch order) for group 'dp:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=1342) INFO 08-02 07:06:24 [cuda_communicator.py:264] Using ['PYNCCL'] all-reduce backends (in dispatch order) for group 'ep:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=1342) INFO 08-02 07:06:24 [cuda_communicator.py:201] Using AgRsAll2AllManager all2all manager.
+(Worker pid=1342) INFO 08-02 07:06:24 [parallel_state.py:1943] rank 0 in world size 16 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank 0, EPLB rank N/A
+(Worker pid=1342) INFO 08-02 07:06:24 [gpu_worker.py:373] Using V2 Model Runner
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP6 pid=1348) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP0 pid=1342) WARNING 08-02 07:06:25 [vision.py:153] The number of vision attention heads is not divisible by the tensor parallel size. Falling back to data parallelism for the vision encoder.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [cuda.py:541] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [mm_encoder_attention.py:373] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+(Worker_DP0_TP4 pid=1346) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP5 pid=1347) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP3 pid=1345) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP1 pid=1343) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:25 [model_runner.py:288] Loading model from scratch...
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP2 pid=1344) (Worker_DP0_TP0 pid=1342) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 08-02 07:06:25 [vllm.py:1141] Asynchronous scheduling is enabled.
+(Worker_DP0_TP0 pid=1342) WARNING 08-02 07:06:25 [vllm.py:1238] VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's torch.compile pipeline. Equivalent to -cc.mode=none.
+(Worker_DP0_TP0 pid=1342) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP0 pid=1342) WARNING 08-02 07:06:25 [vllm.py:2263] Model Runner V2 does not yet support the thinking_token_budget request parameter. Set VLLM_USE_V2_MODEL_RUNNER=0 if this is required.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [kda.py:311] Fused KDA decode kernel (conv+KDA+norm) is enabled.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [kda.py:163] Using FlashKDA KDA prefill backend.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [mxfp4.py:419] Using 'MARLIN' Mxfp4 MoE backend.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [selector.py:174] Using FLASH_ATTN MLA prefill backend.
+(Worker_DP0_TP7 pid=1349) WARNING 08-02 07:06:25 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:25 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:25 [cuda.py:422] Using AttentionBackendEnum.FLASHMLA backend.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [all2all_utils.py:145] Detected DP deployment with no --enable-expert-parallel. Falling back to AllGather+ReduceScatter dispatch/combine.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [mxfp4.py:1718] Using MoEPrepareAndFinalizeNaiveDPEPModular
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:25 [mxfp4.py:1719] Using MarlinExperts
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.092023 seconds
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP6 pid=1348) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP6 pid=1348) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.177612 seconds
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.179571 seconds
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.189537 seconds
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.211877 seconds
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP3 pid=1345) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP5 pid=1347) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP3 pid=1345) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP5 pid=1347) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:26 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP0 pid=1342) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP4 pid=1346) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP0 pid=1342) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.221802 seconds
+(Worker_DP0_TP4 pid=1346) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP1 pid=1343) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP1 pid=1343) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.224994 seconds
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP7 pid=1349) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP7 pid=1349) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:26 [model_runner.py:309] Model loading took 2.41 GiB and 1.447044 seconds
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:26 [interface.py:635] Setting kv cache block size to 64 for FLASHMLA backend.
+(Worker_DP0_TP2 pid=1344) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP2 pid=1344) WARNING 08-02 07:06:26 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:26 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:26 [interface.py:911] Setting attention block size to 768 tokens to ensure that attention page size is >= mamba page size.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:26 [interface.py:935] Padding mamba page size by 8.68% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_DP0_TP6 pid=1348) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP6 pid=1348) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP5 pid=1347) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP5 pid=1347) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP3 pid=1345) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP3 pid=1345) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP4 pid=1346) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP4 pid=1346) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP0 pid=1342) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP0 pid=1342) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP1 pid=1343) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP1 pid=1343) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP7 pid=1349) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP7 pid=1349) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP2 pid=1344) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP2 pid=1344) Calling super().encode with {'add_special_tokens': False}
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:29 [encoder_runner.py:80] Encoder cache will be initialized with a budget of 16817 tokens, and profiled with 1 image items of the maximum feature size.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:50 [gpu_worker.py:547] Available KV cache memory: 129.77 GiB
+(EngineCore_DP0 pid=1131) INFO 08-02 07:06:50 [kv_cache_utils.py:2235] GPU KV cache size: 32,254,156 tokens
+(EngineCore_DP0 pid=1131) INFO 08-02 07:06:50 [kv_cache_utils.py:2236] Maximum concurrency for 1,024 tokens per request: 31498.20x
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_DP0_TP3 pid=1345) (Worker_DP0_TP0 pid=1342) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:55 [kernel_warmup.py:127] Skipping FlashInfer autotune because it is disabled.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:06:55 [kernel_warmup.py:71] Warming up ll_bf16 router GEMM kernels.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:07:02 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:07:02 [breakable_cudagraph.py:288] Breakable CUDA graph enabled
+(Worker_DP0_TP0 pid=1342) Capturing CUDA graphs (PIECEWISE):   0%|          | 0/5 [00:00<?, ?it/s](Worker_DP0_TP6 pid=1348) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP6 pid=1348)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_DP0_TP4 pid=1346) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP4 pid=1346)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_DP0_TP5 pid=1347) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP5 pid=1347)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_DP0_TP1 pid=1343) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP1 pid=1343)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_DP0_TP3 pid=1345) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP3 pid=1345)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_DP0_TP7 pid=1349) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP7 pid=1349)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+/usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP0 pid=1342)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_DP0_TP2 pid=1344) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+(Worker_DP0_TP2 pid=1344)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+(Worker_DP0_TP0 pid=1342) Capturing CUDA graphs (PIECEWISE):  20%|██        | 1/5 [00:01<00:05,  1.26s/it]Capturing CUDA graphs (PIECEWISE):  40%|████      | 2/5 [00:01<00:02,  1.32it/s]Capturing CUDA graphs (PIECEWISE):  60%|██████    | 3/5 [00:02<00:01,  1.73it/s]Capturing CUDA graphs (PIECEWISE):  80%|████████  | 4/5 [00:02<00:00,  2.04it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 5/5 [00:03<00:00,  1.75it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]
+(Worker_DP0_TP0 pid=1342) Capturing CUDA graphs (FULL):   0%|          | 0/4 [00:00<?, ?it/s]Capturing CUDA graphs (FULL):  75%|███████▌  | 3/4 [00:00<00:00, 27.79it/s](Worker_DP0_TP6 pid=1348) INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.85 GiB for consumed memory (weights + non-torch), 1.46 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=140613419684` (130.96 GiB) to fit into requested memory, or `--kv-cache-memory=142796280320` (132.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 131.3 GiB.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.85 GiB for consumed memory (weights + non-torch), 1.46 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=140613419684` (130.96 GiB) to fit into requested memory, or `--kv-cache-memory=142796280320` (132.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 131.3 GiB.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.85 GiB for consumed memory (weights + non-torch), 1.46 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=140613419684` (130.96 GiB) to fit into requested memory, or `--kv-cache-memory=142796280320` (132.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 131.3 GiB.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.85 GiB for consumed memory (weights + non-torch), 1.46 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=140613419684` (130.96 GiB) to fit into requested memory, or `--kv-cache-memory=142796280320` (132.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 131.3 GiB.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.85 GiB for consumed memory (weights + non-torch), 1.46 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=140613419684` (130.96 GiB) to fit into requested memory, or `--kv-cache-memory=142796280320` (132.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 131.3 GiB.
+Capturing CUDA graphs (FULL): 100%|██████████| 4/4 [00:00<00:00, 31.53it/s]
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP7 pid=1349) (Worker_DP0_TP0 pid=1342) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.99 GiB for consumed memory (weights + non-torch), 2.85 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=138962905764` (129.42 GiB) to fit into requested memory, or `--kv-cache-memory=141145766400` (131.45 GiB) to fully utilize gpu memory. Current kv cache memory in use is 129.77 GiB.
+INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:07:06 [model_runner.py:766] Graph capturing finished in 4 secs, took 0.20 GiB
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.85 GiB for consumed memory (weights + non-torch), 1.46 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=140613419684` (130.96 GiB) to fit into requested memory, or `--kv-cache-memory=142796280320` (132.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 131.3 GiB.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:07:06 [gpu_worker.py:773] Free memory on device (137.64/139.8 GiB) on startup. Desired GPU memory utilization is (0.97, 135.61 GiB). Actual usage is 2.85 GiB for consumed memory (weights + non-torch), 1.46 GiB for peak activation, and 0.2 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=140613419684` (130.96 GiB) to fit into requested memory, or `--kv-cache-memory=142796280320` (132.99 GiB) to fully utilize gpu memory. Current kv cache memory in use is 131.3 GiB.
+(Worker_DP0_TP2 pid=1344) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_DP0_TP5 pid=1347) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_DP0_TP7 pid=1349) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_DP0_TP4 pid=1346) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_DP0_TP1 pid=1343) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_DP0_TP3 pid=1345) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_DP0_TP6 pid=1348) INFO 08-02 07:07:09 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore_DP0 pid=1131) INFO 08-02 07:07:09 [core.py:347] init engine (profile, create kv cache, warmup model) took 43.08 s
+(EngineCore_DP0 pid=1131) INFO 08-02 07:07:09 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(EngineCore_DP0 pid=1131) WARNING 08-02 07:07:09 [registry.py:250] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+(EngineCore_DP0 pid=1131) INFO 08-02 07:07:10 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(EngineCore_DP0 pid=1131) Calling super().encode with {'add_special_tokens': False}
+(EngineCore_DP0 pid=1131) Calling super().encode with {'add_special_tokens': False}
+INFO 08-02 07:07:12 [coordinator.py:249] All engine subscriptions received by DP coordinator
+(EngineCore_DP0 pid=1131) INFO 08-02 07:07:12 [vllm.py:1141] Asynchronous scheduling is enabled.
+(EngineCore_DP0 pid=1131) WARNING 08-02 07:07:12 [vllm.py:1238] VLLM_USE_BREAKABLE_CUDAGRAPH is set, disabling vLLM's torch.compile pipeline. Equivalent to -cc.mode=none.
+(EngineCore_DP0 pid=1131) WARNING 08-02 07:07:12 [vllm.py:1248] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore_DP0 pid=1131) INFO 08-02 07:07:12 [kernel.py:303] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(APIServer pid=198) INFO 08-02 07:07:12 [async_llm.py:183] Torch profiler enabled. AsyncLLM CPU traces will be collected under /tmp/vllm_profile/dp2
+(EngineCore_DP0 pid=1131) WARNING 08-02 07:07:12 [vllm.py:2263] Model Runner V2 does not yet support the thinking_token_budget request parameter. Set VLLM_USE_V2_MODEL_RUNNER=0 if this is required.
+(EngineCore_DP0 pid=1131) INFO 08-02 07:07:12 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+(APIServer pid=198) INFO 08-02 07:07:12 [api_server.py:673] Supported tasks: ['generate']
+(APIServer pid=198) WARNING 08-02 07:07:12 [api_router.py:41] Profiler with mode 'torch' is enabled in the API server. This should ONLY be used for local development!
+(APIServer pid=198) INFO 08-02 07:07:12 [parser_manager.py:37] "auto" tool choice has been enabled.
+(APIServer pid=198) INFO 08-02 07:07:12 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:07:12 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:07:12 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:07:13 [base.py:236] Multi-modal warmup completed in 0.985s
+(APIServer pid=198) INFO 08-02 07:07:14 [base.py:236] Readonly multi-modal warmup completed in 0.983s
+(APIServer pid=198) INFO 08-02 07:07:14 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:07:14 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:07:14 [kimi_k3.py:116] Overriding vision_config.text_hidden_size from 2304 to 4096 to match text_config.hidden_size
+(APIServer pid=198) INFO 08-02 07:07:14 [api_server.py:677] Starting vLLM server on http://0.0.0.0:8000
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:37] Available routes are:
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /openapi.json, Methods: HEAD, GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /docs, Methods: HEAD, GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /docs/oauth2-redirect, Methods: HEAD, GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /redoc, Methods: HEAD, GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /load, Methods: GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /version, Methods: GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /health, Methods: GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /metrics, Methods: GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /start_profile, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /stop_profile, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /tokenize, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /detokenize, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/models, Methods: GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /ping, Methods: GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /ping, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /invocations, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/chat/completions, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/chat/completions/batch, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/responses, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/responses/{response_id}, Methods: GET
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/responses/{response_id}/cancel, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/completions, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/messages, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/messages/count_tokens, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /generative_scoring, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /scale_elastic_ep, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /is_scaling_elastic_ep, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/chat/completions/render, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/completions/render, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/chat/completions/derender, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /v1/completions/derender, Methods: POST
+(APIServer pid=198) INFO 08-02 07:07:14 [launcher.py:46] Route: /inference/v1/generate, Methods: POST
+(APIServer pid=198) INFO:     Started server process [198]
+(APIServer pid=198) INFO:     Waiting for application startup.
+(APIServer pid=198) INFO:     Application startup complete.
+(APIServer pid=198) INFO:     127.0.0.1:41824 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=198) INFO:     127.0.0.1:41834 - "GET /v1/models HTTP/1.1" 200 OK
+(APIServer pid=198) INFO:     127.0.0.1:41842 - "GET /v1/models HTTP/1.1" 200 OK
+(APIServer pid=198) INFO:     127.0.0.1:41852 - "POST /tokenize HTTP/1.1" 200 OK
+(APIServer pid=198) INFO:     127.0.0.1:41862 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=198) INFO 08-02 07:07:21 [api_router.py:23] Starting profiler...
+ERROR: External init callback must run in same thread as registerClient (536868544 != 1804911360)
+USDT:2026-08-02 07:07:21 198:2824 SyncActivityProfilerHandler.cpp:52] profiler_start
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:07:21 [wrapper.py:174] Torch profiling enabled. Traces will be saved to: /tmp/vllm_profile/dp2
+USDT:2026-08-02 07:07:21 1346:1346 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 07:07:21 1348:1348 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 07:07:21 1343:1343 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 07:07:21 1342:1342 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 07:07:21 1344:1344 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 07:07:21 1345:1345 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 07:07:21 1349:1349 SyncActivityProfilerHandler.cpp:52] profiler_start
+USDT:2026-08-02 07:07:21 1347:1347 SyncActivityProfilerHandler.cpp:52] profiler_start
+(APIServer pid=198) INFO 08-02 07:07:21 [api_router.py:25] Profiler started.
+(APIServer pid=198) INFO:     127.0.0.1:41874 - "POST /start_profile HTTP/1.1" 200 OK
+(APIServer pid=198) INFO:     127.0.0.1:41880 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=198) INFO 08-02 07:07:21 [api_router.py:31] Stopping profiler...
+USDT:2026-08-02 07:07:21 198:2824 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1349:1349 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1342:1342 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1347:1347 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1344:1344 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1343:1343 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1345:1345 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1348:1348 SyncActivityProfilerHandler.cpp:59] profiler_stop
+USDT:2026-08-02 07:07:21 1346:1346 SyncActivityProfilerHandler.cpp:59] profiler_stop
+(APIServer pid=198) INFO 08-02 07:07:24 [loggers.py:310] Engine 000: Avg prompt throughput: 0.8 tokens/s, Avg generation throughput: 0.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=198) INFO 08-02 07:07:24 [loggers.py:310] Engine 001: Avg prompt throughput: 0.8 tokens/s, Avg generation throughput: 0.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(Worker_DP0_TP0 pid=1342) -------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+(Worker_DP0_TP0 pid=1342)                                                    Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg    # of Calls  
+(Worker_DP0_TP0 pid=1342) -------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+(Worker_DP0_TP0 pid=1342) void (anonymous namespace)::multimem_all_reduce_kern...         0.00%       0.000us         0.00%       0.000us       0.000us      15.556ms        44.27%      15.556ms      78.566us           198  
+(Worker_DP0_TP0 pid=1342) ncclDevKernel_AllGather_RING_LL(ncclDevKernelArgsSto...         0.00%       0.000us         0.00%       0.000us       0.000us       6.395ms        18.20%       6.395ms     118.423us            54  
+(Worker_DP0_TP0 pid=1342)                  nvjet_sm90_tst_64x8_64x16_4x1_v_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us       2.126ms         6.05%       2.126ms      11.370us           187  
+(Worker_DP0_TP0 pid=1342)           nvjet_sm90_tst_64x8_64x16_2x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us       1.924ms         5.48%       1.924ms      16.171us           119  
+(Worker_DP0_TP0 pid=1342)                                        _attn_res_kernel         0.00%       0.000us         0.00%       0.000us       0.000us     853.002us         2.43%     853.002us       5.265us           162  
+(Worker_DP0_TP0 pid=1342) ncclDevKernel_ReduceScatter_Sum_bf16_RING_LL(ncclDev...         0.00%       0.000us         0.00%       0.000us       0.000us     780.769us         2.22%     780.769us      14.459us            54  
+(Worker_DP0_TP0 pid=1342)           nvjet_sm90_tst_64x8_64x16_4x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us     778.689us         2.22%     778.689us       9.161us            85  
+(Worker_DP0_TP0 pid=1342)                                           memcpy32_post         0.00%       0.000us         0.00%       0.000us       0.000us     663.110us         1.89%     663.110us       1.420us           467  
+(Worker_DP0_TP0 pid=1342)                  nvjet_sm90_tst_64x8_64x16_2x1_v_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us     533.856us         1.52%     533.856us      31.403us            17  
+(Worker_DP0_TP0 pid=1342) void sm90::flash_fwd_splitkv_mla_kernel<Traits<cutla...         0.00%       0.000us         0.00%       0.000us       0.000us     521.281us         1.48%     521.281us      28.960us            18  
+(Worker_DP0_TP0 pid=1342) smxx::decode::get_mla_metadata_kernel(GetDecodeSched...         0.00%       0.000us         0.00%       0.000us       0.000us     475.809us         1.35%     475.809us      26.434us            18  
+(Worker_DP0_TP0 pid=1342) void cublasLt::splitKreduce_kernel<32, 16, int, floa...         0.00%       0.000us         0.00%       0.000us       0.000us     437.859us         1.25%     437.859us       2.065us           212  
+(Worker_DP0_TP0 pid=1342) void (anonymous namespace)::kda_decode_fusion_many_h...         0.00%       0.000us         0.00%       0.000us       0.000us     364.962us         1.04%     364.962us       7.156us            51  
+(Worker_DP0_TP0 pid=1342) void marlin_moe_wna16::Marlin<1125899906909960l, 562...         0.00%       0.000us         0.00%       0.000us       0.000us     328.316us         0.93%     328.316us       6.438us            51  
+(Worker_DP0_TP0 pid=1342) void vllm::moe::moe_align_block_size_small_batch_exp...         0.00%       0.000us         0.00%       0.000us       0.000us     312.741us         0.89%     312.741us       5.792us            54  
+(Worker_DP0_TP0 pid=1342) void smxx::decode::flash_fwd_mla_combine_kernel<cutl...         0.00%       0.000us         0.00%       0.000us       0.000us     286.016us         0.81%     286.016us      16.824us            17  
+(Worker_DP0_TP0 pid=1342) void vllm::situ_and_mul_kernel<c10::BFloat16>(c10::B...         0.00%       0.000us         0.00%       0.000us       0.000us     238.718us         0.68%     238.718us       1.895us           126  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us     230.914us         0.66%     230.914us       0.895us           258  
+(Worker_DP0_TP0 pid=1342)                                             aten::copy_         0.17%     692.830us         0.58%       2.338ms       6.661us     217.793us         0.62%     223.552us       0.637us           351  
+(Worker_DP0_TP0 pid=1342)                 nvjet_sm90_tst_16x64_64x16_4x1_v_bz_TNN         0.00%       0.000us         0.00%       0.000us       0.000us     210.592us         0.60%     210.592us       3.097us            68  
+(Worker_DP0_TP0 pid=1342)                                             aten::fill_         0.21%     825.659us         0.43%       1.747ms       4.335us     190.655us         0.54%     190.655us       0.473us           403  
+(Worker_DP0_TP0 pid=1342)                 nvjet_sm90_tst_64x16_64x16_4x1_v_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us     187.072us         0.53%     187.072us      13.362us            14  
+(Worker_DP0_TP0 pid=1342) void vllm::moe::single_group_topk::detail::single_gr...         0.00%       0.000us         0.00%       0.000us       0.000us     169.856us         0.48%     169.856us       3.145us            54  
+(Worker_DP0_TP0 pid=1342) void marlin_moe_wna16::Marlin<1125899906909960l, 562...         0.00%       0.000us         0.00%       0.000us       0.000us     165.761us         0.47%     165.761us       3.250us            51  
+(Worker_DP0_TP0 pid=1342) void marlin_moe_wna16::Marlin<1125899906909960l, 562...         0.00%       0.000us         0.00%       0.000us       0.000us     145.824us         0.42%     145.824us      24.304us             6  
+(Worker_DP0_TP0 pid=1342) kernel_cutlass_kernel_vllmmodel_executorkernelslinea...         0.00%       0.000us         0.00%       0.000us       0.000us     134.140us         0.38%     134.140us       2.630us            51  
+(Worker_DP0_TP0 pid=1342) void vllm::rms_norm_kernel<c10::BFloat16, 8, 2, true...         0.00%       0.000us         0.00%       0.000us       0.000us     129.437us         0.37%     129.437us       2.397us            54  
+(Worker_DP0_TP0 pid=1342)                                               aten::sub         0.20%     796.152us         0.33%       1.313ms       7.818us     116.160us         0.33%     116.160us       0.691us           168  
+(Worker_DP0_TP0 pid=1342)                        Memcpy DtoH (Device -> Pageable)         0.00%       0.000us         0.00%       0.000us       0.000us     115.938us         0.33%     115.938us       2.273us            51  
+(Worker_DP0_TP0 pid=1342) void at::native::elementwise_kernel<128, 2, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us      93.697us         0.27%      93.697us       1.735us            54  
+(Worker_DP0_TP0 pid=1342) void vllm::moe::moe_sum_vec_kernel<c10::BFloat16, in...         0.00%       0.000us         0.00%       0.000us       0.000us      84.992us         0.24%      84.992us       1.574us            54  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      69.854us         0.20%      69.854us       1.012us            69  
+(Worker_DP0_TP0 pid=1342)                                        _flashkda_C::fwd         0.02%      60.895us         0.05%     201.424us      67.141us      65.407us         0.19%      69.406us      23.135us             3  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<8, at...         0.00%       0.000us         0.00%       0.000us       0.000us      64.764us         0.18%      64.764us       1.199us            54  
+(Worker_DP0_TP0 pid=1342)                                             aten::index         0.07%     263.199us         0.18%     736.295us      40.905us      59.455us         0.17%      86.941us       4.830us            18  
+(Worker_DP0_TP0 pid=1342) void at::native::index_elementwise_kernel<128, 4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      59.455us         0.17%      59.455us       3.303us            18  
+(Worker_DP0_TP0 pid=1342)                          Memcpy DtoD (Device -> Device)         0.00%       0.000us         0.00%       0.000us       0.000us      58.690us         0.17%      58.690us       1.087us            54  
+(Worker_DP0_TP0 pid=1342)                  nvjet_sm90_tst_64x8_64x16_4x1_v_bz_NNT         0.00%       0.000us         0.00%       0.000us       0.000us      54.174us         0.15%      54.174us       3.187us            17  
+(Worker_DP0_TP0 pid=1342) _Z25_flash_kda_fwd_recurrenceIN4cute9TiledCopyINS0_9...         0.00%       0.000us         0.00%       0.000us       0.000us      50.623us         0.14%      50.623us      16.874us             3  
+(Worker_DP0_TP0 pid=1342)         nvjet_sm90_tst_128x16_64x11_4x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      47.712us         0.14%      47.712us      15.904us             3  
+(Worker_DP0_TP0 pid=1342) void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us      47.105us         0.13%      47.105us       0.872us            54  
+(Worker_DP0_TP0 pid=1342)                              _fused_q_kv_rmsnorm_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      42.336us         0.12%      42.336us       2.352us            18  
+(Worker_DP0_TP0 pid=1342)                           _flashmla_C::dense_decode_fwd         0.01%      49.857us         0.04%     156.633us     156.633us      41.568us         0.12%      83.136us      83.136us             1  
+(Worker_DP0_TP0 pid=1342)                                   Lazy Function Loading         0.01%      37.069us         0.01%      37.069us      37.069us      41.568us         0.12%      41.568us      41.568us             1  
+(Worker_DP0_TP0 pid=1342)                                            aten::cumsum         0.07%     285.939us         0.12%     475.414us      26.412us      39.808us         0.11%      39.808us       2.212us            18  
+(Worker_DP0_TP0 pid=1342)          nvjet_sm90_tst_64x16_64x16_4x1_v_bz_splitK_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      36.000us         0.10%      36.000us       7.200us             5  
+(Worker_DP0_TP0 pid=1342)                 nvjet_sm90_tst_64x16_64x16_2x1_v_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      31.969us         0.09%      31.969us      31.969us             1  
+(Worker_DP0_TP0 pid=1342) void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us      31.007us         0.09%      31.007us       1.477us            21  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<2, at...         0.00%       0.000us         0.00%       0.000us       0.000us      30.081us         0.09%      30.081us       0.836us            36  
+(Worker_DP0_TP0 pid=1342)                                            aten::arange         0.08%     318.712us         1.25%       5.026ms      69.810us      26.689us         0.08%      54.914us       0.763us            72  
+(Worker_DP0_TP0 pid=1342) void (anonymous namespace)::elementwise_kernel_with_...         0.00%       0.000us         0.00%       0.000us       0.000us      26.689us         0.08%      26.689us       0.741us            36  
+(Worker_DP0_TP0 pid=1342) void at_cuda_detail::cub::detail::scan::DeviceScanKe...         0.00%       0.000us         0.00%       0.000us       0.000us      25.600us         0.07%      25.600us       1.422us            18  
+(Worker_DP0_TP0 pid=1342) void vllm::kimi_k3_fused_ops::fusedKimiK3MLADecodeQC...         0.00%       0.000us         0.00%       0.000us       0.000us      25.347us         0.07%      25.347us       1.408us            18  
+(Worker_DP0_TP0 pid=1342)                                              aten::add_         0.03%     118.353us         0.05%     191.621us      10.646us      19.423us         0.06%      19.423us       1.079us            18  
+(Worker_DP0_TP0 pid=1342)                          triton_poi_fused_mul_sigmoid_0         0.00%       0.000us         0.00%       0.000us       0.000us      18.335us         0.05%      18.335us       1.019us            18  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<8, at...         0.00%       0.000us         0.00%       0.000us       0.000us      16.191us         0.05%      16.191us       0.900us            18  
+(Worker_DP0_TP0 pid=1342) void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us      15.680us         0.04%      15.680us       0.871us            18  
+(Worker_DP0_TP0 pid=1342)                  nvjet_sm90_tst_64x8_64x16_4x2_h_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us      15.039us         0.04%      15.039us       3.760us             4  
+(Worker_DP0_TP0 pid=1342) void _flash_kda_fwd_prepare<cute::TiledCopy<cute::Co...         0.00%       0.000us         0.00%       0.000us       0.000us      14.784us         0.04%      14.784us       4.928us             3  
+(Worker_DP0_TP0 pid=1342) void at_cuda_detail::cub::detail::scan::DeviceScanIn...         0.00%       0.000us         0.00%       0.000us       0.000us      14.208us         0.04%      14.208us       0.789us            18  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<2, at...         0.00%       0.000us         0.00%       0.000us       0.000us      13.887us         0.04%      13.887us       0.771us            18  
+(Worker_DP0_TP0 pid=1342) void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us      12.384us         0.04%      12.384us       0.688us            18  
+(Worker_DP0_TP0 pid=1342)                                  aten::_index_put_impl_         0.01%      30.579us         0.02%      88.366us      29.455us      11.808us         0.03%      15.329us       5.110us             3  
+(Worker_DP0_TP0 pid=1342) void at::native::index_elementwise_kernel<128, 4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      11.808us         0.03%      11.808us       3.936us             3  
+(Worker_DP0_TP0 pid=1342) kernel_cutlass_kernel_vllmmodel_executorkernelslinea...         0.00%       0.000us         0.00%       0.000us       0.000us      11.168us         0.03%      11.168us       3.723us             3  
+(Worker_DP0_TP0 pid=1342)                               _causal_conv1d_fwd_kernel         0.00%       0.000us         0.00%       0.000us       0.000us      10.276us         0.03%      10.276us       1.142us             9  
+(Worker_DP0_TP0 pid=1342)                                               aten::bmm         0.01%      41.812us         0.05%     181.507us      90.754us       6.816us         0.02%       6.816us       3.408us             2  
+(Worker_DP0_TP0 pid=1342)                             layer_norm_gated_fwd_kernel         0.00%       0.000us         0.00%       0.000us       0.000us       4.928us         0.01%       4.928us       1.643us             3  
+(Worker_DP0_TP0 pid=1342)                          Memcpy HtoD (Pinned -> Device)         0.00%       0.000us         0.00%       0.000us       0.000us       4.672us         0.01%       4.672us       0.779us             6  
+(Worker_DP0_TP0 pid=1342)                           _gather_initial_states_kernel         0.00%       0.000us         0.00%       0.000us       0.000us       4.063us         0.01%       4.063us       1.354us             3  
+(Worker_DP0_TP0 pid=1342) void at::native::elementwise_kernel<128, 4, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us       3.999us         0.01%       3.999us       1.333us             3  
+(Worker_DP0_TP0 pid=1342)                  nvjet_sm90_tst_64x8_64x16_2x2_h_bz_TNT         0.00%       0.000us         0.00%       0.000us       0.000us       3.520us         0.01%       3.520us       3.520us             1  
+(Worker_DP0_TP0 pid=1342) void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us       3.487us         0.01%       3.487us       1.162us             3  
+(Worker_DP0_TP0 pid=1342)                 nvjet_sm90_tst_64x16_64x16_4x1_v_bz_NNT         0.00%       0.000us         0.00%       0.000us       0.000us       3.296us         0.01%       3.296us       3.296us             1  
+(Worker_DP0_TP0 pid=1342)                                                aten::gt         0.01%      26.048us         0.01%      40.544us      13.515us       3.072us         0.01%       3.072us       1.024us             3  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<8, at...         0.00%       0.000us         0.00%       0.000us       0.000us       3.072us         0.01%       3.072us       1.024us             3  
+(Worker_DP0_TP0 pid=1342) void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us       2.944us         0.01%       2.944us       0.981us             3  
+(Worker_DP0_TP0 pid=1342) _C::fused_kimi_k3_mla_decode_q_concat_kv_cache_inser...         0.00%      16.734us         0.01%      23.144us      23.144us       1.440us         0.00%       1.440us       1.440us             1  
+(Worker_DP0_TP0 pid=1342)                                        cuLaunchKernelEx         0.03%     102.481us         0.03%     102.481us       6.028us       1.216us         0.00%       1.216us       0.072us            17  
+(Worker_DP0_TP0 pid=1342) void smxx::decode::flash_fwd_mla_combine_kernel<cutl...         0.00%       0.000us         0.00%       0.000us       0.000us       1.152us         0.00%       1.152us       1.152us             1  
+(Worker_DP0_TP0 pid=1342)                                         cudaGraphLaunch         0.94%       3.801ms         0.94%       3.801ms     172.795us       0.800us         0.00%       0.800us       0.036us            22  
+(Worker_DP0_TP0 pid=1342)                                 Activity Buffer Request         0.41%       1.669ms         0.41%       1.669ms       1.669ms       0.768us         0.00%       0.768us       0.768us             1  
+(Worker_DP0_TP0 pid=1342)                          threading.py(1030): _bootstrap         0.00%       2.127us       133.34%     536.780ms     134.195ms       0.000us         0.00%       0.000us       0.000us             4  
+(Worker_DP0_TP0 pid=1342)                    threading.py(1073): _bootstrap_inner         0.00%       3.621us       133.34%     536.778ms     134.195ms       0.000us         0.00%       0.000us       0.000us             4  
+(Worker_DP0_TP0 pid=1342)                               tqdm/_monitor.py(69): run         0.00%       1.237us        33.34%     134.205ms     134.205ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)                                 threading.py(655): wait         0.00%       2.446us        33.34%     134.203ms     134.203ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)                                 threading.py(359): wait         0.00%       2.648us        33.34%     134.201ms     134.201ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)                                 threading.py(1010): run         0.00%       2.222us       100.00%     402.570ms     134.190ms       0.000us         0.00%       0.000us       0.000us             3  
+(Worker_DP0_TP0 pid=1342) vllm/v1/executor/multiproc_executor.py(802): death_p...         0.00%       2.725us        33.33%     134.196ms     134.196ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)                multiprocessing/connection.py(250): recv         0.00%       0.550us        33.33%     134.194ms     134.194ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)         multiprocessing/connection.py(430): _recv_bytes         0.00%       0.480us        33.33%     134.193ms     134.193ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)               multiprocessing/connection.py(395): _recv         0.00%       8.793us        33.33%     134.193ms     134.193ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342) vllm/v1/executor/multiproc_executor.py(994): async_o...         0.01%      30.631us        33.33%     134.189ms     134.189ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)                                      queue.py(171): get         0.00%      14.010us         0.16%     632.540us     632.540us       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)                                 threading.py(355): wait         0.14%     572.263us         0.15%     604.878us     604.878us       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)      vllm/usage/usage_lib.py(174): _report_usage_worker         0.00%       2.513us        33.33%     134.182ms     134.182ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342) vllm/usage/usage_lib.py(256): _report_continuous_usa...        33.33%     134.180ms        33.33%     134.180ms     134.180ms       0.000us         0.00%       0.000us       0.000us             1  
+(Worker_DP0_TP0 pid=1342)                                   <string>(1): <module>         0.00%       1.153us        33.33%     134.175ms     134.175ms       0.000us         0.00%     844.446us     844.446us             1  
+(Worker_DP0_TP0 pid=1342)               multiprocessing/spawn.py(122): spawn_main         0.00%       1.395us        33.33%     134.174ms     134.174ms       0.000us         0.00%     844.446us     844.446us             1  
+(Worker_DP0_TP0 pid=1342)                    multiprocessing/spawn.py(135): _main         0.00%       1.247us        33.33%     134.173ms     134.173ms       0.000us         0.00%     844.446us     844.446us             1  
+(Worker_DP0_TP0 pid=1342) -------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+(Worker_DP0_TP0 pid=1342) Self CPU time total: 402.573ms
+(Worker_DP0_TP0 pid=1342) Self CUDA time total: 35.135ms
+(Worker_DP0_TP0 pid=1342) 
+(Worker_DP0_TP0 pid=1342) INFO 08-02 07:07:24 [wrapper.py:66] Profiler stopped successfully.
+(APIServer pid=198) INFO 08-02 07:07:34 [loggers.py:310] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=198) INFO 08-02 07:07:34 [loggers.py:310] Engine 001: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=198) INFO 08-02 07:07:43 [api_router.py:33] Profiler stopped.
+(APIServer pid=198) INFO:     127.0.0.1:41888 - "POST /stop_profile HTTP/1.1" 200 OK
