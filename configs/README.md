@@ -18,7 +18,7 @@ export KUBECONFIG=...
 ./scripts/deploy.sh pp2
 ./scripts/deploy.sh dp2
 ./scripts/deploy.sh pd
-
+./scripts/deploy.sh pp2-humming-agentx   # PP2+Humming, 256k ctx (AgentX)
 # Dummy / profiler
 ./scripts/deploy.sh tp16-dummy
 ./scripts/deploy.sh tp16-dummy-profiler

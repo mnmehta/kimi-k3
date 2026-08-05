@@ -12,6 +12,7 @@ Evaluation of Kimi K3 using vLLM parallelization recipes from
 | Full harness history (incl. dummy) | https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html |
 | Sweep reproducibility | https://mnmehta.github.io/kimi-k3/repro-1000-1000.html |
 | PP2 Marlin vs Humming | https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html |
+| AgentX MVP (C=1–4) | https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html |
 
 Harnesses for running / profiling `moonshotai/Kimi-K3` in the `kimi-k3`
 namespace with the [`vllm/vllm-openai:kimi-k3`](https://recipes.vllm.ai/moonshotai/Kimi-K3)
@@ -120,6 +121,7 @@ Published pages (also listed at the top of this README):
 - History: https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html
 - Repro: https://mnmehta.github.io/kimi-k3/repro-1000-1000.html
 - PP2 Marlin vs Humming: https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html
+- AgentX MVP (C=1–4): https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html
 
 Sources: [`reports/README.md`](reports/README.md).
 
@@ -144,4 +146,5 @@ quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
 quarto render reports/concurrency-sweep-1000-1000.qmd --to html
 quarto render reports/repro-1000-1000.qmd --to html
 quarto render reports/pp2-marlin-vs-humming-1000-1000.qmd --to html
+quarto render reports/agentx-mvp-pp2-humming.qmd --to html
 ```

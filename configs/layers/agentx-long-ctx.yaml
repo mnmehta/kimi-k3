@@ -1,0 +1,12 @@
+# Long-context knobs for AgentX / InferenceX-style multi-turn replay.
+# Sized for ~1.5M-token KV on TP8×PP2 (H200): 256k max len leaves room for
+# a small amount of subagent fan-out at --concurrency 1.
+name: agentx-long-ctx
+description: Raise max-model-len for AgentX MVP (256k)
+
+env:
+  MAX_MODEL_LEN: 262144
+  # Longer prefills than the 4k recipe default.
+  MAX_NUM_BATCHED_TOKENS: 32768
+  # Trees can fan out; keep modest vs stock PP2 256.
+  MAX_NUM_SEQS: 32

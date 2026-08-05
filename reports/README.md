@@ -30,6 +30,13 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 - Recipe: `./scripts/deploy.sh pp2-humming` (SiTU allowlist patch via [`scripts/lib/patch_humming_situ.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/lib/patch_humming_situ.sh))
 - Pages: [/pp2-marlin-vs-humming-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html)
 
+## AgentX MVP (C=1–4)
+
+- Source: [`agentx-mvp-pp2-humming.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/agentx-mvp-pp2-humming.qmd)
+- Data: [`agentx-mvp-pp2-humming-c{1..4}/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results)
+- Recipe / runner: `./scripts/deploy.sh pp2-humming-agentx`, [`scripts/run-agentx-mvp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-agentx-mvp.sh)
+- Pages: [/agentx-mvp-pp2-humming.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html)
+
 ## Report hub / all published pages
 
 | Report | Pages URL |
@@ -39,3 +46,4 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 | Full harness history | [/concurrency-sweep-1000-1000.html](https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html) |
 | Sweep reproducibility | [/repro-1000-1000.html](https://mnmehta.github.io/kimi-k3/repro-1000-1000.html) |
 | PP2 Marlin vs Humming | [/pp2-marlin-vs-humming-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html) |
+| AgentX MVP (C=1–4) | [/agentx-mvp-pp2-humming.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html) |

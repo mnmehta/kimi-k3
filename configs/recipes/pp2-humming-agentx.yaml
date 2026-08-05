@@ -1,0 +1,9 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-pp2.yaml
+  - ../layers/moe-humming.yaml
+  - ../layers/agentx-long-ctx.yaml
+
+name: pp2-humming-agentx
+description: TP8×PP2 Humming with 256k max-model-len for AgentX MVP (C=1)
