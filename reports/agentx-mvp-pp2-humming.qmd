@@ -634,6 +634,8 @@ fig.show()
 | 3 | [`bench-results/agentx-mvp-pp2-humming-c3/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/agentx-mvp-pp2-humming-c3) |
 | 4 | [`bench-results/agentx-mvp-pp2-humming-c4/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/agentx-mvp-pp2-humming-c4) |
 
+Each dir includes `vllm-recipe-0.log` / `vllm-recipe-1.log` (serve logs archived after the run).
+
 - Recipe: [`configs/recipes/pp2-humming-agentx.yaml`](https://github.com/mnmehta/kimi-k3/blob/main/configs/recipes/pp2-humming-agentx.yaml)
 - Runner: [`scripts/run-agentx-mvp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-agentx-mvp.sh)
 - Report source: [`reports/agentx-mvp-pp2-humming.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/agentx-mvp-pp2-humming.qmd)

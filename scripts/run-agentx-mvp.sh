@@ -9,6 +9,8 @@
 #       reports/.venv/bin/pip install 'aiperf==0.12.0.dev20260803'
 #
 # Default: concurrency 1 (KV ~1.1M tokens @ 256k on PP2 Humming).
+# After the run, archives vllm-recipe-*.log from each rank into ARTIFACT_DIR
+# (same convention as scripts/copy-sweep-results.sh).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -22,6 +24,8 @@ RANDOM_SEED="${RANDOM_SEED:-20260804}"
 # Date-pinned with-subagents corpus, 256k-filtered (matches MAX_MODEL_LEN).
 PUBLIC_DATASET="${PUBLIC_DATASET:-semianalysis_cc_traces_weka_with_subagents_256k}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT/bench-results/agentx-mvp-pp2-humming-c${CONCURRENCY}}"
+NS="${NS:-kimi-k3}"
+NNODES="${NNODES:-2}"
 
 pick_aiperf() {
   if command -v aiperf >/dev/null 2>&1; then
@@ -37,6 +41,20 @@ pick_aiperf() {
     return
   fi
   return 1
+}
+
+archive_vllm_logs() {
+  local out_dir="$1"
+  echo "==> Copying vLLM serve logs into $out_dir"
+  for i in $(seq 0 $((NNODES - 1))); do
+    local out="$out_dir/vllm-recipe-$i.log"
+    if kubectl -n "$NS" exec "vllm-recipe-$i" -- test -f /tmp/vllm-recipe.log; then
+      kubectl -n "$NS" exec "vllm-recipe-$i" -- cat /tmp/vllm-recipe.log >"$out"
+      echo "    rank-$i -> $out ($(wc -c <"$out") bytes)"
+    else
+      echo "    rank-$i: /tmp/vllm-recipe.log missing" >&2
+    fi
+  done
 }
 
 if ! AIPERF="$(pick_aiperf)"; then
@@ -55,8 +73,9 @@ echo "==> url=$URL model=$MODEL tokenizer=$TOKENIZER"
 echo "==> concurrency=$CONCURRENCY max_context_length=$MAX_CONTEXT_LENGTH duration=${BENCHMARK_DURATION}s"
 echo "==> dataset=$PUBLIC_DATASET artifact_dir=$ARTIFACT_DIR"
 
+set +e
 # shellcheck disable=SC2086
-exec $AIPERF profile \
+$AIPERF profile \
   --scenario inferencex-agentx-mvp \
   --url "$URL" \
   --model "$MODEL" \
@@ -77,3 +96,8 @@ exec $AIPERF profile \
   --random-seed "$RANDOM_SEED" \
   --artifact-dir "$ARTIFACT_DIR" \
   --ui simple
+rc=$?
+set -e
+
+archive_vllm_logs "$ARTIFACT_DIR"
+exit "$rc"
