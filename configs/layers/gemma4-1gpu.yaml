@@ -1,0 +1,37 @@
+# Gemma-4 26B-A4B FP8: single-node, single-GPU text serve defaults.
+# Overrides Kimi-oriented base knobs (MoE/attention backends, parsers).
+name: gemma4-1gpu
+description: TP=1 single GPU Gemma-4 FP8 (text-only)
+deploy_mode: multi_node
+verify_weights: true
+serve_script: scripts/run-vllm-kimi-k3-recipe.sh
+
+env:
+  NNODES: 1
+  TP_SIZE: 1
+  PP_SIZE: 1
+  DP_SIZE: 1
+  # Pod still requests 8 GPUs (STS); serve uses TP=1 on one device.
+  GPUS_PER_NODE: 8
+  MODEL: /models/gemma-4-26B-A4B-it-FP8-dynamic
+  MODEL_PATH: /models/gemma-4-26B-A4B-it-FP8-dynamic
+  GPU_MEM_UTIL: "0.95"
+  MAX_MODEL_LEN: 32768
+  MAX_NUM_SEQS: 256
+  MAX_NUM_BATCHED_TOKENS: 16384
+  # Skip Kimi-specific backends (Gemma uses vLLM defaults).
+  MOE_BACKEND: null
+  ATTENTION_BACKEND: null
+  KV_CACHE_DTYPE: fp8
+  BLOCK_SIZE: 32
+  ENABLE_CHUNKED_PREFILL: 1
+  ENABLE_PREFIX_CACHING: 1
+  ENABLE_AUTO_TOOL_CHOICE: 1
+  TOOL_CALL_PARSER: gemma4
+  REASONING_PARSER: gemma4
+  # Text-only: free vision/audio encoder memory for longer KV.
+  LIMIT_MM_PER_PROMPT: '{"image":0,"audio":0}'
+  CHAT_TEMPLATE: /vllm-workspace/examples/tool_chat_template_gemma4.jinja
+  # Kimi patches are no-ops / harmless on this model path.
+  SKIP_MM_PROFILING: 0
+  VLLM_USE_V2_MODEL_RUNNER: 1

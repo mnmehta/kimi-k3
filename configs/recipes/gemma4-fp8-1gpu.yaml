@@ -1,0 +1,8 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/gemma4-1gpu.yaml
+
+name: gemma4-fp8-1gpu
+description: RedHatAI Gemma-4 26B-A4B FP8 on 1×H200 (text-only)
+
+# base.yaml sets NNODES=2; gemma4-1gpu forces NNODES=1 / TP=1.

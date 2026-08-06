@@ -1,0 +1,268 @@
+---
+title: "Gemma-4 26B-A4B — FP8 vs NVFP4"
+subtitle: "1×H200 · ISL/OSL 15000/900 · text-only · C=1…10"
+date: "August 6, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.io as pio
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+FP8_DIR = ROOT / "bench-results" / "gemma4-fp8-1gpu-15k-900"
+NVFP4_DIR = ROOT / "bench-results" / "gemma4-nvfp4-1gpu-15k-900"
+ISL, OSL = 15000, 900
+
+
+def load_tiers(data_dir: Path, label: str) -> pd.DataFrame:
+    rows = []
+    if not data_dir.exists():
+        return pd.DataFrame()
+    for path in sorted(data_dir.glob("conc-*.json"), key=lambda p: int(p.stem.split("-")[1])):
+        c = int(path.stem.split("-")[1])
+        d = json.loads(path.read_text())
+        ttft = d.get("mean_ttft_ms")
+        tpot = d.get("mean_tpot_ms")
+        out_len = int(d.get("output_len") or OSL)
+        e2el = d.get("mean_e2el_ms")
+        if e2el is None and ttft is not None and tpot is not None:
+            e2el = float(ttft) + float(tpot) * max(out_len - 1, 0)
+        rows.append(
+            {
+                "label": label,
+                "C": c,
+                "completed": d.get("completed"),
+                "failed": d.get("failed"),
+                "out_tps": d.get("output_throughput"),
+                "req_tps": d.get("request_throughput"),
+                "ttft_ms": ttft,
+                "tpot_ms": tpot,
+                "e2el_s": (e2el / 1000.0) if e2el is not None else None,
+            }
+        )
+    return pd.DataFrame(rows).sort_values("C") if rows else pd.DataFrame()
+
+
+FP8 = load_tiers(FP8_DIR, "FP8-dynamic")
+NV = load_tiers(NVFP4_DIR, "NVFP4")
+ALL = pd.concat([FP8, NV], ignore_index=True) if (not FP8.empty or not NV.empty) else pd.DataFrame()
+
+fp8_seed = (FP8_DIR / "seed.txt").read_text().strip() if (FP8_DIR / "seed.txt").exists() else "—"
+nv_seed = (NVFP4_DIR / "seed.txt").read_text().strip() if (NVFP4_DIR / "seed.txt").exists() else "—"
+```
+
+# Goal
+
+Compare [`RedHatAI/gemma-4-26B-A4B-it-FP8-dynamic`](https://huggingface.co/RedHatAI/gemma-4-26B-A4B-it-FP8-dynamic) vs [`RedHatAI/gemma-4-26B-A4B-it-NVFP4`](https://huggingface.co/RedHatAI/gemma-4-26B-A4B-it-NVFP4) on **1×H200**, text-only, concurrency **1…10**, **ISL/OSL = 15000/900**.
+
+Serve knobs matched where possible: TP=1, `--gpu-memory-utilization 0.95`, `--kv-cache-dtype fp8`, `--block-size 32`, chunked prefill + prefix caching, gemma4 tool/reasoning parsers, `--limit-mm-per-prompt '{"image":0,"audio":0}'`.
+
+```{python}
+#| echo: false
+#| output: asis
+print(
+    f"FP8 tiers: **{len(FP8)}**/10 (seed `{fp8_seed}`) · "
+    f"NVFP4 tiers: **{len(NV)}**/10 (seed `{nv_seed}`)"
+)
+```
+
+# Side-by-side summary
+
+```{python}
+#| label: tbl-compare
+#| tbl-cap: "FP8 vs NVFP4 at each concurrency. E2E ≈ TTFT + TPOT × (OSL − 1)."
+#| output: asis
+
+if FP8.empty and NV.empty:
+    print("_No results yet._")
+else:
+    fp8_m = FP8.set_index("C") if not FP8.empty else pd.DataFrame()
+    nv_m = NV.set_index("C") if not NV.empty else pd.DataFrame()
+    cs = sorted(set(fp8_m.index.tolist()) | set(nv_m.index.tolist()))
+    lines = [
+        "",
+        "| C | FP8 tok/s | NVFP4 tok/s | Δ tok/s | FP8 TTFT | NVFP4 TTFT | FP8 TPOT | NVFP4 TPOT | FP8 E2E s | NVFP4 E2E s |",
+        "|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|",
+    ]
+    for c in cs:
+        def cell(df, col, fmt):
+            if df.empty or c not in df.index or pd.isna(df.loc[c, col]):
+                return "—"
+            return fmt.format(df.loc[c, col])
+
+        f_out = cell(fp8_m, "out_tps", "{:.1f}")
+        n_out = cell(nv_m, "out_tps", "{:.1f}")
+        if f_out != "—" and n_out != "—":
+            delta = f"{float(n_out) - float(f_out):+.1f}"
+        else:
+            delta = "—"
+        lines.append(
+            f"| {c} | {f_out} | {n_out} | {delta} "
+            f"| {cell(fp8_m, 'ttft_ms', '{:.1f}')} | {cell(nv_m, 'ttft_ms', '{:.1f}')} "
+            f"| {cell(fp8_m, 'tpot_ms', '{:.2f}')} | {cell(nv_m, 'tpot_ms', '{:.2f}')} "
+            f"| {cell(fp8_m, 'e2el_s', '{:.2f}')} | {cell(nv_m, 'e2el_s', '{:.2f}')} |"
+        )
+    lines.append("")
+    print("\n".join(lines))
+```
+
+```{python}
+#| label: fig-throughput
+#| fig-cap: "Output token throughput vs concurrency."
+
+if not ALL.empty:
+    fig = go.Figure()
+    for label, color in (("FP8-dynamic", "#5B8FF9"), ("NVFP4", "#5AD8A6")):
+        sub = ALL[ALL["label"] == label]
+        if sub.empty:
+            continue
+        fig.add_trace(
+            go.Scatter(
+                x=sub["C"], y=sub["out_tps"], mode="lines+markers",
+                name=label, line=dict(color=color),
+            )
+        )
+    fig.update_layout(
+        xaxis_title="Concurrency",
+        yaxis_title="Output tokens/sec",
+        height=420,
+        legend=dict(orientation="h", y=1.12),
+    )
+    fig.update_xaxes(tickvals=list(range(1, 11)), dtick=1)
+    fig.show()
+```
+
+```{python}
+#| label: fig-ttft
+#| fig-cap: "TTFT vs concurrency."
+
+if not ALL.empty:
+    fig = go.Figure()
+    for label, color in (("FP8-dynamic", "#5B8FF9"), ("NVFP4", "#5AD8A6")):
+        sub = ALL[ALL["label"] == label]
+        if sub.empty:
+            continue
+        fig.add_trace(
+            go.Scatter(
+                x=sub["C"], y=sub["ttft_ms"], mode="lines+markers",
+                name=label, line=dict(color=color),
+            )
+        )
+    fig.update_layout(
+        xaxis_title="Concurrency",
+        yaxis_title="TTFT (ms)",
+        height=400,
+        legend=dict(orientation="h", y=1.12),
+    )
+    fig.update_xaxes(tickvals=list(range(1, 11)), dtick=1)
+    fig.show()
+```
+
+```{python}
+#| label: fig-tpot
+#| fig-cap: "TPOT vs concurrency."
+
+if not ALL.empty:
+    fig = go.Figure()
+    for label, color in (("FP8-dynamic", "#5B8FF9"), ("NVFP4", "#5AD8A6")):
+        sub = ALL[ALL["label"] == label]
+        if sub.empty:
+            continue
+        fig.add_trace(
+            go.Scatter(
+                x=sub["C"], y=sub["tpot_ms"], mode="lines+markers",
+                name=label, line=dict(color=color),
+            )
+        )
+    fig.update_layout(
+        xaxis_title="Concurrency",
+        yaxis_title="TPOT (ms)",
+        height=400,
+        legend=dict(orientation="h", y=1.12),
+    )
+    fig.update_xaxes(tickvals=list(range(1, 11)), dtick=1)
+    fig.show()
+```
+
+```{python}
+#| label: fig-e2e
+#| fig-cap: "End-to-end latency vs concurrency."
+
+if not ALL.empty:
+    fig = go.Figure()
+    for label, color in (("FP8-dynamic", "#5B8FF9"), ("NVFP4", "#5AD8A6")):
+        sub = ALL[ALL["label"] == label]
+        if sub.empty:
+            continue
+        fig.add_trace(
+            go.Scatter(
+                x=sub["C"], y=sub["e2el_s"], mode="lines+markers",
+                name=label, line=dict(color=color),
+            )
+        )
+    fig.update_layout(
+        xaxis_title="Concurrency",
+        yaxis_title="E2E latency (s)",
+        height=400,
+        legend=dict(orientation="h", y=1.12),
+    )
+    fig.update_xaxes(tickvals=list(range(1, 11)), dtick=1)
+    fig.show()
+```
+
+# Configuration
+
+| | FP8-dynamic | NVFP4 |
+|--|:--|:--|
+| Recipe | `gemma4-fp8-1gpu` | `gemma4-nvfp4-1gpu` |
+| HF model | [FP8-dynamic](https://huggingface.co/RedHatAI/gemma-4-26B-A4B-it-FP8-dynamic) | [NVFP4](https://huggingface.co/RedHatAI/gemma-4-26B-A4B-it-NVFP4) |
+| hostPath | `/models/gemma-4-26B-A4B-it-FP8-dynamic` | `/models/gemma-4-26B-A4B-it-NVFP4` |
+| GPUs / TP | 1 / 1 | 1 / 1 |
+| `--gpu-memory-utilization` | 0.95 | 0.95 |
+| `--kv-cache-dtype` | fp8 | fp8 |
+| `--block-size` | 32 | 32 |
+| Bench | `vllm bench serve`, ISL/OSL 15000/900, C=1…10 | same |
+
+# Artifacts
+
+| | Path |
+|--|:--|
+| FP8 results | [`bench-results/gemma4-fp8-1gpu-15k-900/`](../bench-results/gemma4-fp8-1gpu-15k-900/) |
+| NVFP4 results | [`bench-results/gemma4-nvfp4-1gpu-15k-900/`](../bench-results/gemma4-nvfp4-1gpu-15k-900/) |
+| FP8 recipe | [`configs/recipes/gemma4-fp8-1gpu.yaml`](../configs/recipes/gemma4-fp8-1gpu.yaml) |
+| NVFP4 recipe | [`configs/recipes/gemma4-nvfp4-1gpu.yaml`](../configs/recipes/gemma4-nvfp4-1gpu.yaml) |
+
+# GitHub Repository
+
+[github.com/mnmehta/kimi-k3](https://github.com/mnmehta/kimi-k3)
