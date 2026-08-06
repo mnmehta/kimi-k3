@@ -61,8 +61,11 @@ GPU_MEM_UTIL="${GPU_MEM_UTIL:-0.97}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-128}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-8192}"
 MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-4096}"
-MOE_BACKEND="${MOE_BACKEND:-marlin}"
-ATTENTION_BACKEND="${ATTENTION_BACKEND:-FLASHMLA}"
+# Defaults empty: Kimi recipes set these via base.yaml; Gemma/other models leave unset
+# so vLLM picks a valid backend. Do NOT default to FLASHMLA/marlin here — that breaks
+# non-MLA models when a recipe intentionally unsets the knobs.
+MOE_BACKEND="${MOE_BACKEND:-}"
+ATTENTION_BACKEND="${ATTENTION_BACKEND:-}"
 # Optional hard KV reservation (bytes). When set, skips util-based profiling.
 KV_CACHE_MEMORY_BYTES="${KV_CACHE_MEMORY_BYTES:-}"
 # Classic weight CPU offload (GiB per GPU virtual extension via --cpu-offload-gb).
@@ -461,15 +464,52 @@ SERVE_ARGS=(
   --gpu-memory-utilization "$GPU_MEM_UTIL"
   --max-num-seqs "$MAX_NUM_SEQS"
   --max-model-len "$MAX_MODEL_LEN"
-  --moe-backend "$MOE_BACKEND"
   --disable-custom-all-reduce
   --no-enable-flashinfer-autotune
   --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS"
-  --attention-backend "$ATTENTION_BACKEND"
-  --enable-auto-tool-choice
-  --tool-call-parser kimi_k3
-  --reasoning-parser kimi_k3
 )
+
+if [[ -n "${MOE_BACKEND:-}" ]]; then
+  SERVE_ARGS+=(--moe-backend "$MOE_BACKEND")
+fi
+if [[ -n "${ATTENTION_BACKEND:-}" ]]; then
+  SERVE_ARGS+=(--attention-backend "$ATTENTION_BACKEND")
+fi
+
+TOOL_CALL_PARSER="${TOOL_CALL_PARSER:-kimi_k3}"
+REASONING_PARSER="${REASONING_PARSER:-kimi_k3}"
+ENABLE_AUTO_TOOL_CHOICE="${ENABLE_AUTO_TOOL_CHOICE:-1}"
+if [[ "$ENABLE_AUTO_TOOL_CHOICE" == "1" ]]; then
+  SERVE_ARGS+=(--enable-auto-tool-choice)
+fi
+if [[ -n "$TOOL_CALL_PARSER" ]]; then
+  SERVE_ARGS+=(--tool-call-parser "$TOOL_CALL_PARSER")
+fi
+if [[ -n "$REASONING_PARSER" ]]; then
+  SERVE_ARGS+=(--reasoning-parser "$REASONING_PARSER")
+fi
+
+KV_CACHE_DTYPE="${KV_CACHE_DTYPE:-}"
+BLOCK_SIZE="${BLOCK_SIZE:-}"
+ENABLE_CHUNKED_PREFILL="${ENABLE_CHUNKED_PREFILL:-0}"
+LIMIT_MM_PER_PROMPT="${LIMIT_MM_PER_PROMPT:-}"
+CHAT_TEMPLATE="${CHAT_TEMPLATE:-}"
+
+if [[ -n "$KV_CACHE_DTYPE" ]]; then
+  SERVE_ARGS+=(--kv-cache-dtype "$KV_CACHE_DTYPE")
+fi
+if [[ -n "$BLOCK_SIZE" ]]; then
+  SERVE_ARGS+=(--block-size "$BLOCK_SIZE")
+fi
+if [[ "$ENABLE_CHUNKED_PREFILL" == "1" ]]; then
+  SERVE_ARGS+=(--enable-chunked-prefill)
+fi
+if [[ -n "$LIMIT_MM_PER_PROMPT" ]]; then
+  SERVE_ARGS+=(--limit-mm-per-prompt "$LIMIT_MM_PER_PROMPT")
+fi
+if [[ -n "$CHAT_TEMPLATE" ]]; then
+  SERVE_ARGS+=(--chat-template "$CHAT_TEMPLATE")
+fi
 
 # USE_DP_CLI=1: emit --data-parallel-* even when DP_SIZE=1 (P/D roles).
 # On H200, bare NNODES=1 TP8 OOMs during MXFP4 create (~137.2 GiB) while the

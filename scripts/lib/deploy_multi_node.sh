@@ -135,6 +135,9 @@ for v in GPU_MEM_UTIL MAX_NUM_SEQS MAX_MODEL_LEN MAX_NUM_BATCHED_TOKENS \
          KV_TRANSFER_CONFIG ENABLE_CUMEM_ALLOCATOR ENFORCE_EAGER \
          NO_DISABLE_HYBRID_KV_CACHE_MANAGER COMPILATION_CONFIG \
          ENABLE_PREFIX_CACHING \
+         KV_CACHE_DTYPE BLOCK_SIZE ENABLE_CHUNKED_PREFILL \
+         ENABLE_AUTO_TOOL_CHOICE TOOL_CALL_PARSER REASONING_PARSER \
+         LIMIT_MM_PER_PROMPT CHAT_TEMPLATE \
          VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE SKIP_MM_PROFILING \
          ENABLE_EXPERT_PARALLEL ENABLE_EP_WEIGHT_FILTER \
          NUM_LAYERS NUM_EXPERTS NUM_EXPERTS_PER_TOKEN NUM_SHARED_EXPERTS \
@@ -155,20 +158,25 @@ start_rank() {
 
 if [[ "$DP_SIZE" -gt 1 ]]; then
   echo "==> Starting DP workers (headless) then DP head (data-parallel-address=$MASTER_ADDR)"
-  for i in $(seq 1 $((NNODES - 1))); do
-    start_rank "vllm-recipe-$i" \
-      "DP_START_RANK=$i" "NODE_RANK=$i" "DATA_PARALLEL_ADDRESS=$MASTER_ADDR"
-    echo "started dp_start_rank=$i"
-  done
+  if [[ "$NNODES" -gt 1 ]]; then
+    for ((i = 1; i < NNODES; i++)); do
+      start_rank "vllm-recipe-$i" \
+        "DP_START_RANK=$i" "NODE_RANK=$i" "DATA_PARALLEL_ADDRESS=$MASTER_ADDR"
+      echo "started dp_start_rank=$i"
+    done
+  fi
   start_rank vllm-recipe-0 \
     "DP_START_RANK=0" "NODE_RANK=0" "DATA_PARALLEL_ADDRESS=$MASTER_ADDR"
   echo "started dp_start_rank=0"
 else
   echo "==> Starting workers (headless) then head"
-  for i in $(seq 1 $((NNODES - 1))); do
-    start_rank "vllm-recipe-$i" "NODE_RANK=$i"
-    echo "started rank $i"
-  done
+  # Use C-style loop: macOS `seq 1 0` still emits 1 0 and would touch missing pods.
+  if [[ "$NNODES" -gt 1 ]]; then
+    for ((i = 1; i < NNODES; i++)); do
+      start_rank "vllm-recipe-$i" "NODE_RANK=$i"
+      echo "started rank $i"
+    done
+  fi
   start_rank vllm-recipe-0 "NODE_RANK=0"
   echo "started rank 0"
 fi

@@ -53,24 +53,34 @@ index = local / "model.safetensors.index.json"
 if not index.is_file():
     # Some repos use a differently named index; accept any *.safetensors.index.json.
     matches = sorted(local.glob("*.safetensors.index.json"))
-    if not matches:
-        raise SystemExit(f"missing safetensors index under {local}")
-    index = matches[0]
+    if matches:
+        index = matches[0]
+    else:
+        # Single-file repos (e.g. Gemma FP8) ship model.safetensors with no index.
+        index = None
 
-meta = json.loads(index.read_text())
-weight_map = meta.get("weight_map") or {}
-shards = sorted(set(weight_map.values()))
 expected = int("${EXPECTED_SHARDS}")
-print(f"index={index.name} tensors={len(weight_map)} shards_in_index={len(shards)}")
-
-missing = [s for s in shards if not (local / s).is_file()]
-if missing:
-    raise SystemExit(f"missing {len(missing)} shard files (e.g. {missing[:3]})")
-
 on_disk = sorted(p.name for p in local.glob("*.safetensors"))
 print(f"safetensors_on_disk={len(on_disk)}")
-if expected and len(shards) != expected:
-    print(f"WARNING: expected {expected} shards in index, found {len(shards)}", file=sys.stderr)
+
+if index is None:
+    if not on_disk:
+        raise SystemExit(f"missing safetensors files under {local}")
+    print(f"no shard index; single-file layout ok ({on_disk[0]}{'...' if len(on_disk) > 1 else ''})")
+    if expected and len(on_disk) != expected:
+        print(f"WARNING: expected {expected} safetensors files, found {len(on_disk)}", file=sys.stderr)
+else:
+    meta = json.loads(index.read_text())
+    weight_map = meta.get("weight_map") or {}
+    shards = sorted(set(weight_map.values()))
+    print(f"index={index.name} tensors={len(weight_map)} shards_in_index={len(shards)}")
+
+    missing = [s for s in shards if not (local / s).is_file()]
+    if missing:
+        raise SystemExit(f"missing {len(missing)} shard files (e.g. {missing[:3]})")
+
+    if expected and len(shards) != expected:
+        print(f"WARNING: expected {expected} shards in index, found {len(shards)}", file=sys.stderr)
 
 # Config / tokenizer must exist for vLLM serve.
 for name in ("config.json",):
