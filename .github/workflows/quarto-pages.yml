@@ -49,6 +49,7 @@ jobs:
           quarto render reports/repro-1000-1000.qmd --to html
           quarto render reports/pp2-marlin-vs-humming-1000-1000.qmd --to html
           quarto render reports/agentx-mvp-pp2-humming.qmd --to html
+          quarto render reports/agentx-mvp-pp2-humming-kv-offload.qmd --to html
           mkdir -p _site
           # Keep index.html as the primary recipe report (existing links).
           cp reports/tp16-vs-pp2-1000-1000.html _site/index.html
@@ -56,6 +57,7 @@ jobs:
           cp reports/repro-1000-1000.html _site/repro-1000-1000.html
           cp reports/pp2-marlin-vs-humming-1000-1000.html _site/pp2-marlin-vs-humming-1000-1000.html
           cp reports/agentx-mvp-pp2-humming.html _site/agentx-mvp-pp2-humming.html
+          cp reports/agentx-mvp-pp2-humming-kv-offload.html _site/agentx-mvp-pp2-humming-kv-offload.html
           cp reports/kimireports.html _site/kimireports.html
 
       - name: Upload Pages artifact

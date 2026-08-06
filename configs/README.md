@@ -19,6 +19,7 @@ export KUBECONFIG=...
 ./scripts/deploy.sh dp2
 ./scripts/deploy.sh pd
 ./scripts/deploy.sh pp2-humming-agentx   # PP2+Humming, 256k ctx (AgentX)
+./scripts/deploy.sh pp2-humming-agentx-kv-offload  # + OffloadingConnector CPU KV 200 GiB
 # Dummy / profiler
 ./scripts/deploy.sh tp16-dummy
 ./scripts/deploy.sh tp16-dummy-profiler
@@ -55,3 +56,7 @@ env:                        # exported into the serve process
 ```
 
 For P/D, `env` holds shared knobs; `pd:` holds role-specific settings (see `layers/strategy-pd.yaml`).
+
+Deployment issues / harness patches: [`docs/README.md`](../docs/README.md), especially
+[`docs/pp2-humming-agentx-kv-offload-deployment-issues.md`](../docs/pp2-humming-agentx-kv-offload-deployment-issues.md)
+and [`docs/harness-patches.md`](../docs/harness-patches.md).

@@ -1,0 +1,15 @@
+include:
+  - ../layers/base.yaml
+  - ../layers/weights-real.yaml
+  - ../layers/strategy-pp2.yaml
+  - ../layers/moe-humming.yaml
+  - ../layers/agentx-long-ctx.yaml
+  - ../layers/kv-cpu-offload-200.yaml
+
+name: pp2-humming-agentx-kv-offload
+description: TP8×PP2 Humming AgentX (256k) with OffloadingConnector CPU KV (200 GiB)
+
+# Retry after cuMemcpyBatchAsync crash with 32k batched tokens; smaller
+# prefills may reduce OffloadingConnector store pressure under PP.
+env:
+  MAX_NUM_BATCHED_TOKENS: 8192

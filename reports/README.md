@@ -37,6 +37,14 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 - Recipe / runner: `./scripts/deploy.sh pp2-humming-agentx`, [`scripts/run-agentx-mvp.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-agentx-mvp.sh)
 - Pages: [/agentx-mvp-pp2-humming.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html)
 
+## AgentX MVP + CPU KV offload (C=1–5; C=6 crash)
+
+- Source: [`agentx-mvp-pp2-humming-kv-offload.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/agentx-mvp-pp2-humming-kv-offload.qmd)
+- Data: [`agentx-mvp-pp2-humming-kv-offload-c{1..5}/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results), crash [`…-c6-crash/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/agentx-mvp-pp2-humming-kv-offload-c6-crash)
+- Recipe / runner: `./scripts/deploy.sh pp2-humming-agentx-kv-offload`, [`scripts/run-agentx-mvp-inpod-c1234.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/run-agentx-mvp-inpod-c1234.sh) (`RESTART_BETWEEN=1`)
+- Deploy issues: [`docs/pp2-humming-agentx-kv-offload-deployment-issues.md`](https://github.com/mnmehta/kimi-k3/blob/main/docs/pp2-humming-agentx-kv-offload-deployment-issues.md)
+- Pages: [/agentx-mvp-pp2-humming-kv-offload.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming-kv-offload.html)
+
 ## Report hub / all published pages
 
 | Report | Pages URL |
@@ -47,3 +55,4 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 | Sweep reproducibility | [/repro-1000-1000.html](https://mnmehta.github.io/kimi-k3/repro-1000-1000.html) |
 | PP2 Marlin vs Humming | [/pp2-marlin-vs-humming-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html) |
 | AgentX MVP (C=1–4) | [/agentx-mvp-pp2-humming.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html) |
+| AgentX MVP + CPU KV offload (C=1) | [/agentx-mvp-pp2-humming-kv-offload.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming-kv-offload.html) |

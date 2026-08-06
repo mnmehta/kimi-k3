@@ -5,7 +5,7 @@ Post-mortem of bringing up [vLLM multi-node TP + pipeline parallel](https://reci
 Working entrypoint: [`./scripts/deploy.sh pp2`](../scripts/deploy.sh) → recipe [`configs/recipes/pp2.yaml`](../configs/recipes/pp2.yaml) → [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh).  
 Results / report: [`bench-results/conc-sweep-pp2-1000-1000/`](../bench-results/conc-sweep-pp2-1000-1000/), [`reports/tp16-vs-pp2-1000-1000.qmd`](../reports/tp16-vs-pp2-1000-1000.qmd).
 
-Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`tep16-h200-deployment-issues.md`](tep16-h200-deployment-issues.md), [`tp8-dp2-h200-deployment-issues.md`](tp8-dp2-h200-deployment-issues.md).
+Siblings: [`tp16-h200-deployment-issues.md`](tp16-h200-deployment-issues.md), [`tep16-h200-deployment-issues.md`](tep16-h200-deployment-issues.md), [`tp8-dp2-h200-deployment-issues.md`](tp8-dp2-h200-deployment-issues.md), [`pp2-humming-agentx-kv-offload-deployment-issues.md`](pp2-humming-agentx-kv-offload-deployment-issues.md), [`harness-patches.md`](harness-patches.md).
 
 ## Root constraint
 
@@ -75,15 +75,21 @@ Baked into the deploy script comments:
 
 ---
 
-### 4. Mid-sweep `IndexError` on an earlier archive (not the GID bug)
+### 4. Mid-sweep `IndexError` on `index_fill_` / int32 `idx_mapping` (not the GID bug)
 
-**Symptom (older `conc-sweep-pp2-1000-1000-c1-256`):** Serve came up; later runtime:
+**Symptom:** Serve comes up; later runtime (AgentX / PP paths that call scalar `postprocess_state`):
 
 ```text
 IndexError: index_fill_(): Expected dtype int64 for index.
 ```
 
-**Takeaway:** Separate from bring-up NCCL. The main report’s C=1…512 tree is the GID-fixed IB config; treat the c1-256 archive as historical.
+in `vllm/v1/worker/gpu/model_states/mamba_hybrid.py` (`num_accepted_tokens_gpu.index_fill_(…, idx_mapping, …)`).
+
+**Cause:** Model Runner V2 `idx_mapping` is `torch.int32` (PP may use `-1` sentinels). `index_fill_` requires int64. Do **not** cast alone — negatives corrupt state. Upstream fix: [vllm#50327](https://github.com/vllm-project/vllm/pull/50327) (Triton `_fill_num_accepted_kernel`); report [vllm#50947](https://github.com/vllm-project/vllm/issues/50947).
+
+**Harness:** Applied in [`scripts/run-vllm-kimi-k3-recipe.sh`](../scripts/run-vllm-kimi-k3-recipe.sh) when the image lacks the kernel — see [`harness-patches.md`](harness-patches.md) and the AgentX/offload write-up [`pp2-humming-agentx-kv-offload-deployment-issues.md`](pp2-humming-agentx-kv-offload-deployment-issues.md) §4.
+
+**Historical:** Older `conc-sweep-pp2-1000-1000-c1-256` saw the same string; main C=1…512 report tree is the GID-fixed IB config.
 
 ---
 

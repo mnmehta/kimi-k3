@@ -65,6 +65,10 @@ MOE_BACKEND="${MOE_BACKEND:-marlin}"
 ATTENTION_BACKEND="${ATTENTION_BACKEND:-FLASHMLA}"
 # Optional hard KV reservation (bytes). When set, skips util-based profiling.
 KV_CACHE_MEMORY_BYTES="${KV_CACHE_MEMORY_BYTES:-}"
+# Classic weight CPU offload (GiB per GPU virtual extension via --cpu-offload-gb).
+CPU_OFFLOAD_GB="${CPU_OFFLOAD_GB:-}"
+# Prefix caching (required for OffloadingConnector on hybrid Mamba+Attention).
+ENABLE_PREFIX_CACHING="${ENABLE_PREFIX_CACHING:-0}"
 # Skip multimodal encoder profiling (can need ~400 MiB on Kimi-K3).
 SKIP_MM_PROFILING="${SKIP_MM_PROFILING:-0}"
 # Multi-node TEP: --enable-expert-parallel (recipe multi_node_tep).
@@ -318,6 +322,137 @@ else:
 PY
 fi
 
+# Upstream PR #50327 (merged 2026-08-03): scalar postprocess used index_fill_ on
+# int32 idx_mapping (PP sentinels). Image may predate the fix — see issue #50947.
+MAMBA_HYBRID_PY="/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/model_states/mamba_hybrid.py"
+if [[ -f "$MAMBA_HYBRID_PY" ]] && ! grep -q "_fill_num_accepted_kernel" "$MAMBA_HYBRID_PY"; then
+  python3 - <<'PY'
+from pathlib import Path
+
+path = Path(
+    "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/model_states/mamba_hybrid.py"
+)
+src = path.read_text()
+needle = """        # Chunked prefill does not sample a token, so num_sampled can be 0.
+        # Mamba treats num_accepted_tokens=1 as the neutral non-spec value.
+        if not isinstance(num_sampled, int):
+            # idx_mapping may contain -1 sentinels (filtered rows) under PP; the
+            # kernel skips them rather than scattering with a host-side gather.
+            n = idx_mapping.shape[0]
+            if n:
+                _scatter_num_accepted_kernel[(n,)](
+                    idx_mapping, num_sampled, self.num_accepted_tokens_gpu
+                )
+        else:
+            # Fill with single value.
+            self.num_accepted_tokens_gpu.index_fill_(
+                0, idx_mapping, max(num_sampled, 1)
+            )
+
+        # Align: save the running state to the block-aligned position when
+        # spec-decode acceptance leaves the sequence non-block-aligned (mirrors
+        # the V1 align postprocess). num_computed_tokens already holds the
+        # post-step advanced count.
+        if (
+            self._align_mode
+            and num_computed_tokens is not None
+            and self._mamba_ctx is not None
+        ):
+            num_reqs = idx_mapping.shape[0]
+            if num_reqs:
+                self._mamba_ctx.run_fused_postprocess_align(
+                    num_reqs,
+                    self.num_accepted_tokens_gpu,
+                    self._mamba_state_idx_gpu,
+                    num_computed_tokens,
+                    idx_mapping,
+                )
+
+
+@triton.jit
+def _scatter_num_accepted_kernel(
+    idx_mapping_ptr,  # [num_reqs] batch_idx -> req_state_idx (-1 to skip)
+    num_sampled_ptr,  # [num_reqs]
+    num_accepted_ptr,  # [max_num_reqs]
+):
+    row = tl.program_id(0)
+    req_state_idx = tl.load(idx_mapping_ptr + row)
+    if req_state_idx < 0:
+        return
+    num_sampled = tl.load(num_sampled_ptr + row)
+    tl.store(num_accepted_ptr + req_state_idx, tl.maximum(num_sampled, 1))
+"""
+patch = """        # Chunked prefill does not sample a token, so num_sampled can be 0.
+        # Mamba treats num_accepted_tokens=1 as the neutral non-spec value.
+        # Kimi-K3 harness: PR #50327 — int32 idx_mapping + PP -1 sentinels cannot
+        # use index_fill_ (needs int64; negatives corrupt state). Use Triton fill.
+        num_reqs = idx_mapping.shape[0]
+        if not num_reqs:
+            return
+
+        if not isinstance(num_sampled, int):
+            # idx_mapping may contain -1 sentinels (filtered rows) under PP; the
+            # kernel skips them rather than scattering with a host-side gather.
+            _scatter_num_accepted_kernel[(num_reqs,)](
+                idx_mapping, num_sampled, self.num_accepted_tokens_gpu
+            )
+        else:
+            # Fill with single value.
+            _fill_num_accepted_kernel[(num_reqs,)](
+                idx_mapping, self.num_accepted_tokens_gpu, max(num_sampled, 1)
+            )
+
+        # Align: save the running state to the block-aligned position when
+        # spec-decode acceptance leaves the sequence non-block-aligned (mirrors
+        # the V1 align postprocess). num_computed_tokens already holds the
+        # post-step advanced count.
+        if (
+            self._align_mode
+            and num_computed_tokens is not None
+            and self._mamba_ctx is not None
+        ):
+            self._mamba_ctx.run_fused_postprocess_align(
+                num_reqs,
+                self.num_accepted_tokens_gpu,
+                self._mamba_state_idx_gpu,
+                num_computed_tokens,
+                idx_mapping,
+            )
+
+
+@triton.jit
+def _scatter_num_accepted_kernel(
+    idx_mapping_ptr,  # [num_reqs] batch_idx -> req_state_idx (-1 to skip)
+    num_sampled_ptr,  # [num_reqs]
+    num_accepted_ptr,  # [max_num_reqs]
+):
+    row = tl.program_id(0)
+    req_state_idx = tl.load(idx_mapping_ptr + row)
+    if req_state_idx < 0:
+        return
+    num_sampled = tl.load(num_sampled_ptr + row)
+    tl.store(num_accepted_ptr + req_state_idx, tl.maximum(num_sampled, 1))
+
+
+@triton.jit
+def _fill_num_accepted_kernel(
+    idx_mapping_ptr,  # [num_reqs] batch_idx -> req_state_idx (-1 to skip)
+    num_accepted_ptr,  # [max_num_reqs]
+    num_sampled,
+):
+    row = tl.program_id(0)
+    req_state_idx = tl.load(idx_mapping_ptr + row)
+    if req_state_idx < 0:
+        return
+    tl.store(num_accepted_ptr + req_state_idx, num_sampled)
+"""
+if needle not in src:
+    raise SystemExit(f"mamba_hybrid PR#50327 patch needle missing in {path}")
+path.write_text(src.replace(needle, patch, 1))
+print(f"patched {path} (PR #50327 int32 idx_mapping fill)")
+PY
+fi
+
 SERVE_ARGS=(
   --host 0.0.0.0
   --port "$PORT"
@@ -389,6 +524,14 @@ if [[ -n "$KV_CACHE_MEMORY_BYTES" ]]; then
   SERVE_ARGS+=(--kv-cache-memory-bytes "$KV_CACHE_MEMORY_BYTES")
 fi
 
+if [[ -n "$CPU_OFFLOAD_GB" ]]; then
+  SERVE_ARGS+=(--cpu-offload-gb "$CPU_OFFLOAD_GB")
+fi
+
+if [[ "$ENABLE_PREFIX_CACHING" == "1" ]]; then
+  SERVE_ARGS+=(--enable-prefix-caching)
+fi
+
 if [[ "$SKIP_MM_PROFILING" == "1" ]]; then
   SERVE_ARGS+=(--skip-mm-profiling)
 fi
@@ -419,7 +562,7 @@ echo "  EP=${ENABLE_EXPERT_PARALLEL} EP_WEIGHT_FILTER=${ENABLE_EP_WEIGHT_FILTER}
 echo "  NNODES=$NNODES NODE_RANK=$NODE_RANK MASTER_ADDR=$MASTER_ADDR DP_ADDR=$DATA_PARALLEL_ADDRESS"
 echo "  IFACE=$GLOO_SOCKET_IFNAME LOAD_FORMAT=${LOAD_FORMAT:-<auto>}"
 echo "  max-num-seqs=$MAX_NUM_SEQS max-model-len=$MAX_MODEL_LEN gpu-mem-util=$GPU_MEM_UTIL"
-echo "  kv-cache-memory-bytes=${KV_CACHE_MEMORY_BYTES:-<auto>} V2_RUNNER=${VLLM_USE_V2_MODEL_RUNNER:-} RUST_FE=${VLLM_USE_RUST_FRONTEND:-}"
+echo "  kv-cache-memory-bytes=${KV_CACHE_MEMORY_BYTES:-<auto>} cpu-offload-gb=${CPU_OFFLOAD_GB:-<off>} prefix-caching=${ENABLE_PREFIX_CACHING} V2_RUNNER=${VLLM_USE_V2_MODEL_RUNNER:-} RUST_FE=${VLLM_USE_RUST_FRONTEND:-}"
 echo "  kv-transfer=${KV_TRANSFER_CONFIG:-<none>} enforce-eager=${ENFORCE_EAGER} hybrid-kv=${NO_DISABLE_HYBRID_KV_CACHE_MANAGER} cumem=${ENABLE_CUMEM_ALLOCATOR}"
 echo "  nixl-host=${VLLM_NIXL_SIDE_CHANNEL_HOST:-<unset>} nixl-port=${VLLM_NIXL_SIDE_CHANNEL_PORT:-<unset>}"
 cat "$MARKER" || true

@@ -1,0 +1,10 @@
+# Native CPU KV offload via OffloadingConnector (not weight --cpu-offload-gb).
+# cpu_bytes_to_use is total host bytes across all workers (200 GiB).
+# Hybrid models (Kimi-K3 Mamba+Attention) require prefix caching so offload
+# block sizes align (tokens_per_block % tokens_per_hash == 0).
+name: kv-cpu-offload-200
+description: OffloadingConnector CPU tier with 200 GiB host KV
+
+env:
+  ENABLE_PREFIX_CACHING: 1
+  KV_TRANSFER_CONFIG: '{"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"cpu_bytes_to_use":214748364800}}'

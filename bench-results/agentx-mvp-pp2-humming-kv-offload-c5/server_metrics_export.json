@@ -1,0 +1,4743 @@
+{
+  "schema_version": "1.1",
+  "aiperf_version": "0.12.0.dev20260803",
+  "benchmark_id": "245c071e1d92",
+  "summary": {
+    "endpoints_configured": [
+      "http://vllm-recipe-0.vllm-recipe:8000/metrics"
+    ],
+    "endpoints_successful": [
+      "http://vllm-recipe-0.vllm-recipe:8000/metrics"
+    ],
+    "start_time": "2026-08-05T07:36:06.123883",
+    "end_time": "2026-08-05T07:51:36.124850",
+    "endpoint_info": {
+      "http://vllm-recipe-0.vllm-recipe:8000/metrics": {
+        "total_fetches": 2973,
+        "first_fetch_ns": 1785915305889177627,
+        "last_fetch_ns": 1785916296137760758,
+        "avg_fetch_latency_ms": 5.157998405314497,
+        "unique_updates": 2543,
+        "first_update_ns": 1785915305889177627,
+        "last_update_ns": 1785916296129505745,
+        "duration_seconds": 990.240328118,
+        "avg_update_interval_ms": 389.55166330369786,
+        "median_update_interval_ms": 333.5670695
+      }
+    },
+    "phase_time_ranges": {
+      "profiling": {
+        "start_ns": 1785915366123883074,
+        "end_ns": 1785916296124850099
+      },
+      "warmup": {
+        "start_ns": 1785915307645934459,
+        "end_ns": 1785915366050754338
+      }
+    }
+  },
+  "metrics_phase": "profiling",
+  "metrics": {
+    "http_request_duration_highr_seconds": {
+      "type": "histogram",
+      "description": "Latency with many buckets but no API specific labels. Made for more accurate percentile calculations.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "count": 49,
+            "sum": 792.9027032633312,
+            "avg": 16.18168782170064,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.8020716960047151,
+            "p1_estimate": 0.7813771375366588,
+            "p5_estimate": 1.3392214219208238,
+            "p10_estimate": 2.2562849050148195,
+            "p25_estimate": 3.6865597148736313,
+            "p50_estimate": 10.0,
+            "p75_estimate": 20.92575635713782,
+            "p90_estimate": 41.56751231239247,
+            "p95_estimate": 57.32812647943547,
+            "p99_estimate": 77.90637553285087
+          },
+          "buckets": {
+            "0.01": 0,
+            "0.025": 0,
+            "0.05": 0,
+            "0.075": 0,
+            "0.1": 0,
+            "0.25": 0,
+            "0.5": 0,
+            "0.75": 0,
+            "1.0": 3,
+            "1.5": 3,
+            "2.0": 3,
+            "2.5": 6,
+            "3.0": 7,
+            "3.5": 8,
+            "4.0": 14,
+            "4.5": 15,
+            "5.0": 15,
+            "7.5": 22,
+            "10.0": 24,
+            "30.0": 41,
+            "60.0": 46,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "http_request_duration_seconds": {
+      "type": "histogram",
+      "description": "Latency with only few buckets by handler. Made to be only used if aggregation by handler is important.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/chat/completions",
+            "method": "POST"
+          },
+          "stats": {
+            "count": 46,
+            "sum": 770.9382151020691,
+            "avg": 16.75952641526237,
+            "count_rate": 0.04944998528143811,
+            "sum_rate": 0.8287583345585975,
+            "p1_estimate": 0.8653956980968829,
+            "p5_estimate": 1.1916440790771392,
+            "p10_estimate": 2.916440790771392,
+            "p25_estimate": 8.090830925854151,
+            "p50_estimate": 16.714814484325416,
+            "p75_estimate": 25.338798042796682,
+            "p90_estimate": 30.513188177879442,
+            "p95_estimate": 32.237984889573696,
+            "p99_estimate": 33.617822258929095
+          },
+          "buckets": {
+            "0.1": 0,
+            "0.5": 0,
+            "1.0": 2,
+            "+Inf": 46
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/models",
+            "method": "GET"
+          },
+          "stats": {
+            "count": 0
+          },
+          "buckets": {
+            "0.1": 0,
+            "0.5": 0,
+            "1.0": 0,
+            "+Inf": 0
+          }
+        }
+      ]
+    },
+    "http_requests": {
+      "type": "counter",
+      "description": "Total number of requests by method, status and handler.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/chat/completions",
+            "method": "POST",
+            "status": "2xx"
+          },
+          "stats": {
+            "total": 46.0,
+            "rate": 0.04944998528143811
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/models",
+            "method": "GET",
+            "status": "2xx"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "process_cpu_seconds": {
+      "type": "counter",
+      "description": "Total user and system CPU time spent in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "total": 45.769999999999996,
+            "rate": 0.04629927653802406
+          }
+        }
+      ]
+    },
+    "process_max_fds": {
+      "type": "gauge",
+      "description": "Maximum number of open file descriptors.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 1048576.0,
+            "min": 1048576.0,
+            "max": 1048576.0,
+            "std": 0.0,
+            "p1": 1048576.0,
+            "p5": 1048576.0,
+            "p10": 1048576.0,
+            "p25": 1048576.0,
+            "p50": 1048576.0,
+            "p75": 1048576.0,
+            "p90": 1048576.0,
+            "p95": 1048576.0,
+            "p99": 1048576.0
+          }
+        }
+      ]
+    },
+    "process_open_fds": {
+      "type": "gauge",
+      "description": "Number of open file descriptors.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 112.96350626118068,
+            "min": 104.0,
+            "max": 114.0,
+            "std": 0.43482841161185914,
+            "p1": 112.0,
+            "p5": 112.0,
+            "p10": 113.0,
+            "p25": 113.0,
+            "p50": 113.0,
+            "p75": 113.0,
+            "p90": 113.0,
+            "p95": 114.0,
+            "p99": 114.0
+          }
+        }
+      ]
+    },
+    "process_resident_memory_bytes": {
+      "type": "gauge",
+      "description": "Resident memory size in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 1425391237.9076922,
+            "min": 1413918720.0,
+            "max": 1427533824.0,
+            "std": 2547411.7380034924,
+            "p1": 1420017664.0,
+            "p5": 1420017664.0,
+            "p10": 1421242368.0,
+            "p25": 1423339520.0,
+            "p50": 1425436672.0,
+            "p75": 1427533824.0,
+            "p90": 1427533824.0,
+            "p95": 1427533824.0,
+            "p99": 1427533824.0
+          }
+        }
+      ]
+    },
+    "process_start_time_seconds": {
+      "type": "gauge",
+      "description": "Start time of the process since unix epoch in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 1785915099.9500003,
+            "min": 1785915099.95,
+            "max": 1785915099.95,
+            "std": 2.384612414583684e-7,
+            "p1": 1785915099.95,
+            "p5": 1785915099.95,
+            "p10": 1785915099.95,
+            "p25": 1785915099.95,
+            "p50": 1785915099.95,
+            "p75": 1785915099.95,
+            "p90": 1785915099.95,
+            "p95": 1785915099.95,
+            "p99": 1785915099.95
+          }
+        }
+      ]
+    },
+    "process_virtual_memory_bytes": {
+      "type": "gauge",
+      "description": "Virtual memory size in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 75036003663.22719,
+            "min": 74938798080.0,
+            "max": 75037392896.0,
+            "std": 2286746.404996892,
+            "p1": 75033198592.0,
+            "p5": 75034247168.0,
+            "p10": 75034247168.0,
+            "p25": 75035295744.0,
+            "p50": 75035295744.0,
+            "p75": 75037392896.0,
+            "p90": 75037392896.0,
+            "p95": 75037392896.0,
+            "p99": 75037392896.0
+          }
+        }
+      ]
+    },
+    "python_gc_collections": {
+      "type": "counter",
+      "description": "Number of times this generation was collected",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "0"
+          },
+          "stats": {
+            "total": 37.0,
+            "rate": 0.03742786174146582
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "1"
+          },
+          "stats": {
+            "total": 3.0,
+            "rate": 0.0030346914925512827
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "2"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "python_gc_objects_collected": {
+      "type": "counter",
+      "description": "Objects collected during gc",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "0"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "1"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "2"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "python_gc_objects_uncollectable": {
+      "type": "counter",
+      "description": "Uncollectable objects found during GC",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "0"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "1"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "2"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "python_info": {
+      "type": "gauge",
+      "description": "Python platform information",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "implementation": "CPython",
+            "major": "3",
+            "minor": "12",
+            "patchlevel": "3",
+            "version": "3.12.3"
+          },
+          "stats": {
+            "avg": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "std": 0.0,
+            "p1": 1.0,
+            "p5": 1.0,
+            "p10": 1.0,
+            "p25": 1.0,
+            "p50": 1.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 1.0
+          }
+        }
+      ]
+    },
+    "vllm:cache_config_info": {
+      "type": "gauge",
+      "description": "Information of the LLMEngine CacheConfig",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "_block_size_resolved": "True",
+            "block_size": "768",
+            "cache_dtype": "auto",
+            "calculate_kv_scales": "False",
+            "enable_prefix_caching": "True",
+            "engine": "0",
+            "gpu_memory_utilization": "0.9",
+            "is_attention_free": "False",
+            "kv_cache_dtype_skip_layers": "[]",
+            "kv_cache_max_concurrency": "6.669540229885057",
+            "kv_cache_memory_bytes": "None",
+            "kv_cache_size_tokens": "1748379",
+            "kv_offloading_backend": "native",
+            "kv_offloading_size": "None",
+            "kv_sharing_fast_prefill": "False",
+            "mamba_block_size": "16",
+            "mamba_cache_dtype": "auto",
+            "mamba_cache_mode": "align",
+            "mamba_page_size_padded": "None",
+            "mamba_ssm_cache_dtype": "auto",
+            "num_cpu_blocks": "None",
+            "num_gpu_blocks": "2321",
+            "num_gpu_blocks_override": "None",
+            "prefix_caching_hash_algo": "sha256",
+            "prefix_match_unit": "None",
+            "replayssm_buffer_len": "16",
+            "skip_page_size_padded": "None",
+            "sliding_window": "None",
+            "use_replayssm": "False",
+            "user_specified_block_size": "False",
+            "user_specified_mamba_block_size": "False"
+          },
+          "stats": {
+            "avg": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "std": 0.0,
+            "p1": 1.0,
+            "p5": 1.0,
+            "p10": 1.0,
+            "p25": 1.0,
+            "p50": 1.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 1.0
+          }
+        }
+      ]
+    },
+    "vllm:e2e_request_latency_seconds": {
+      "type": "histogram",
+      "description": "Histogram of e2e request latency in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 792.6904981136322,
+            "avg": 16.177357104359842,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.8018570369505593,
+            "p1_estimate": 0.8276582787602491,
+            "p5_estimate": 1.4123652964260436,
+            "p10_estimate": 2.371270077310064,
+            "p25_estimate": 4.103870268164842,
+            "p50_estimate": 10.0,
+            "p75_estimate": 17.4293612985997,
+            "p90_estimate": 42.302488383338996,
+            "p95_estimate": 56.58354529408236,
+            "p99_estimate": 79.71608933918188
+          },
+          "buckets": {
+            "0.3": 0,
+            "0.5": 0,
+            "0.8": 1,
+            "1.0": 3,
+            "1.5": 3,
+            "2.0": 3,
+            "2.5": 6,
+            "5.0": 15,
+            "10.0": 24,
+            "15.0": 34,
+            "20.0": 38,
+            "30.0": 41,
+            "40.0": 43,
+            "50.0": 46,
+            "60.0": 46,
+            "120.0": 49,
+            "240.0": 49,
+            "480.0": 49,
+            "960.0": 49,
+            "1920.0": 49,
+            "7680.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:engine_sleep_state": {
+      "type": "gauge",
+      "description": "Engine sleep state; awake = 0 means engine is sleeping; awake = 1 means engine is awake; weights_offloaded = 1 means sleep level 1; discard_all = 1 means sleep level 2.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "sleep_state": "awake"
+          },
+          "stats": {
+            "avg": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "std": 0.0,
+            "p1": 1.0,
+            "p5": 1.0,
+            "p10": 1.0,
+            "p25": 1.0,
+            "p50": 1.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 1.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "sleep_state": "discard_all"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "sleep_state": "weights_offloaded"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:estimated_flops_per_gpu": {
+      "type": "counter",
+      "description": "Estimated number of floating point operations per GPU (for Model Flops Utilization calculations).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:estimated_read_bytes_per_gpu": {
+      "type": "counter",
+      "description": "Estimated number of bytes read from memory per GPU (for Model Flops Utilization calculations).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:estimated_write_bytes_per_gpu": {
+      "type": "counter",
+      "description": "Estimated number of bytes written to memory per GPU (for Model Flops Utilization calculations).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:external_prefix_cache_hits": {
+      "type": "counter",
+      "description": "External prefix cache hits from KV connector cross-instance cache sharing, in terms of number of cached tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:external_prefix_cache_queries": {
+      "type": "counter",
+      "description": "External prefix cache queries from KV connector cross-instance cache sharing, in terms of number of queried tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 506435.0,
+            "rate": 512.2913286767363
+          }
+        }
+      ]
+    },
+    "vllm:generation_tokens": {
+      "type": "counter",
+      "description": "Number of generation tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 37261.0,
+            "rate": 37.691879901317776
+          }
+        }
+      ]
+    },
+    "vllm:inter_token_latency_seconds": {
+      "type": "histogram",
+      "description": "Histogram of inter-token latency in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 37212,
+            "sum": 735.099976092577,
+            "avg": 0.019754379664962296,
+            "count_rate": 37.642313273606106,
+            "sum_rate": 0.7436005478742649,
+            "p1_estimate": 0.015652931062713427,
+            "p5_estimate": 0.01598997217202307,
+            "p10_estimate": 0.016411273558660126,
+            "p25_estimate": 0.017675177718571296,
+            "p50_estimate": 0.019781684651756573,
+            "p75_estimate": 0.02188819158494185,
+            "p90_estimate": 0.022799806107423527,
+            "p95_estimate": 0.02284598652306674,
+            "p99_estimate": 0.02288293085558131
+          },
+          "buckets": {
+            "0.01": 1,
+            "0.025": 37200,
+            "0.05": 37201,
+            "0.075": 37203,
+            "0.1": 37204,
+            "0.15": 37207,
+            "0.2": 37207,
+            "0.3": 37209,
+            "0.4": 37211,
+            "0.5": 37212,
+            "0.75": 37212,
+            "1.0": 37212,
+            "2.5": 37212,
+            "5.0": 37212,
+            "7.5": 37212,
+            "10.0": 37212,
+            "20.0": 37212,
+            "40.0": 37212,
+            "80.0": 37212,
+            "+Inf": 37212
+          }
+        }
+      ]
+    },
+    "vllm:iteration_tokens_total": {
+      "type": "histogram",
+      "description": "Histogram of number of tokens per engine_step.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 36090,
+            "sum": 543696.0,
+            "avg": 15.065004156275977,
+            "count_rate": 36.507338655391926,
+            "sum_rate": 549.983208578054,
+            "p1_estimate": 0.011048588917154026,
+            "p5_estimate": 0.05244336424477138,
+            "p10_estimate": 0.10418683340429308,
+            "p25_estimate": 0.2594172408828581,
+            "p50_estimate": 0.5181345866804665,
+            "p75_estimate": 0.776851932478075,
+            "p90_estimate": 0.9320823399566401,
+            "p95_estimate": 0.9838258091161617,
+            "p99_estimate": 3.6311539916169897
+          },
+          "buckets": {
+            "1.0": 34873,
+            "8.0": 36041,
+            "16.0": 36041,
+            "32.0": 36041,
+            "64.0": 36041,
+            "128.0": 36041,
+            "256.0": 36041,
+            "512.0": 36041,
+            "1024.0": 36049,
+            "2048.0": 36059,
+            "4096.0": 36077,
+            "8192.0": 36084,
+            "16384.0": 36085,
+            "+Inf": 36090
+          }
+        }
+      ]
+    },
+    "vllm:kv_cache_usage_perc": {
+      "type": "gauge",
+      "description": "KV-cache usage. 1 means 100 percent usage.",
+      "unit": "ratio",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.0568359447288878,
+            "min": 0.0,
+            "max": 0.14310344827586208,
+            "std": 0.03782671724789816,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.03836206896551719,
+            "p50": 0.06206896551724139,
+            "p75": 0.07887931034482754,
+            "p90": 0.0961206896551724,
+            "p95": 0.09698275862068961,
+            "p99": 0.14224137931034486
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_allocation_size": {
+      "type": "histogram",
+      "description": "Histogram of the number of CPU blocks requested by each KV offload prepare_store call.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 47,
+            "sum": 318.0,
+            "avg": 6.76595744680851,
+            "count_rate": 0.05052498496146938,
+            "sum_rate": 0.3418498982499417,
+            "p1_estimate": 2.7285200049947367,
+            "p5_estimate": 3.083359044281077,
+            "p10_estimate": 3.526907843389002,
+            "p25_estimate": 4.0,
+            "p50_estimate": 5.877809410837295,
+            "p75_estimate": 9.21327178720917,
+            "p90_estimate": 11.870867245527023,
+            "p95_estimate": 12.756732398299642,
+            "p99_estimate": 13.465424520517736
+          },
+          "buckets": {
+            "1.0": 0,
+            "4.0": 11,
+            "16.0": 47,
+            "64.0": 47,
+            "256.0": 47,
+            "1024.0": 47,
+            "4096.0": 47,
+            "16384.0": 47,
+            "65536.0": 47,
+            "262144.0": 47,
+            "+Inf": 47
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_cache_read_usage_perc": {
+      "type": "gauge",
+      "description": "Fraction of CPU KV-cache space currently pinned by in-flight loads that have not yet completed (0.0 = idle, 1.0 = saturated).",
+      "unit": "percent",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_cache_usage_perc": {
+      "type": "gauge",
+      "description": "Fraction of CPU KV-cache space currently pinned by active transfers (0.0 = idle, 1.0 = saturated). Sustained high values indicate transfers (stores or promotions) may be dropped due to insufficient capacity.",
+      "unit": "percent",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.00007220490562960413,
+            "min": 0.0,
+            "max": 0.029272151898734177,
+            "std": 0.0011992454372712173,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_cache_write_usage_perc": {
+      "type": "gauge",
+      "description": "Fraction of CPU KV-cache space currently pinned by in-flight stores that have not yet completed (0.0 = idle, 1.0 = saturated).",
+      "unit": "percent",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.00007220490562960413,
+            "min": 0.0,
+            "max": 0.029272151898734177,
+            "std": 0.0011992454372712173,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_lookup_sync_delay_seconds": {
+      "type": "histogram",
+      "description": "Histogram of the time spent in a single offload lookup call, in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 45,
+            "sum": 0.00045019015669822693,
+            "avg": 0.000010004225704405043,
+            "count_rate": 0.04837498560140685,
+            "sum_rate": 4.839542744038183e-7,
+            "p1_estimate": 1.475488554680418e-6,
+            "p5_estimate": 2.602608370264966e-6,
+            "p10_estimate": 4.01150813974565e-6,
+            "p25_estimate": 8.010220633189545e-6,
+            "p50_estimate": 0.00001,
+            "p75_estimate": 0.000011843462100380444,
+            "p90_estimate": 0.000016080018408119838,
+            "p95_estimate": 0.000017492203844032966,
+            "p99_estimate": 0.000018621952192763477
+          },
+          "buckets": {
+            "1e-05": 22,
+            "5e-05": 45,
+            "0.0001": 45,
+            "0.0005": 45,
+            "0.001": 45,
+            "0.005": 45,
+            "0.01": 45,
+            "0.05": 45,
+            "0.1": 45,
+            "0.5": 45,
+            "1.0": 45,
+            "+Inf": 45
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_size": {
+      "type": "histogram",
+      "description": "Histogram of KV offload transfer size, in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "CPU_to_GPU"
+          },
+          "stats": {
+            "count": 0
+          },
+          "buckets": {
+            "1e+06": 0,
+            "5e+06": 0,
+            "1e+07": 0,
+            "2e+07": 0,
+            "4e+07": 0,
+            "6e+07": 0,
+            "8e+07": 0,
+            "1e+08": 0,
+            "1.5e+08": 0,
+            "2e+08": 0,
+            "+Inf": 0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "GPU_to_CPU"
+          },
+          "stats": {
+            "count": 1504,
+            "sum": 149428518912.0,
+            "avg": 99354068.42553191,
+            "count_rate": 1.521392001599043,
+            "sum_rate": 151156485.02892828,
+            "p1_estimate": 28338793.183371194,
+            "p5_estimate": 35390901.029985726,
+            "p10_estimate": 39730658.86306966,
+            "p25_estimate": 56911203.55447397,
+            "p50_estimate": 118086783.09106046,
+            "p75_estimate": 134383071.6149124,
+            "p90_estimate": 144160844.72922358,
+            "p95_estimate": 147420102.433994,
+            "p99_estimate": 149999563.19008055
+          },
+          "buckets": {
+            "1e+06": 0,
+            "5e+06": 0,
+            "1e+07": 0,
+            "2e+07": 0,
+            "4e+07": 192,
+            "6e+07": 424,
+            "8e+07": 584,
+            "1e+08": 656,
+            "1.5e+08": 1504,
+            "2e+08": 1504,
+            "+Inf": 1504
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_store_bytes": {
+      "type": "counter",
+      "description": "Total bytes stored from GPU to offload storage.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 55313620992.0,
+            "rate": 59462124.86777057
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_store_size": {
+      "type": "histogram",
+      "description": "Histogram of KV offload store operation size, in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 784,
+            "sum": 55313620992.0,
+            "avg": 70553088.0,
+            "count_rate": 0.8427997491445104,
+            "sum_rate": 59462124.86777057,
+            "p1_estimate": 26811172.048175775,
+            "p5_estimate": 30819011.238086272,
+            "p10_estimate": 35828810.22547439,
+            "p25_estimate": 41673365.73120991,
+            "p50_estimate": 58548365.731209904,
+            "p75_estimate": 91589377.50761896,
+            "p90_estimate": 130006749.36802298,
+            "p95_estimate": 137800167.60802296,
+            "p99_estimate": 144034902.20002297
+          },
+          "buckets": {
+            "1e+06": 0,
+            "5e+06": 0,
+            "1e+07": 0,
+            "2e+07": 0,
+            "4e+07": 176,
+            "6e+07": 408,
+            "8e+07": 560,
+            "1e+08": 624,
+            "1.5e+08": 784,
+            "2e+08": 784,
+            "+Inf": 784
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_store_time": {
+      "type": "counter",
+      "description": "Total store time from GPU to offload storage, in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 2.0541788145303705,
+            "rate": 0.002208241568347148
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_total_bytes": {
+      "type": "counter",
+      "description": "Number of bytes offloaded by KV connector",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "CPU_to_GPU"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "GPU_to_CPU"
+          },
+          "stats": {
+            "total": 149428518912.0,
+            "rate": 151156485.02892828
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_total_time": {
+      "type": "counter",
+      "description": "Total time measured by all KV offloading operations",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "CPU_to_GPU"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "GPU_to_CPU"
+          },
+          "stats": {
+            "total": 5.282749152123926,
+            "rate": 0.005343837969744326
+          }
+        }
+      ]
+    },
+    "vllm:mm_cache_hits": {
+      "type": "counter",
+      "description": "Multi-modal cache hits, in terms of number of cached items.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:mm_cache_queries": {
+      "type": "counter",
+      "description": "Multi-modal cache queries, in terms of number of queried items.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:num_preemptions": {
+      "type": "counter",
+      "description": "Cumulative number of preemption from the engine.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:num_requests_running": {
+      "type": "gauge",
+      "description": "Number of requests in model execution batches.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.7949910554561718,
+            "min": 0.0,
+            "max": 2.0,
+            "std": 0.5003684665145989,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 1.0,
+            "p50": 1.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 2.0
+          }
+        }
+      ]
+    },
+    "vllm:num_requests_waiting": {
+      "type": "gauge",
+      "description": "Number of requests waiting to be processed.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:num_requests_waiting_by_reason": {
+      "type": "gauge",
+      "description": "Number of waiting requests by reason. Reason labels: 'capacity' = waiting for scheduling capacity; 'deferred' = deferred by transient constraints (LoRA budget, KV transfer, blocked status). Sum of all reasons equals vllm:num_requests_waiting.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "reason": "capacity"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "reason": "deferred"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:prefix_cache_hits": {
+      "type": "counter",
+      "description": "Prefix cache hits, in terms of number of cached tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 4966656.0,
+            "rate": 5024.089569876261
+          }
+        }
+      ]
+    },
+    "vllm:prefix_cache_queries": {
+      "type": "counter",
+      "description": "Prefix cache queries, in terms of number of queried tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 5473091.0,
+            "rate": 5536.380898552997
+          }
+        }
+      ]
+    },
+    "vllm:prompt_tokens": {
+      "type": "counter",
+      "description": "Number of prefill tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 5473091.0,
+            "rate": 5536.380898552997
+          }
+        }
+      ]
+    },
+    "vllm:prompt_tokens_by_source": {
+      "type": "counter",
+      "description": "Number of prompt tokens by source.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "source": "external_kv_transfer"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "source": "local_cache_hit"
+          },
+          "stats": {
+            "total": 4966656.0,
+            "rate": 5024.089569876261
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "source": "local_compute"
+          },
+          "stats": {
+            "total": 506435.0,
+            "rate": 512.2913286767363
+          }
+        }
+      ]
+    },
+    "vllm:prompt_tokens_cached": {
+      "type": "counter",
+      "description": "Number of cached prompt tokens (local + external).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 4966656.0,
+            "rate": 5024.089569876261
+          }
+        }
+      ]
+    },
+    "vllm:request_decode_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in DECODE phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 735.099976092577,
+            "avg": 15.002040328419938,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.7436005478742649,
+            "p1_estimate": 0.022928036367030384,
+            "p5_estimate": 0.0813826094987142,
+            "p10_estimate": 0.2458442992111939,
+            "p25_estimate": 2.980133077880161,
+            "p50_estimate": 9.115712104953001,
+            "p75_estimate": 16.484662205971837,
+            "p90_estimate": 42.0337008813029,
+            "p95_estimate": 56.572829543467826,
+            "p99_estimate": 78.79884706702109
+          },
+          "buckets": {
+            "0.3": 6,
+            "0.5": 6,
+            "0.8": 6,
+            "1.0": 6,
+            "1.5": 6,
+            "2.0": 9,
+            "2.5": 10,
+            "5.0": 21,
+            "10.0": 25,
+            "15.0": 35,
+            "20.0": 39,
+            "30.0": 41,
+            "40.0": 43,
+            "50.0": 46,
+            "60.0": 46,
+            "120.0": 49,
+            "240.0": 49,
+            "480.0": 49,
+            "960.0": 49,
+            "1920.0": 49,
+            "7680.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_generation_tokens": {
+      "type": "histogram",
+      "description": "Number of generation tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 37261.0,
+            "avg": 760.4285714285714,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 37.691879901317776,
+            "p1_estimate": 0.21722475116104156,
+            "p5_estimate": 0.6972247511610417,
+            "p10_estimate": 13.78896273390242,
+            "p25_estimate": 142.51133118109146,
+            "p50_estimate": 454.49907441643546,
+            "p75_estimate": 841.5256909047364,
+            "p90_estimate": 2059.1541881727057,
+            "p95_estimate": 2912.382051974633,
+            "p99_estimate": 4151.133163085744
+          },
+          "buckets": {
+            "1.0": 4,
+            "2.0": 4,
+            "5.0": 4,
+            "10.0": 5,
+            "20.0": 6,
+            "50.0": 6,
+            "100.0": 8,
+            "200.0": 18,
+            "500.0": 25,
+            "1000.0": 39,
+            "2000.0": 43,
+            "5000.0": 49,
+            "10000.0": 49,
+            "20000.0": 49,
+            "50000.0": 49,
+            "100000.0": 49,
+            "200000.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_inference_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in RUNNING phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 789.0080879577436,
+            "avg": 16.102205876688643,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.7981320440265062,
+            "p1_estimate": 0.7331213135404364,
+            "p5_estimate": 1.3521175015872655,
+            "p10_estimate": 2.3296222378927016,
+            "p25_estimate": 4.031006083103112,
+            "p50_estimate": 10.0,
+            "p75_estimate": 17.347374350435558,
+            "p90_estimate": 42.194184438163916,
+            "p95_estimate": 56.45594477946582,
+            "p99_estimate": 79.53588803977992
+          },
+          "buckets": {
+            "0.3": 0,
+            "0.5": 0,
+            "0.8": 1,
+            "1.0": 3,
+            "1.5": 3,
+            "2.0": 3,
+            "2.5": 6,
+            "5.0": 15,
+            "10.0": 24,
+            "15.0": 34,
+            "20.0": 38,
+            "30.0": 41,
+            "40.0": 43,
+            "50.0": 46,
+            "60.0": 46,
+            "120.0": 49,
+            "240.0": 49,
+            "480.0": 49,
+            "960.0": 49,
+            "1920.0": 49,
+            "7680.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_max_num_generation_tokens": {
+      "type": "histogram",
+      "description": "Histogram of maximum number of requested generation tokens.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 37261.0,
+            "avg": 760.4285714285714,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 37.691879901317776,
+            "p1_estimate": 0.21722475116104156,
+            "p5_estimate": 0.6972247511610417,
+            "p10_estimate": 13.78896273390242,
+            "p25_estimate": 142.51133118109146,
+            "p50_estimate": 454.49907441643546,
+            "p75_estimate": 841.5256909047364,
+            "p90_estimate": 2059.1541881727057,
+            "p95_estimate": 2912.382051974633,
+            "p99_estimate": 4151.133163085744
+          },
+          "buckets": {
+            "1.0": 4,
+            "2.0": 4,
+            "5.0": 4,
+            "10.0": 5,
+            "20.0": 6,
+            "50.0": 6,
+            "100.0": 8,
+            "200.0": 18,
+            "500.0": 25,
+            "1000.0": 39,
+            "2000.0": 43,
+            "5000.0": 49,
+            "10000.0": 49,
+            "20000.0": 49,
+            "50000.0": 49,
+            "100000.0": 49,
+            "200000.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_params_max_tokens": {
+      "type": "histogram",
+      "description": "Histogram of the max_tokens request parameter.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 37261.0,
+            "avg": 760.4285714285714,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 37.691879901317776,
+            "p1_estimate": 0.21722475116104156,
+            "p5_estimate": 0.6972247511610417,
+            "p10_estimate": 13.78896273390242,
+            "p25_estimate": 142.51133118109146,
+            "p50_estimate": 454.49907441643546,
+            "p75_estimate": 841.5256909047364,
+            "p90_estimate": 2059.1541881727057,
+            "p95_estimate": 2912.382051974633,
+            "p99_estimate": 4151.133163085744
+          },
+          "buckets": {
+            "1.0": 4,
+            "2.0": 4,
+            "5.0": 4,
+            "10.0": 5,
+            "20.0": 6,
+            "50.0": 6,
+            "100.0": 8,
+            "200.0": 18,
+            "500.0": 25,
+            "1000.0": 39,
+            "2000.0": 43,
+            "5000.0": 49,
+            "10000.0": 49,
+            "20000.0": 49,
+            "50000.0": 49,
+            "100000.0": 49,
+            "200000.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_params_n": {
+      "type": "histogram",
+      "description": "Histogram of the n request parameter.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 49.0,
+            "avg": 1.0,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.049566627711670946,
+            "p1_estimate": 0.42000000000000004,
+            "p5_estimate": 0.45918367346938777,
+            "p10_estimate": 0.5081632653061225,
+            "p25_estimate": 0.6551020408163266,
+            "p50_estimate": 0.9,
+            "p75_estimate": 1.0,
+            "p90_estimate": 1.0,
+            "p95_estimate": 1.0,
+            "p99_estimate": 1.0
+          },
+          "buckets": {
+            "1.0": 49,
+            "2.0": 49,
+            "5.0": 49,
+            "10.0": 49,
+            "20.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_prefill_kv_computed_tokens": {
+      "type": "histogram",
+      "description": "Histogram of new KV tokens computed during prefill (excluding cached tokens).",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 506435.0,
+            "avg": 10335.408163265307,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 512.2913286767363,
+            "p1_estimate": 618.3012971498551,
+            "p5_estimate": 734.8212971498551,
+            "p10_estimate": 885.1837971498552,
+            "p25_estimate": 1763.9188137275705,
+            "p50_estimate": 2946.046491769423,
+            "p75_estimate": 4664.657602880535,
+            "p90_estimate": 14022.568212581748,
+            "p95_estimate": 50603.39422597965,
+            "p99_estimate": 128985.215709373
+          },
+          "buckets": {
+            "1.0": 0,
+            "2.0": 0,
+            "5.0": 0,
+            "10.0": 0,
+            "20.0": 0,
+            "50.0": 0,
+            "100.0": 0,
+            "200.0": 0,
+            "500.0": 0,
+            "1000.0": 8,
+            "2000.0": 16,
+            "5000.0": 40,
+            "10000.0": 43,
+            "20000.0": 45,
+            "50000.0": 46,
+            "100000.0": 48,
+            "200000.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_prefill_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in PREFILL phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 53.908111865166575,
+            "avg": 1.1001655482687056,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.05453149615224129,
+            "p1_estimate": 0.1667989268301907,
+            "p5_estimate": 0.21629433933887357,
+            "p10_estimate": 0.2642464631436053,
+            "p25_estimate": 0.33923554208404666,
+            "p50_estimate": 0.4492421108907582,
+            "p75_estimate": 0.6364320100914833,
+            "p90_estimate": 1.3750133727271752,
+            "p95_estimate": 4.151587565500015,
+            "p99_estimate": 12.099492559914287
+          },
+          "buckets": {
+            "0.3": 6,
+            "0.5": 26,
+            "0.8": 40,
+            "1.0": 41,
+            "1.5": 44,
+            "2.0": 45,
+            "2.5": 46,
+            "5.0": 46,
+            "10.0": 48,
+            "15.0": 48,
+            "20.0": 49,
+            "30.0": 49,
+            "40.0": 49,
+            "50.0": 49,
+            "60.0": 49,
+            "120.0": 49,
+            "240.0": 49,
+            "480.0": 49,
+            "960.0": 49,
+            "1920.0": 49,
+            "7680.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_prompt_tokens": {
+      "type": "histogram",
+      "description": "Number of prefill tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 5473091.0,
+            "avg": 111695.73469387754,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 5536.380898552997,
+            "p1_estimate": 27737.34842737107,
+            "p5_estimate": 53325.747177419486,
+            "p10_estimate": 61540.497177419486,
+            "p25_estimate": 84100.05967741949,
+            "p50_estimate": 108355.94197183521,
+            "p75_estimate": 139698.18995570618,
+            "p90_estimate": 171065.352858932,
+            "p95_estimate": 181521.0738266739,
+            "p99_estimate": 189885.65060086743
+          },
+          "buckets": {
+            "1.0": 0,
+            "2.0": 0,
+            "5.0": 0,
+            "10.0": 0,
+            "20.0": 0,
+            "50.0": 0,
+            "100.0": 0,
+            "200.0": 0,
+            "500.0": 0,
+            "1000.0": 0,
+            "2000.0": 0,
+            "5000.0": 0,
+            "10000.0": 1,
+            "20000.0": 1,
+            "50000.0": 1,
+            "100000.0": 17,
+            "200000.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_queue_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in WAITING phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 0.0006790165789425373,
+            "avg": 0.000013857481202908925,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 6.868686118060647e-7,
+            "p1_estimate": 0.0,
+            "p5_estimate": 0.0,
+            "p10_estimate": 0.000015111619097434588,
+            "p25_estimate": 0.000015111619097434588,
+            "p50_estimate": 0.000015111619097434588,
+            "p75_estimate": 0.000015111619097434588,
+            "p90_estimate": 0.000015111619097434588,
+            "p95_estimate": 0.000015111619097434588,
+            "p99_estimate": 0.000015111619097434588
+          },
+          "buckets": {
+            "0.3": 49,
+            "0.5": 49,
+            "0.8": 49,
+            "1.0": 49,
+            "1.5": 49,
+            "2.0": 49,
+            "2.5": 49,
+            "5.0": 49,
+            "10.0": 49,
+            "15.0": 49,
+            "20.0": 49,
+            "30.0": 49,
+            "40.0": 49,
+            "50.0": 49,
+            "60.0": 49,
+            "120.0": 49,
+            "240.0": 49,
+            "480.0": 49,
+            "960.0": 49,
+            "1920.0": 49,
+            "7680.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:request_success": {
+      "type": "counter",
+      "description": "Count of successfully processed requests.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "abort",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "error",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "length",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 49.0,
+            "rate": 0.049566627711670946
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "repetition",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "stop",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:request_time_per_output_token_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time_per_output_token_seconds per request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 0.8872787125276725,
+            "avg": 0.018107728827095357,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.0008975390534765276,
+            "p1_estimate": 0.0023596793930910406,
+            "p5_estimate": 0.007159679393091043,
+            "p10_estimate": 0.015223442112258123,
+            "p25_estimate": 0.016629195569618803,
+            "p50_estimate": 0.01897211799855326,
+            "p75_estimate": 0.021315040427487723,
+            "p90_estimate": 0.022495474856763148,
+            "p95_estimate": 0.022564059342550038,
+            "p99_estimate": 0.022618926931179555
+          },
+          "buckets": {
+            "0.01": 4,
+            "0.025": 49,
+            "0.05": 49,
+            "0.075": 49,
+            "0.1": 49,
+            "0.15": 49,
+            "0.2": 49,
+            "0.3": 49,
+            "0.4": 49,
+            "0.5": 49,
+            "0.75": 49,
+            "1.0": 49,
+            "2.5": 49,
+            "5.0": 49,
+            "7.5": 49,
+            "10.0": 49,
+            "20.0": 49,
+            "40.0": 49,
+            "80.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:time_to_first_token_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time to first token in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 49,
+            "sum": 57.60004544258118,
+            "avg": 1.1755111314812485,
+            "count_rate": 0.049566627711670946,
+            "sum_rate": 0.05826612262505612,
+            "p1_estimate": 0.26703103899391967,
+            "p5_estimate": 0.3023319366628288,
+            "p10_estimate": 0.34645805874896524,
+            "p25_estimate": 0.4473574578116988,
+            "p50_estimate": 0.5663524616835133,
+            "p75_estimate": 0.7405350497271489,
+            "p90_estimate": 1.6828616927398314,
+            "p95_estimate": 4.293264738076946,
+            "p99_estimate": 11.073026332754246
+          },
+          "buckets": {
+            "0.001": 0,
+            "0.005": 0,
+            "0.01": 0,
+            "0.02": 0,
+            "0.04": 0,
+            "0.06": 0,
+            "0.08": 0,
+            "0.1": 0,
+            "0.25": 0,
+            "0.5": 18,
+            "0.75": 37,
+            "1.0": 41,
+            "2.5": 46,
+            "5.0": 46,
+            "7.5": 48,
+            "10.0": 48,
+            "20.0": 49,
+            "40.0": 49,
+            "80.0": 49,
+            "160.0": 49,
+            "640.0": 49,
+            "2560.0": 49,
+            "+Inf": 49
+          }
+        }
+      ]
+    },
+    "vllm:tool_call_parser_invocations": {
+      "type": "counter",
+      "description": "Total number of ToolParser invocations. Non-streaming increments once per choice; streaming increments once per delta.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    }
+  },
+  "warmup_metrics": {
+    "http_request_duration_highr_seconds": {
+      "type": "histogram",
+      "description": "Latency with many buckets but no API specific labels. Made for more accurate percentile calculations.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "count": 4,
+            "sum": 28.34862688370049,
+            "avg": 7.0871567209251225,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.4854191742542619,
+            "p1_estimate": 1.079667675497476,
+            "p5_estimate": 1.5758755728718825,
+            "p10_estimate": 2.1961354445898906,
+            "p25_estimate": 4.056915059743915,
+            "p50_estimate": 5.7156815126072615,
+            "p75_estimate": 8.74592317378847,
+            "p90_estimate": 13.075358163914645,
+            "p95_estimate": 14.518503160623364,
+            "p99_estimate": 15.673019157990344
+          },
+          "buckets": {
+            "0.01": 0,
+            "0.025": 0,
+            "0.05": 0,
+            "0.075": 0,
+            "0.1": 0,
+            "0.25": 0,
+            "0.5": 0,
+            "0.75": 0,
+            "1.0": 1,
+            "1.5": 1,
+            "2.0": 1,
+            "2.5": 1,
+            "3.0": 1,
+            "3.5": 1,
+            "4.0": 1,
+            "4.5": 1,
+            "5.0": 1,
+            "7.5": 3,
+            "10.0": 3,
+            "30.0": 4,
+            "60.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "http_request_duration_seconds": {
+      "type": "histogram",
+      "description": "Latency with only few buckets by handler. Made to be only used if aggregation by handler is important.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/chat/completions",
+            "method": "POST"
+          },
+          "stats": {
+            "count": 3,
+            "sum": 12.386978726368397,
+            "avg": 4.128992908789466,
+            "count_rate": 0.07118187153534875,
+            "sum_rate": 0.2939094428038177,
+            "p1_estimate": 0.9565033871307969,
+            "p5_estimate": 0.9600541310384869,
+            "p10_estimate": 0.9644925609230995,
+            "p25_estimate": 0.9778078505769372,
+            "p50_estimate": 1.0,
+            "p75_estimate": 5.7156815126072615,
+            "p90_estimate": 8.545090420171618,
+            "p95_estimate": 9.48822672269307,
+            "p99_estimate": 10.242735764710233
+          },
+          "buckets": {
+            "0.1": 0,
+            "0.5": 0,
+            "1.0": 1,
+            "+Inf": 3
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/models",
+            "method": "GET"
+          },
+          "stats": {
+            "count": 0
+          },
+          "buckets": {
+            "0.1": 0,
+            "0.5": 0,
+            "1.0": 0,
+            "+Inf": 0
+          }
+        }
+      ]
+    },
+    "http_requests": {
+      "type": "counter",
+      "description": "Total number of requests by method, status and handler.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/chat/completions",
+            "method": "POST",
+            "status": "2xx"
+          },
+          "stats": {
+            "total": 3.0,
+            "rate": 0.07118187153534875
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "handler": "/v1/models",
+            "method": "GET",
+            "status": "2xx"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "process_cpu_seconds": {
+      "type": "counter",
+      "description": "Total user and system CPU time spent in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "total": 0.9299999999999997,
+            "rate": 0.01592457489770082
+          }
+        }
+      ]
+    },
+    "process_max_fds": {
+      "type": "gauge",
+      "description": "Maximum number of open file descriptors.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 1048576.0,
+            "min": 1048576.0,
+            "max": 1048576.0,
+            "std": 0.0,
+            "p1": 1048576.0,
+            "p5": 1048576.0,
+            "p10": 1048576.0,
+            "p25": 1048576.0,
+            "p50": 1048576.0,
+            "p75": 1048576.0,
+            "p90": 1048576.0,
+            "p95": 1048576.0,
+            "p99": 1048576.0
+          }
+        }
+      ]
+    },
+    "process_open_fds": {
+      "type": "gauge",
+      "description": "Number of open file descriptors.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 111.75,
+            "min": 111.0,
+            "max": 113.0,
+            "std": 0.4472135954999579,
+            "p1": 111.0,
+            "p5": 111.0,
+            "p10": 111.0,
+            "p25": 111.0,
+            "p50": 112.0,
+            "p75": 112.0,
+            "p90": 112.0,
+            "p95": 112.0,
+            "p99": 112.0
+          }
+        }
+      ]
+    },
+    "process_resident_memory_bytes": {
+      "type": "gauge",
+      "description": "Resident memory size in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 1419980800.0,
+            "min": 1418969088.0,
+            "max": 1421258752.0,
+            "std": 903847.1074825622,
+            "p1": 1418969088.0,
+            "p5": 1418969088.0,
+            "p10": 1418969088.0,
+            "p25": 1418969088.0,
+            "p50": 1420017664.0,
+            "p75": 1421258752.0,
+            "p90": 1421258752.0,
+            "p95": 1421258752.0,
+            "p99": 1421258752.0
+          }
+        }
+      ]
+    },
+    "process_start_time_seconds": {
+      "type": "gauge",
+      "description": "Start time of the process since unix epoch in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 1785915099.9500005,
+            "min": 1785915099.95,
+            "max": 1785915099.95,
+            "std": 4.781976093505926e-7,
+            "p1": 1785915099.95,
+            "p5": 1785915099.95,
+            "p10": 1785915099.95,
+            "p25": 1785915099.95,
+            "p50": 1785915099.95,
+            "p75": 1785915099.95,
+            "p90": 1785915099.95,
+            "p95": 1785915099.95,
+            "p99": 1785915099.95
+          }
+        }
+      ]
+    },
+    "process_virtual_memory_bytes": {
+      "type": "gauge",
+      "description": "Virtual memory size in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "stats": {
+            "avg": 75034056517.81818,
+            "min": 75033198592.0,
+            "max": 75036344320.0,
+            "std": 1404984.1124200134,
+            "p1": 75033198592.0,
+            "p5": 75033198592.0,
+            "p10": 75033198592.0,
+            "p25": 75033198592.0,
+            "p50": 75033198592.0,
+            "p75": 75036344320.0,
+            "p90": 75036344320.0,
+            "p95": 75036344320.0,
+            "p99": 75036344320.0
+          }
+        }
+      ]
+    },
+    "python_gc_collections": {
+      "type": "counter",
+      "description": "Number of times this generation was collected",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "0"
+          },
+          "stats": {
+            "total": 4.0,
+            "rate": 0.06849279525892828
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "1"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "2"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "python_gc_objects_collected": {
+      "type": "counter",
+      "description": "Objects collected during gc",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "0"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "1"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "2"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "python_gc_objects_uncollectable": {
+      "type": "counter",
+      "description": "Uncollectable objects found during GC",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "0"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "1"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "generation": "2"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "python_info": {
+      "type": "gauge",
+      "description": "Python platform information",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "implementation": "CPython",
+            "major": "3",
+            "minor": "12",
+            "patchlevel": "3",
+            "version": "3.12.3"
+          },
+          "stats": {
+            "avg": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "std": 0.0,
+            "p1": 1.0,
+            "p5": 1.0,
+            "p10": 1.0,
+            "p25": 1.0,
+            "p50": 1.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 1.0
+          }
+        }
+      ]
+    },
+    "vllm:cache_config_info": {
+      "type": "gauge",
+      "description": "Information of the LLMEngine CacheConfig",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "_block_size_resolved": "True",
+            "block_size": "768",
+            "cache_dtype": "auto",
+            "calculate_kv_scales": "False",
+            "enable_prefix_caching": "True",
+            "engine": "0",
+            "gpu_memory_utilization": "0.9",
+            "is_attention_free": "False",
+            "kv_cache_dtype_skip_layers": "[]",
+            "kv_cache_max_concurrency": "6.669540229885057",
+            "kv_cache_memory_bytes": "None",
+            "kv_cache_size_tokens": "1748379",
+            "kv_offloading_backend": "native",
+            "kv_offloading_size": "None",
+            "kv_sharing_fast_prefill": "False",
+            "mamba_block_size": "16",
+            "mamba_cache_dtype": "auto",
+            "mamba_cache_mode": "align",
+            "mamba_page_size_padded": "None",
+            "mamba_ssm_cache_dtype": "auto",
+            "num_cpu_blocks": "None",
+            "num_gpu_blocks": "2321",
+            "num_gpu_blocks_override": "None",
+            "prefix_caching_hash_algo": "sha256",
+            "prefix_match_unit": "None",
+            "replayssm_buffer_len": "16",
+            "skip_page_size_padded": "None",
+            "sliding_window": "None",
+            "use_replayssm": "False",
+            "user_specified_block_size": "False",
+            "user_specified_mamba_block_size": "False"
+          },
+          "stats": {
+            "avg": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "std": 0.0,
+            "p1": 1.0,
+            "p5": 1.0,
+            "p10": 1.0,
+            "p25": 1.0,
+            "p50": 1.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 1.0
+          }
+        }
+      ]
+    },
+    "vllm:e2e_request_latency_seconds": {
+      "type": "histogram",
+      "description": "Histogram of e2e request latency in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 28.33108878135681,
+            "avg": 7.082772195339203,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.48511886584099795,
+            "p1_estimate": 1.0579143819065495,
+            "p5_estimate": 1.5455950769284197,
+            "p10_estimate": 2.1551959457057572,
+            "p25_estimate": 3.9839985520377708,
+            "p50_estimate": 5.925200608539175,
+            "p75_estimate": 9.05184510202239,
+            "p90_estimate": 13.014444094921664,
+            "p95_estimate": 14.335310425888084,
+            "p99_estimate": 15.392003490661224
+          },
+          "buckets": {
+            "0.3": 0,
+            "0.5": 0,
+            "0.8": 0,
+            "1.0": 1,
+            "1.5": 1,
+            "2.0": 1,
+            "2.5": 1,
+            "5.0": 1,
+            "10.0": 3,
+            "15.0": 3,
+            "20.0": 4,
+            "30.0": 4,
+            "40.0": 4,
+            "50.0": 4,
+            "60.0": 4,
+            "120.0": 4,
+            "240.0": 4,
+            "480.0": 4,
+            "960.0": 4,
+            "1920.0": 4,
+            "7680.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:engine_sleep_state": {
+      "type": "gauge",
+      "description": "Engine sleep state; awake = 0 means engine is sleeping; awake = 1 means engine is awake; weights_offloaded = 1 means sleep level 1; discard_all = 1 means sleep level 2.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "sleep_state": "awake"
+          },
+          "stats": {
+            "avg": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "std": 0.0,
+            "p1": 1.0,
+            "p5": 1.0,
+            "p10": 1.0,
+            "p25": 1.0,
+            "p50": 1.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 1.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "sleep_state": "discard_all"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "sleep_state": "weights_offloaded"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:estimated_flops_per_gpu": {
+      "type": "counter",
+      "description": "Estimated number of floating point operations per GPU (for Model Flops Utilization calculations).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:estimated_read_bytes_per_gpu": {
+      "type": "counter",
+      "description": "Estimated number of bytes read from memory per GPU (for Model Flops Utilization calculations).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:estimated_write_bytes_per_gpu": {
+      "type": "counter",
+      "description": "Estimated number of bytes written to memory per GPU (for Model Flops Utilization calculations).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:external_prefix_cache_hits": {
+      "type": "counter",
+      "description": "External prefix cache hits from KV connector cross-instance cache sharing, in terms of number of cached tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:external_prefix_cache_queries": {
+      "type": "counter",
+      "description": "External prefix cache queries from KV connector cross-instance cache sharing, in terms of number of queried tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 350585.0,
+            "rate": 6003.136656462842
+          }
+        }
+      ]
+    },
+    "vllm:generation_tokens": {
+      "type": "counter",
+      "description": "Number of generation tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 4.0,
+            "rate": 0.06849279525892828
+          }
+        }
+      ]
+    },
+    "vllm:inter_token_latency_seconds": {
+      "type": "histogram",
+      "description": "Histogram of inter-token latency in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 0
+          },
+          "buckets": {
+            "0.01": 0,
+            "0.025": 0,
+            "0.05": 0,
+            "0.075": 0,
+            "0.1": 0,
+            "0.15": 0,
+            "0.2": 0,
+            "0.3": 0,
+            "0.4": 0,
+            "0.5": 0,
+            "0.75": 0,
+            "1.0": 0,
+            "2.5": 0,
+            "5.0": 0,
+            "7.5": 0,
+            "10.0": 0,
+            "20.0": 0,
+            "40.0": 0,
+            "80.0": 0,
+            "+Inf": 0
+          }
+        }
+      ]
+    },
+    "vllm:iteration_tokens_total": {
+      "type": "histogram",
+      "description": "Histogram of number of tokens per engine_step.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 350589.0,
+            "avg": 87647.25,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 6003.205149258101,
+            "p1_estimate": 7882.92,
+            "p5_estimate": 8934.6,
+            "p10_estimate": 10249.2,
+            "p25_estimate": 14193.0,
+            "p50_estimate": 65353.5,
+            "p75_estimate": 138807.75,
+            "p90_estimate": 182880.30000000002,
+            "p95_estimate": 197571.14999999997,
+            "p99_estimate": 209323.83
+          },
+          "buckets": {
+            "1.0": 0,
+            "8.0": 0,
+            "16.0": 0,
+            "32.0": 0,
+            "64.0": 0,
+            "128.0": 0,
+            "256.0": 0,
+            "512.0": 0,
+            "1024.0": 0,
+            "2048.0": 0,
+            "4096.0": 0,
+            "8192.0": 1,
+            "16384.0": 1,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:kv_cache_usage_perc": {
+      "type": "gauge",
+      "description": "KV-cache usage. 1 means 100 percent usage.",
+      "unit": "ratio",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.028756857366771162,
+            "min": 0.0,
+            "max": 0.14353448275862069,
+            "std": 0.0424355369423075,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.04870689655172414,
+            "p90": 0.10366379310344825,
+            "p95": 0.12887931034482758,
+            "p99": 0.14181034482758625
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_allocation_size": {
+      "type": "histogram",
+      "description": "Histogram of the number of CPU blocks requested by each KV offload prepare_store call.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 44,
+            "sum": 556.0,
+            "avg": 12.636363636363637,
+            "count_rate": 0.7699253004576344,
+            "sum_rate": 9.7290560694192,
+            "p1_estimate": 5.926704710537802,
+            "p5_estimate": 10.592191857332635,
+            "p10_estimate": 10.83911625855501,
+            "p25_estimate": 11.579889462222134,
+            "p50_estimate": 12.814511468334008,
+            "p75_estimate": 14.049133474445883,
+            "p90_estimate": 14.789906678113008,
+            "p95_estimate": 15.036831079335382,
+            "p99_estimate": 15.234370600313282
+          },
+          "buckets": {
+            "1.0": 0,
+            "4.0": 1,
+            "16.0": 44,
+            "64.0": 44,
+            "256.0": 44,
+            "1024.0": 44,
+            "4096.0": 44,
+            "16384.0": 44,
+            "65536.0": 44,
+            "262144.0": 44,
+            "+Inf": 44
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_cache_read_usage_perc": {
+      "type": "gauge",
+      "description": "Fraction of CPU KV-cache space currently pinned by in-flight loads that have not yet completed (0.0 = idle, 1.0 = saturated).",
+      "unit": "percent",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_cache_usage_perc": {
+      "type": "gauge",
+      "description": "Fraction of CPU KV-cache space currently pinned by active transfers (0.0 = idle, 1.0 = saturated). Sustained high values indicate transfers (stores or promotions) may be dropped due to insufficient capacity.",
+      "unit": "percent",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.012626216433745521,
+            "min": 0.0,
+            "max": 0.030854430379746837,
+            "std": 0.014903607344309924,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.030854430379746837,
+            "p90": 0.030854430379746837,
+            "p95": 0.030854430379746837,
+            "p99": 0.030854430379746837
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_cpu_cache_write_usage_perc": {
+      "type": "gauge",
+      "description": "Fraction of CPU KV-cache space currently pinned by in-flight stores that have not yet completed (0.0 = idle, 1.0 = saturated).",
+      "unit": "percent",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.012626216433745521,
+            "min": 0.0,
+            "max": 0.030854430379746837,
+            "std": 0.014903607344309924,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.030854430379746837,
+            "p90": 0.030854430379746837,
+            "p95": 0.030854430379746837,
+            "p99": 0.030854430379746837
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_lookup_sync_delay_seconds": {
+      "type": "histogram",
+      "description": "Histogram of the time spent in a single offload lookup call, in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 3,
+            "sum": 0.00004286225885152817,
+            "avg": 0.000014287419617176056,
+            "count_rate": 0.05249490684938417,
+            "sum_rate": 7.500167619217211e-7,
+            "p1_estimate": 0.000010268046630246928,
+            "p5_estimate": 0.000010496709009829652,
+            "p10_estimate": 0.000010782536984308056,
+            "p25_estimate": 0.000011640020907743266,
+            "p50_estimate": 0.000013069160780135285,
+            "p75_estimate": 0.00001632568890808846,
+            "p90_estimate": 0.000018279605784860364,
+            "p95_estimate": 0.000018930911410451,
+            "p99_estimate": 0.000019451955910923507
+          },
+          "buckets": {
+            "1e-05": 0,
+            "5e-05": 3,
+            "0.0001": 3,
+            "0.0005": 3,
+            "0.001": 3,
+            "0.005": 3,
+            "0.01": 3,
+            "0.05": 3,
+            "0.1": 3,
+            "0.5": 3,
+            "1.0": 3,
+            "+Inf": 3
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_size": {
+      "type": "histogram",
+      "description": "Histogram of KV offload transfer size, in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "CPU_to_GPU"
+          },
+          "stats": {
+            "count": 0
+          },
+          "buckets": {
+            "1e+06": 0,
+            "5e+06": 0,
+            "1e+07": 0,
+            "2e+07": 0,
+            "4e+07": 0,
+            "6e+07": 0,
+            "8e+07": 0,
+            "1e+08": 0,
+            "1.5e+08": 0,
+            "2e+08": 0,
+            "+Inf": 0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "GPU_to_CPU"
+          },
+          "stats": {
+            "count": 752,
+            "sum": 98241159168.0,
+            "avg": 130639839.31914894,
+            "count_rate": 12.876645508678516,
+            "sum_rate": 1682202900.223402,
+            "p1_estimate": 38837896.75921701,
+            "p5_estimate": 119293279.75015411,
+            "p10_estimate": 120877602.76032631,
+            "p25_estimate": 125630571.79084295,
+            "p50_estimate": 133552186.84170401,
+            "p75_estimate": 141473801.89256507,
+            "p90_estimate": 144460660.5230817,
+            "p95_estimate": 144741164.08880943,
+            "p99_estimate": 144965566.94139168
+          },
+          "buckets": {
+            "1e+06": 0,
+            "5e+06": 0,
+            "1e+07": 0,
+            "2e+07": 0,
+            "4e+07": 16,
+            "6e+07": 16,
+            "8e+07": 24,
+            "1e+08": 32,
+            "1.5e+08": 752,
+            "2e+08": 752,
+            "+Inf": 752
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_store_bytes": {
+      "type": "counter",
+      "description": "Total bytes stored from GPU to offload storage.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 96093093888.0,
+            "rate": 1701331562.624673
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_store_size": {
+      "type": "histogram",
+      "description": "Histogram of KV offload store operation size, in bytes.",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 736,
+            "sum": 96093093888.0,
+            "avg": 130561268.86956522,
+            "count_rate": 13.030905546149036,
+            "sum_rate": 1701331562.624673,
+            "p1_estimate": 38638015.97991171,
+            "p5_estimate": 119223518.45830107,
+            "p10_estimate": 120812583.30892673,
+            "p25_estimate": 125579777.8608037,
+            "p50_estimate": 133525102.11393195,
+            "p75_estimate": 141470426.36706024,
+            "p90_estimate": 144479713.4643917,
+            "p95_estimate": 144763735.70138097,
+            "p99_estimate": 144990953.49097243
+          },
+          "buckets": {
+            "1e+06": 0,
+            "5e+06": 0,
+            "1e+07": 0,
+            "2e+07": 0,
+            "4e+07": 16,
+            "6e+07": 16,
+            "8e+07": 24,
+            "1e+08": 32,
+            "1.5e+08": 736,
+            "2e+08": 736,
+            "+Inf": 736
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_store_time": {
+      "type": "counter",
+      "description": "Total store time from GPU to offload storage, in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 3.295833281338215,
+            "rate": 0.058352842642625975
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_total_bytes": {
+      "type": "counter",
+      "description": "Number of bytes offloaded by KV connector",
+      "unit": "bytes",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "CPU_to_GPU"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "GPU_to_CPU"
+          },
+          "stats": {
+            "total": 98241159168.0,
+            "rate": 1682202900.223402
+          }
+        }
+      ]
+    },
+    "vllm:kv_offload_total_time": {
+      "type": "counter",
+      "description": "Total time measured by all KV offloading operations",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "CPU_to_GPU"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "transfer_type": "GPU_to_CPU"
+          },
+          "stats": {
+            "total": 3.3690731850266458,
+            "rate": 0.05768930996859386
+          }
+        }
+      ]
+    },
+    "vllm:mm_cache_hits": {
+      "type": "counter",
+      "description": "Multi-modal cache hits, in terms of number of cached items.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:mm_cache_queries": {
+      "type": "counter",
+      "description": "Multi-modal cache queries, in terms of number of queried items.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:num_preemptions": {
+      "type": "counter",
+      "description": "Cumulative number of preemption from the engine.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:num_requests_running": {
+      "type": "gauge",
+      "description": "Number of requests in model execution batches.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.42613636363636365,
+            "min": 0.0,
+            "max": 1.0,
+            "std": 0.4959249524288513,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 1.0,
+            "p90": 1.0,
+            "p95": 1.0,
+            "p99": 1.0
+          }
+        }
+      ]
+    },
+    "vllm:num_requests_waiting": {
+      "type": "gauge",
+      "description": "Number of requests waiting to be processed.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:num_requests_waiting_by_reason": {
+      "type": "gauge",
+      "description": "Number of waiting requests by reason. Reason labels: 'capacity' = waiting for scheduling capacity; 'deferred' = deferred by transient constraints (LoRA budget, KV transfer, blocked status). Sum of all reasons equals vllm:num_requests_waiting.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "reason": "capacity"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "reason": "deferred"
+          },
+          "stats": {
+            "avg": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "std": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p10": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:prefix_cache_hits": {
+      "type": "counter",
+      "description": "Prefix cache hits, in terms of number of cached tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:prefix_cache_queries": {
+      "type": "counter",
+      "description": "Prefix cache queries, in terms of number of queried tokens.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 350585.0,
+            "rate": 6003.136656462842
+          }
+        }
+      ]
+    },
+    "vllm:prompt_tokens": {
+      "type": "counter",
+      "description": "Number of prefill tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 350585.0,
+            "rate": 6003.136656462842
+          }
+        }
+      ]
+    },
+    "vllm:prompt_tokens_by_source": {
+      "type": "counter",
+      "description": "Number of prompt tokens by source.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "source": "external_kv_transfer"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "source": "local_cache_hit"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3",
+            "source": "local_compute"
+          },
+          "stats": {
+            "total": 350585.0,
+            "rate": 6003.136656462842
+          }
+        }
+      ]
+    },
+    "vllm:prompt_tokens_cached": {
+      "type": "counter",
+      "description": "Number of cached prompt tokens (local + external).",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:request_decode_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in DECODE phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 0.0,
+            "avg": 0.0,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.0,
+            "p1_estimate": 0.0,
+            "p5_estimate": 0.0,
+            "p10_estimate": 0.0,
+            "p25_estimate": 0.0,
+            "p50_estimate": 0.0,
+            "p75_estimate": 0.0,
+            "p90_estimate": 0.0,
+            "p95_estimate": 0.0,
+            "p99_estimate": 0.0
+          },
+          "buckets": {
+            "0.3": 4,
+            "0.5": 4,
+            "0.8": 4,
+            "1.0": 4,
+            "1.5": 4,
+            "2.0": 4,
+            "2.5": 4,
+            "5.0": 4,
+            "10.0": 4,
+            "15.0": 4,
+            "20.0": 4,
+            "30.0": 4,
+            "40.0": 4,
+            "50.0": 4,
+            "60.0": 4,
+            "120.0": 4,
+            "240.0": 4,
+            "480.0": 4,
+            "960.0": 4,
+            "1920.0": 4,
+            "7680.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_generation_tokens": {
+      "type": "histogram",
+      "description": "Number of generation tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 4.0,
+            "avg": 1.0,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.06849279525892828,
+            "p1_estimate": 0.5325,
+            "p5_estimate": 0.5625,
+            "p10_estimate": 0.6000000000000001,
+            "p25_estimate": 0.7125,
+            "p50_estimate": 0.8875,
+            "p75_estimate": 1.0,
+            "p90_estimate": 1.0,
+            "p95_estimate": 1.0,
+            "p99_estimate": 1.0
+          },
+          "buckets": {
+            "1.0": 4,
+            "2.0": 4,
+            "5.0": 4,
+            "10.0": 4,
+            "20.0": 4,
+            "50.0": 4,
+            "100.0": 4,
+            "200.0": 4,
+            "500.0": 4,
+            "1000.0": 4,
+            "2000.0": 4,
+            "5000.0": 4,
+            "10000.0": 4,
+            "20000.0": 4,
+            "50000.0": 4,
+            "100000.0": 4,
+            "200000.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_inference_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in RUNNING phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 28.089027108158916,
+            "avg": 7.022256777039729,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.4809739956854037,
+            "p1_estimate": 1.046929693307426,
+            "p5_estimate": 1.5359693188776413,
+            "p10_estimate": 2.1472688508404105,
+            "p25_estimate": 3.981167446728718,
+            "p50_estimate": 5.897617957860012,
+            "p75_estimate": 8.969021052600784,
+            "p90_estimate": 12.881834298986153,
+            "p95_estimate": 14.186105381114603,
+            "p99_estimate": 15.229522246817368
+          },
+          "buckets": {
+            "0.3": 0,
+            "0.5": 0,
+            "0.8": 0,
+            "1.0": 1,
+            "1.5": 1,
+            "2.0": 1,
+            "2.5": 1,
+            "5.0": 1,
+            "10.0": 3,
+            "15.0": 3,
+            "20.0": 4,
+            "30.0": 4,
+            "40.0": 4,
+            "50.0": 4,
+            "60.0": 4,
+            "120.0": 4,
+            "240.0": 4,
+            "480.0": 4,
+            "960.0": 4,
+            "1920.0": 4,
+            "7680.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_max_num_generation_tokens": {
+      "type": "histogram",
+      "description": "Histogram of maximum number of requested generation tokens.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 4.0,
+            "avg": 1.0,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.06849279525892828,
+            "p1_estimate": 0.5325,
+            "p5_estimate": 0.5625,
+            "p10_estimate": 0.6000000000000001,
+            "p25_estimate": 0.7125,
+            "p50_estimate": 0.8875,
+            "p75_estimate": 1.0,
+            "p90_estimate": 1.0,
+            "p95_estimate": 1.0,
+            "p99_estimate": 1.0
+          },
+          "buckets": {
+            "1.0": 4,
+            "2.0": 4,
+            "5.0": 4,
+            "10.0": 4,
+            "20.0": 4,
+            "50.0": 4,
+            "100.0": 4,
+            "200.0": 4,
+            "500.0": 4,
+            "1000.0": 4,
+            "2000.0": 4,
+            "5000.0": 4,
+            "10000.0": 4,
+            "20000.0": 4,
+            "50000.0": 4,
+            "100000.0": 4,
+            "200000.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_params_max_tokens": {
+      "type": "histogram",
+      "description": "Histogram of the max_tokens request parameter.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 4.0,
+            "avg": 1.0,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.06849279525892828,
+            "p1_estimate": 0.5325,
+            "p5_estimate": 0.5625,
+            "p10_estimate": 0.6000000000000001,
+            "p25_estimate": 0.7125,
+            "p50_estimate": 0.8875,
+            "p75_estimate": 1.0,
+            "p90_estimate": 1.0,
+            "p95_estimate": 1.0,
+            "p99_estimate": 1.0
+          },
+          "buckets": {
+            "1.0": 4,
+            "2.0": 4,
+            "5.0": 4,
+            "10.0": 4,
+            "20.0": 4,
+            "50.0": 4,
+            "100.0": 4,
+            "200.0": 4,
+            "500.0": 4,
+            "1000.0": 4,
+            "2000.0": 4,
+            "5000.0": 4,
+            "10000.0": 4,
+            "20000.0": 4,
+            "50000.0": 4,
+            "100000.0": 4,
+            "200000.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_params_n": {
+      "type": "histogram",
+      "description": "Histogram of the n request parameter.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 4.0,
+            "avg": 1.0,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.06849279525892828,
+            "p1_estimate": 0.5325,
+            "p5_estimate": 0.5625,
+            "p10_estimate": 0.6000000000000001,
+            "p25_estimate": 0.7125,
+            "p50_estimate": 0.8875,
+            "p75_estimate": 1.0,
+            "p90_estimate": 1.0,
+            "p95_estimate": 1.0,
+            "p99_estimate": 1.0
+          },
+          "buckets": {
+            "1.0": 4,
+            "2.0": 4,
+            "5.0": 4,
+            "10.0": 4,
+            "20.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_prefill_kv_computed_tokens": {
+      "type": "histogram",
+      "description": "Histogram of new KV tokens computed during prefill (excluding cached tokens).",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 350585.0,
+            "avg": 87646.25,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 6003.136656462842,
+            "p1_estimate": 9265.565,
+            "p5_estimate": 15851.825,
+            "p10_estimate": 24084.65,
+            "p25_estimate": 48783.125,
+            "p50_estimate": 75004.5,
+            "p75_estimate": 113867.625,
+            "p90_estimate": 161321.25000000003,
+            "p95_estimate": 177139.12499999997,
+            "p99_estimate": 189793.425
+          },
+          "buckets": {
+            "1.0": 0,
+            "2.0": 0,
+            "5.0": 0,
+            "10.0": 0,
+            "20.0": 0,
+            "50.0": 0,
+            "100.0": 0,
+            "200.0": 0,
+            "500.0": 0,
+            "1000.0": 0,
+            "2000.0": 0,
+            "5000.0": 0,
+            "10000.0": 1,
+            "20000.0": 1,
+            "50000.0": 1,
+            "100000.0": 3,
+            "200000.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_prefill_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in PREFILL phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 28.089027108158916,
+            "avg": 7.022256777039729,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.4809739956854037,
+            "p1_estimate": 1.046929693307426,
+            "p5_estimate": 1.5359693188776413,
+            "p10_estimate": 2.1472688508404105,
+            "p25_estimate": 3.981167446728718,
+            "p50_estimate": 5.897617957860012,
+            "p75_estimate": 8.969021052600784,
+            "p90_estimate": 12.881834298986153,
+            "p95_estimate": 14.186105381114603,
+            "p99_estimate": 15.229522246817368
+          },
+          "buckets": {
+            "0.3": 0,
+            "0.5": 0,
+            "0.8": 0,
+            "1.0": 1,
+            "1.5": 1,
+            "2.0": 1,
+            "2.5": 1,
+            "5.0": 1,
+            "10.0": 3,
+            "15.0": 3,
+            "20.0": 4,
+            "30.0": 4,
+            "40.0": 4,
+            "50.0": 4,
+            "60.0": 4,
+            "120.0": 4,
+            "240.0": 4,
+            "480.0": 4,
+            "960.0": 4,
+            "1920.0": 4,
+            "7680.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_prompt_tokens": {
+      "type": "histogram",
+      "description": "Number of prefill tokens processed.",
+      "unit": "tokens",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 350585.0,
+            "avg": 87646.25,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 6003.136656462842,
+            "p1_estimate": 9265.565,
+            "p5_estimate": 15851.825,
+            "p10_estimate": 24084.65,
+            "p25_estimate": 48783.125,
+            "p50_estimate": 75004.5,
+            "p75_estimate": 113867.625,
+            "p90_estimate": 161321.25000000003,
+            "p95_estimate": 177139.12499999997,
+            "p99_estimate": 189793.425
+          },
+          "buckets": {
+            "1.0": 0,
+            "2.0": 0,
+            "5.0": 0,
+            "10.0": 0,
+            "20.0": 0,
+            "50.0": 0,
+            "100.0": 0,
+            "200.0": 0,
+            "500.0": 0,
+            "1000.0": 0,
+            "2000.0": 0,
+            "5000.0": 0,
+            "10000.0": 1,
+            "20000.0": 1,
+            "50000.0": 1,
+            "100000.0": 3,
+            "200000.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_queue_time_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time spent in WAITING phase for request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 0.00007703201845288277,
+            "avg": 0.00001925800461322069,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 1.3190345670688211e-6,
+            "p1_estimate": 0.00001925800461322069,
+            "p5_estimate": 0.00001925800461322069,
+            "p10_estimate": 0.00001925800461322069,
+            "p25_estimate": 0.00001925800461322069,
+            "p50_estimate": 0.00001925800461322069,
+            "p75_estimate": 0.00001925800461322069,
+            "p90_estimate": 0.00001925800461322069,
+            "p95_estimate": 0.00001925800461322069,
+            "p99_estimate": 0.00001925800461322069
+          },
+          "buckets": {
+            "0.3": 4,
+            "0.5": 4,
+            "0.8": 4,
+            "1.0": 4,
+            "1.5": 4,
+            "2.0": 4,
+            "2.5": 4,
+            "5.0": 4,
+            "10.0": 4,
+            "15.0": 4,
+            "20.0": 4,
+            "30.0": 4,
+            "40.0": 4,
+            "50.0": 4,
+            "60.0": 4,
+            "120.0": 4,
+            "240.0": 4,
+            "480.0": 4,
+            "960.0": 4,
+            "1920.0": 4,
+            "7680.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:request_success": {
+      "type": "counter",
+      "description": "Count of successfully processed requests.",
+      "unit": "requests",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "abort",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "error",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "length",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 4.0,
+            "rate": 0.06849279525892828
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "repetition",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "finished_reason": "stop",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    },
+    "vllm:request_time_per_output_token_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time_per_output_token_seconds per request.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 0.0,
+            "avg": 0.0,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.0,
+            "p1_estimate": 0.0,
+            "p5_estimate": 0.0,
+            "p10_estimate": 0.0,
+            "p25_estimate": 0.0,
+            "p50_estimate": 0.0,
+            "p75_estimate": 0.0,
+            "p90_estimate": 0.0,
+            "p95_estimate": 0.0,
+            "p99_estimate": 0.0
+          },
+          "buckets": {
+            "0.01": 4,
+            "0.025": 4,
+            "0.05": 4,
+            "0.075": 4,
+            "0.1": 4,
+            "0.15": 4,
+            "0.2": 4,
+            "0.3": 4,
+            "0.4": 4,
+            "0.5": 4,
+            "0.75": 4,
+            "1.0": 4,
+            "2.5": 4,
+            "5.0": 4,
+            "7.5": 4,
+            "10.0": 4,
+            "20.0": 4,
+            "40.0": 4,
+            "80.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:time_to_first_token_seconds": {
+      "type": "histogram",
+      "description": "Histogram of time to first token in seconds.",
+      "unit": "seconds",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "engine": "0",
+            "model_name": "/models/Kimi-K3"
+          },
+          "stats": {
+            "count": 4,
+            "sum": 28.33108878135681,
+            "avg": 7.082772195339203,
+            "count_rate": 0.06849279525892828,
+            "sum_rate": 0.48511886584099795,
+            "p1_estimate": 1.0777656757831573,
+            "p5_estimate": 1.573739153146744,
+            "p10_estimate": 2.193705999851227,
+            "p25_estimate": 4.053606539964676,
+            "p50_estimate": 5.711884617805481,
+            "p75_estimate": 8.741050273180008,
+            "p90_estimate": 13.068548452854158,
+            "p95_estimate": 14.511047846078869,
+            "p99_estimate": 15.665047360658644
+          },
+          "buckets": {
+            "0.001": 0,
+            "0.005": 0,
+            "0.01": 0,
+            "0.02": 0,
+            "0.04": 0,
+            "0.06": 0,
+            "0.08": 0,
+            "0.1": 0,
+            "0.25": 0,
+            "0.5": 0,
+            "0.75": 0,
+            "1.0": 1,
+            "2.5": 1,
+            "5.0": 1,
+            "7.5": 3,
+            "10.0": 3,
+            "20.0": 4,
+            "40.0": 4,
+            "80.0": 4,
+            "160.0": 4,
+            "640.0": 4,
+            "2560.0": 4,
+            "+Inf": 4
+          }
+        }
+      ]
+    },
+    "vllm:tool_call_parser_invocations": {
+      "type": "counter",
+      "description": "Total number of ToolParser invocations. Non-streaming increments once per choice; streaming increments once per delta.",
+      "series": [
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "non_streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "no_tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "chat_completions"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "other"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        },
+        {
+          "endpoint_url": "http://vllm-recipe-0.vllm-recipe:8000/metrics",
+          "labels": {
+            "mode": "streaming",
+            "model_name": "/models/Kimi-K3",
+            "outcome": "tool_call",
+            "request_type": "responses"
+          },
+          "stats": {
+            "total": 0.0,
+            "rate": 0.0
+          }
+        }
+      ]
+    }
+  },
+  "input_config": {
+    "models": {
+      "items": [
+        {
+          "name": "/models/Kimi-K3"
+        }
+      ]
+    },
+    "endpoint": {
+      "urls": [
+        "http://vllm-recipe-0.vllm-recipe:8000"
+      ],
+      "type": "chat",
+      "streaming": true,
+      "use_server_token_count": true,
+      "extra": {
+        "ignore_eos": true
+      }
+    },
+    "datasets": [
+      {
+        "name": "main",
+        "type": "public",
+        "dataset": "semianalysis_cc_traces_weka_with_subagents_256k",
+        "random_seed": 20260804,
+        "max_context_length": 262144,
+        "cache_bust": {
+          "target": "first_turn_prefix"
+        }
+      }
+    ],
+    "phases": [
+      {
+        "name": "profiling",
+        "kind": "profiling",
+        "type": "concurrency",
+        "duration": 900.0,
+        "concurrency": 5,
+        "grace_period": 30.0,
+        "timing_mode": "agentic_replay",
+        "trajectory_start_min_ratio": 0.0,
+        "trajectory_start_max_ratio": 1.0,
+        "system_idle_gap_cap_seconds": 10.0
+      }
+    ],
+    "artifacts": {
+      "dir": "/results/agentx-c5",
+      "auto_plot": false,
+      "plot_required": false
+    },
+    "tokenizer": {
+      "name": "moonshotai/Kimi-K3",
+      "trust_remote_code": true
+    },
+    "gpu_telemetry": {
+      "enabled": true
+    },
+    "server_metrics": {
+      "enabled": true,
+      "urls": [],
+      "formats": [
+        "json",
+        "csv"
+      ]
+    },
+    "network_latency": {
+      "enabled": false
+    },
+    "otel": {},
+    "mlflow": {},
+    "wandb": {},
+    "runtime": {
+      "ui": "simple"
+    },
+    "scenario": "inferencex-agentx-mvp"
+  }
+}

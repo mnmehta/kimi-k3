@@ -13,6 +13,7 @@ Evaluation of Kimi K3 using vLLM parallelization recipes from
 | Sweep reproducibility | https://mnmehta.github.io/kimi-k3/repro-1000-1000.html |
 | PP2 Marlin vs Humming | https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html |
 | AgentX MVP (C=1–4) | https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html |
+| AgentX MVP + CPU KV offload (C=1–5) | https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming-kv-offload.html |
 
 Harnesses for running / profiling `moonshotai/Kimi-K3` in the `kimi-k3`
 namespace with the [`vllm/vllm-openai:kimi-k3`](https://recipes.vllm.ai/moonshotai/Kimi-K3)

@@ -1,0 +1,537 @@
+---
+title: "Kimi-K3 AgentX MVP — CPU KV offload (C=1–5)"
+subtitle: "TP8×PP2 · Humming · OffloadingConnector 200 GiB · H200"
+date: "August 5, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+CONCS = [1, 2, 3, 4, 5]
+COLORS = {1: "#1f77b4", 2: "#2ca02c", 3: "#ff7f0e", 4: "#9467bd", 5: "#17becf"}
+BASE_DIR = ROOT / "bench-results" / "agentx-mvp-pp2-humming-c1"
+
+
+def load_run(c: int) -> dict:
+    art = ROOT / "bench-results" / f"agentx-mvp-pp2-humming-kv-offload-c{c}"
+    return {
+        "c": c,
+        "art": art,
+        "export": json.loads((art / "profile_export_aiperf.json").read_text()),
+        "server": json.loads((art / "server_metrics_export.json").read_text()),
+    }
+
+
+def m(ex: dict, name: str) -> dict:
+    return ex.get(name) or {}
+
+
+def avg(ex: dict, name: str, default=None):
+    v = m(ex, name).get("avg", default)
+    return default if v is None else v
+
+
+def pct(ex: dict, name: str, key: str, default=None):
+    return m(ex, name).get(key, default)
+
+
+def series0(sm: dict, metric_name: str) -> dict:
+    metric = (sm.get("metrics") or {}).get(metric_name) or {}
+    series = metric.get("series") or []
+    return series[0] if series else {}
+
+
+def gauge(sm: dict, metric_name: str) -> dict:
+    return series0(sm, metric_name).get("stats") or {}
+
+
+def hist(sm: dict, metric_name: str) -> dict:
+    return series0(sm, metric_name).get("stats") or {}
+
+
+def counter(sm: dict, metric_name: str) -> dict:
+    return series0(sm, metric_name).get("stats") or {}
+
+
+RUNS = [load_run(c) for c in CONCS]
+REF = RUNS[0]["export"]
+IC = REF.get("input_config") or {}
+IC_EP = IC.get("endpoint") or {}
+IC_DS = (IC.get("datasets") or [{}])[0]
+IC_PHASE = (IC.get("phases") or [{}])[0]
+IC_TOK = IC.get("tokenizer") or {}
+CLI_TMPL = (REF.get("run_info") or {}).get("cli_command") or ""
+
+BASE_EX = json.loads((BASE_DIR / "profile_export_aiperf.json").read_text())
+BASE_SM = json.loads((BASE_DIR / "server_metrics_export.json").read_text())
+
+
+def summary_row(run: dict) -> dict:
+    ex, sm, c = run["export"], run["server"], run["c"]
+    br = ex.get("branch_stats") or {}
+    kv = gauge(sm, "vllm:kv_cache_usage_perc")
+    running = gauge(sm, "vllm:num_requests_running")
+    gen = counter(sm, "vllm:generation_tokens")
+    prompt = counter(sm, "vllm:prompt_tokens")
+    pch = counter(sm, "vllm:prefix_cache_hits")
+    pcq = counter(sm, "vllm:prefix_cache_queries")
+    store = counter(sm, "vllm:kv_offload_store_bytes")
+    cpu_u = gauge(sm, "vllm:kv_offload_cpu_cache_usage_perc")
+    return {
+        "C": c,
+        "submission_valid": (ex.get("metadata") or {}).get("submission_valid"),
+        "benchmark_id": (ex.get("run_info") or {}).get("benchmark_id"),
+        "duration_s": avg(ex, "benchmark_duration"),
+        "ok": avg(ex, "request_count", 0),
+        "errors": avg(ex, "error_request_count", 0),
+        "completed": avg(ex, "completed_request_count", avg(ex, "request_count", 0)),
+        "error_rate_pct": avg(ex, "request_error_rate", 0),
+        "overflow": avg(ex, "context_overflow_count", 0),
+        "out_tps": avg(ex, "output_token_throughput"),
+        "in_tps": avg(ex, "input_token_throughput"),
+        "total_tps": avg(ex, "total_token_throughput"),
+        "eff_decode_tps": avg(ex, "effective_decode_throughput"),
+        "act_decode_tps": avg(ex, "active_decode_throughput"),
+        "eff_prefill_tps": avg(ex, "effective_prefill_throughput"),
+        "act_prefill_tps": avg(ex, "active_prefill_throughput"),
+        "ttft_avg": avg(ex, "time_to_first_token"),
+        "ttft_p50": pct(ex, "time_to_first_token", "p50"),
+        "ttft_p90": pct(ex, "time_to_first_token", "p90"),
+        "itl_avg": avg(ex, "inter_token_latency"),
+        "itl_p50": pct(ex, "inter_token_latency", "p50"),
+        "e2e_avg": avg(ex, "request_latency"),
+        "e2e_p50": pct(ex, "request_latency", "p50"),
+        "isl_avg": avg(ex, "input_sequence_length"),
+        "isl_p50": pct(ex, "input_sequence_length", "p50"),
+        "isl_max": pct(ex, "input_sequence_length", "max"),
+        "osl_avg": avg(ex, "output_sequence_length"),
+        "osl_max": pct(ex, "output_sequence_length", "max"),
+        "eff_conc_avg": avg(ex, "effective_concurrency"),
+        "eff_conc_max": pct(ex, "effective_concurrency", "max"),
+        "tokens_flight_avg": avg(ex, "tokens_in_flight"),
+        "tokens_flight_max": pct(ex, "tokens_in_flight", "max"),
+        "theoretical_cache_pct": avg(ex, "theoretical_prefix_cache_hit"),
+        "children_spawned": br.get("children_spawned"),
+        "children_completed": br.get("children_completed"),
+        "children_errored": br.get("children_errored"),
+        "kv_avg": kv.get("avg"),
+        "kv_max": kv.get("max"),
+        "running_avg": running.get("avg"),
+        "running_max": running.get("max"),
+        "server_gen_rate": gen.get("rate"),
+        "server_prompt_rate": prompt.get("rate"),
+        "prefix_hits_rate": pch.get("rate"),
+        "prefix_queries_rate": pcq.get("rate"),
+        "store_bytes_rate": store.get("rate"),
+        "cpu_offload_usage_avg": cpu_u.get("avg"),
+        "cpu_offload_usage_max": cpu_u.get("max"),
+        "aiperf_version": ex.get("aiperf_version"),
+    }
+
+
+def baseline_row() -> dict:
+    r = summary_row({"c": 0, "export": BASE_EX, "server": BASE_SM})
+    r["C"] = "baseline C=1"
+    return r
+
+
+SUM = pd.DataFrame([summary_row(r) for r in RUNS])
+BASE_ROW = baseline_row()
+```
+
+# Goal
+
+AgentX MVP concurrency sweep on TP8×PP2 Humming with native **CPU KV offload** (`OffloadingConnector`, 200 GiB cluster-wide). Retained runs: **C=1–5** (fresh vLLM restart before each C). **C=6** hits the same PP offload `cuMemcpy` crash mid-run ([vllm#50821](https://github.com/vllm-project/vllm/issues/50821)). Baseline AgentX without offload: [report](agentx-mvp-pp2-humming.html). Deploy notes: [`docs/pp2-humming-agentx-kv-offload-deployment-issues.md`](../docs/pp2-humming-agentx-kv-offload-deployment-issues.md).
+
+# Configuration
+
+## Serve recipe (kv-offload)
+
+| | Value |
+|:--|:--|
+| Recipe | [`pp2-humming-agentx-kv-offload`](../configs/recipes/pp2-humming-agentx-kv-offload.yaml) |
+| Parallelism | TP8 × PP2 (2×8 H200) |
+| `--moe-backend` | `humming` (SiTU allowlist) |
+| `--max-model-len` | `262144` |
+| `--max-num-batched-tokens` | **`8192`** |
+| `--max-num-seqs` | `32` |
+| `--enable-prefix-caching` | **on** (required for hybrid OffloadingConnector) |
+| KV connector | `OffloadingConnector`, `cpu_bytes_to_use=214748364800` (**200 GiB total** across world) |
+| GPU KV | ~**1.79M** tokens (~25 GiB/rank) |
+| Harness | MLA / ZMQ / [PR#50327](https://github.com/vllm-project/vllm/pull/50327) mamba fill |
+| Client | In-cluster AIPerf; **restart serve before each C** ([`scripts/restart-recipe-serve.sh`](../scripts/restart-recipe-serve.sh)) |
+
+## AIPerf config
+
+```{python}
+#| label: tbl-aiperf-config
+#| tbl-cap: "Shared AIPerf input_config (from C=1; concurrency overridden per run)."
+
+cache_bust = (IC_DS.get("cache_bust") or {}).get("target")
+extra = IC_EP.get("extra") or {}
+rows = [
+    ("Scenario", IC.get("scenario")),
+    ("Endpoint type", IC_EP.get("type")),
+    ("Model", ((IC.get("models") or {}).get("items") or [{}])[0].get("name")),
+    ("Tokenizer", IC_TOK.get("name")),
+    ("Streaming", IC_EP.get("streaming")),
+    ("Use server token count", IC_EP.get("use_server_token_count")),
+    ("Extra inputs", ", ".join(f"{k}:{v}" for k, v in extra.items()) or "—"),
+    ("Public dataset", IC_DS.get("dataset")),
+    ("Max context length", IC_DS.get("max_context_length")),
+    ("Cache bust", cache_bust),
+    ("Random seed", IC_DS.get("random_seed")),
+    ("Timing mode", IC_PHASE.get("timing_mode")),
+    ("Benchmark duration", f"{IC_PHASE.get('duration')} s"),
+    ("System idle gap cap", f"{IC_PHASE.get('system_idle_gap_cap_seconds')} s"),
+    ("AIPerf version", SUM.iloc[0]["aiperf_version"]),
+    ("Concurrency sweep", "1–5 retained; C=6 crashed twice (fresh restart)"),
+    ("Restart between C", "yes (clears GPU/CPU KV + prefix cache)"),
+]
+pd.DataFrame(rows, columns=["Setting", "Value"]).style.hide(axis="index")
+```
+
+```{python}
+#| label: cli-command
+#| output: asis
+print("```bash\n" + (CLI_TMPL.strip() or "# (cli_command missing)") + "\n```")
+```
+
+# Crash boundary (C=6)
+
+Fresh restart per concurrency let **C=2–5 complete** (the earlier back-to-back C=2 failure after warm C=1 was inheritance / pressure, not an immediate hard floor at C=2).
+
+**C=6** fails reproducibly with a fresh restart. Two attempts:
+
+| Attempt | When | Time to crash | Outcome |
+|--|:--|:--|:--|
+| 1 | ~07:59:50 UTC | ~5 min into profile | Engine dead; no export |
+| 2 (retry) | ~08:28:34 UTC | ~4 min into profile | Engine dead; AIPerf finished with **19 ok / 280 err (93.6%)** — quality gate rejected |
+
+Both:
+
+```text
+handle_preemptions → submit_store → swap_blocks_batch
+cuMemcpyBatchAsync failed at index 11 with error 1   # CUDA_ERROR_INVALID_VALUE
+```
+
+Same class as [vllm#50821](https://github.com/vllm-project/vllm/issues/50821) / open [vllm#50653](https://github.com/vllm-project/vllm/pull/50653). Logs: [`…-c6-crash/`](../bench-results/agentx-mvp-pp2-humming-kv-offload-c6-crash/), [`…-c6-retry-fail/`](../bench-results/agentx-mvp-pp2-humming-kv-offload-c6-retry-fail/). Early chained C=2: [`…-c2-crash/`](../bench-results/agentx-mvp-pp2-humming-kv-offload-c2-crash/).
+
+# Validity (C=1–5)
+
+```{python}
+#| label: tbl-validity
+#| tbl-cap: "Submission validity and request outcomes per concurrency."
+
+v = SUM[
+    [
+        "C",
+        "submission_valid",
+        "benchmark_id",
+        "duration_s",
+        "ok",
+        "errors",
+        "completed",
+        "error_rate_pct",
+        "overflow",
+        "children_spawned",
+        "children_completed",
+        "children_errored",
+    ]
+].copy()
+v.style.hide(axis="index").format(
+    {
+        "duration_s": "{:.0f}",
+        "ok": "{:.0f}",
+        "errors": "{:.0f}",
+        "completed": "{:.0f}",
+        "error_rate_pct": "{:.2f}",
+        "overflow": "{:.0f}",
+    }
+)
+```
+
+All five retained runs: `submission_valid=true`, **0%** error rate, **0** overflows.
+
+# Throughput vs concurrency
+
+```{python}
+#| label: tbl-throughput
+#| tbl-cap: "Client throughputs vs concurrency (tok/s)."
+
+t = SUM[
+    [
+        "C",
+        "out_tps",
+        "in_tps",
+        "total_tps",
+        "eff_decode_tps",
+        "act_decode_tps",
+        "eff_prefill_tps",
+        "act_prefill_tps",
+        "server_gen_rate",
+        "server_prompt_rate",
+    ]
+].rename(
+    columns={
+        "out_tps": "Output",
+        "in_tps": "Input",
+        "total_tps": "Total",
+        "eff_decode_tps": "Eff decode",
+        "act_decode_tps": "Act decode",
+        "eff_prefill_tps": "Eff prefill",
+        "act_prefill_tps": "Act prefill",
+        "server_gen_rate": "Server gen",
+        "server_prompt_rate": "Server prompt",
+    }
+)
+t.style.hide(axis="index").format("{:,.1f}", subset=[c for c in t.columns if c != "C"])
+```
+
+```{python}
+#| label: fig-throughput
+#| fig-cap: "Output / decode throughputs vs concurrency."
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=SUM["C"], y=SUM["out_tps"], mode="lines+markers", name="Output tok/s", line=dict(color="#1f77b4")))
+fig.add_trace(go.Scatter(x=SUM["C"], y=SUM["eff_decode_tps"], mode="lines+markers", name="Effective decode", line=dict(color="#2ca02c")))
+fig.add_trace(go.Scatter(x=SUM["C"], y=SUM["act_decode_tps"], mode="lines+markers", name="Active decode", line=dict(color="#ff7f0e")))
+fig.add_trace(go.Scatter(x=SUM["C"], y=SUM["server_gen_rate"], mode="lines+markers", name="Server gen rate", line=dict(color="#9467bd", dash="dot")))
+fig.update_layout(xaxis_title="Concurrency", yaxis_title="tokens/sec", height=420, margin=dict(t=40), legend=dict(orientation="h", y=1.12))
+fig.update_xaxes(dtick=1)
+fig.show()
+```
+
+# Latency vs concurrency
+
+```{python}
+#| label: tbl-latency
+#| tbl-cap: "Latency and sequence lengths vs concurrency."
+
+lat = SUM[
+    [
+        "C",
+        "ttft_avg",
+        "ttft_p50",
+        "ttft_p90",
+        "itl_avg",
+        "itl_p50",
+        "e2e_avg",
+        "e2e_p50",
+        "isl_avg",
+        "isl_max",
+        "osl_avg",
+        "osl_max",
+    ]
+].rename(
+    columns={
+        "ttft_avg": "TTFT avg",
+        "ttft_p50": "TTFT p50",
+        "ttft_p90": "TTFT p90",
+        "itl_avg": "ITL avg",
+        "itl_p50": "ITL p50",
+        "e2e_avg": "E2E avg",
+        "e2e_p50": "E2E p50",
+        "isl_avg": "ISL avg",
+        "isl_max": "ISL max",
+        "osl_avg": "OSL avg",
+        "osl_max": "OSL max",
+    }
+)
+lat.style.hide(axis="index").format("{:,.1f}", subset=[c for c in lat.columns if c != "C"])
+```
+
+```{python}
+#| label: fig-latency
+#| fig-cap: "TTFT and ITL vs concurrency."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT avg (ms)", "ITL avg (ms)"))
+fig.add_trace(go.Scatter(x=SUM["C"], y=SUM["ttft_avg"], mode="lines+markers", line=dict(color="#1f77b4"), showlegend=False), row=1, col=1)
+fig.add_trace(go.Scatter(x=SUM["C"], y=SUM["itl_avg"], mode="lines+markers", line=dict(color="#2ca02c"), showlegend=False), row=1, col=2)
+fig.update_xaxes(dtick=1)
+fig.update_layout(height=400, margin=dict(t=50))
+fig.show()
+```
+
+# Load, GPU KV, CPU offload
+
+```{python}
+#| label: tbl-load
+#| tbl-cap: "In-flight load, GPU KV, prefix cache, and CPU offload."
+
+load = SUM[
+    [
+        "C",
+        "eff_conc_avg",
+        "eff_conc_max",
+        "tokens_flight_avg",
+        "tokens_flight_max",
+        "kv_avg",
+        "kv_max",
+        "running_avg",
+        "running_max",
+        "theoretical_cache_pct",
+        "prefix_hits_rate",
+        "prefix_queries_rate",
+        "store_bytes_rate",
+        "cpu_offload_usage_avg",
+        "cpu_offload_usage_max",
+    ]
+].copy()
+for col in ("kv_avg", "kv_max", "cpu_offload_usage_avg", "cpu_offload_usage_max"):
+    load[col] = 100.0 * load[col]
+load = load.rename(
+    columns={
+        "eff_conc_avg": "Eff conc avg",
+        "eff_conc_max": "Eff conc max",
+        "tokens_flight_avg": "Tokens flight avg",
+        "tokens_flight_max": "Tokens flight max",
+        "kv_avg": "GPU KV avg %",
+        "kv_max": "GPU KV max %",
+        "running_avg": "Running avg",
+        "running_max": "Running max",
+        "theoretical_cache_pct": "Theoretical cache %",
+        "prefix_hits_rate": "Prefix hits/s",
+        "prefix_queries_rate": "Prefix queries/s",
+        "store_bytes_rate": "Store B/s",
+        "cpu_offload_usage_avg": "CPU offload avg %",
+        "cpu_offload_usage_max": "CPU offload max %",
+    }
+)
+load.style.hide(axis="index").format(
+    {
+        "Eff conc avg": "{:.2f}",
+        "Eff conc max": "{:.0f}",
+        "Tokens flight avg": "{:,.0f}",
+        "Tokens flight max": "{:,.0f}",
+        "GPU KV avg %": "{:.1f}",
+        "GPU KV max %": "{:.1f}",
+        "Running avg": "{:.2f}",
+        "Running max": "{:.0f}",
+        "Theoretical cache %": "{:.1f}",
+        "Prefix hits/s": "{:,.0f}",
+        "Prefix queries/s": "{:,.0f}",
+        "Store B/s": "{:,.0f}",
+        "CPU offload avg %": "{:.3f}",
+        "CPU offload max %": "{:.2f}",
+    }
+)
+```
+
+```{python}
+#| label: fig-kv-offload
+#| fig-cap: "GPU KV max % and CPU offload pool max % vs concurrency."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("GPU KV max %", "CPU offload max %"))
+fig.add_trace(
+    go.Bar(x=SUM["C"], y=100 * SUM["kv_max"], marker_color="#17becf", showlegend=False),
+    row=1,
+    col=1,
+)
+fig.add_trace(
+    go.Bar(x=SUM["C"], y=100 * SUM["cpu_offload_usage_max"], marker_color="#ff7f0e", showlegend=False),
+    row=1,
+    col=2,
+)
+fig.update_xaxes(dtick=1)
+fig.update_layout(height=380, margin=dict(t=50))
+fig.show()
+```
+
+CPU offload pool stays lightly used across C=1–5 (single-digit % of 200 GiB); GPU-tier prefix reuse dominates. Offload **stores** still run (nonzero store B/s).
+
+# Baseline C=1 vs kv-offload C=1
+
+Not a controlled A/B (prefix caching, batched tokens, client path, ISL mix differ).
+
+```{python}
+#| label: tbl-baseline
+#| tbl-cap: "Baseline AgentX C=1 (no offload) vs kv-offload C=1."
+
+cmp = pd.DataFrame(
+    [
+        {
+            "label": "Baseline (no CPU offload)",
+            "out_tps": avg(BASE_EX, "output_token_throughput"),
+            "ttft_avg": avg(BASE_EX, "time_to_first_token"),
+            "itl_avg": avg(BASE_EX, "inter_token_latency"),
+            "error_rate_pct": avg(BASE_EX, "request_error_rate", 0),
+            "isl_avg": avg(BASE_EX, "input_sequence_length"),
+        },
+        {
+            "label": "KV offload C=1",
+            "out_tps": SUM.loc[0, "out_tps"],
+            "ttft_avg": SUM.loc[0, "ttft_avg"],
+            "itl_avg": SUM.loc[0, "itl_avg"],
+            "error_rate_pct": SUM.loc[0, "error_rate_pct"],
+            "isl_avg": SUM.loc[0, "isl_avg"],
+        },
+    ]
+).rename(
+    columns={
+        "out_tps": "Output tok/s",
+        "ttft_avg": "TTFT avg ms",
+        "itl_avg": "ITL avg ms",
+        "error_rate_pct": "Error %",
+        "isl_avg": "ISL avg",
+    }
+)
+cmp.style.hide(axis="index").format("{:,.1f}", subset=[c for c in cmp.columns if c != "label"])
+```
+
+# Notes
+
+- **C=1–5 OK** with OffloadingConnector + prefix caching + PR#50327 patch + `max-num-batched-tokens=8192` + **restart between C**.
+- **C=6 blocked** by PP `cuMemcpyBatchAsync` during store — need [vllm#50653](https://github.com/vllm-project/vllm/pull/50653) (or drop offload / PP).
+- `cpu_bytes_to_use=200 GiB` is **cluster-wide**, not per node.
+- Restart between C mattered: chained C=2 after warm C=1 failed early; fresh C=2–5 succeeded.
+
+# Artifacts
+
+| | Path |
+|--|:--|
+| C=1–5 results | [`bench-results/agentx-mvp-pp2-humming-kv-offload-c{1..5}/`](../bench-results/) |
+| C=6 crash (1st) | [`…-c6-crash/`](../bench-results/agentx-mvp-pp2-humming-kv-offload-c6-crash/) |
+| C=6 retry fail | [`…-c6-retry-fail/`](../bench-results/agentx-mvp-pp2-humming-kv-offload-c6-retry-fail/) |
+| Early C=2 crash (chained) | [`…-c2-crash/`](../bench-results/agentx-mvp-pp2-humming-kv-offload-c2-crash/) |
+| Baseline C=1 | [`agentx-mvp-pp2-humming-c1/`](../bench-results/agentx-mvp-pp2-humming-c1/) |
+| Recipe / runner | [`pp2-humming-agentx-kv-offload.yaml`](../configs/recipes/pp2-humming-agentx-kv-offload.yaml), [`run-agentx-mvp-inpod-c1234.sh`](../scripts/run-agentx-mvp-inpod-c1234.sh) |
+| Restart helper | [`restart-recipe-serve.sh`](../scripts/restart-recipe-serve.sh) |
+
+# GitHub Repository
+
+[github.com/mnmehta/kimi-k3](https://github.com/mnmehta/kimi-k3)

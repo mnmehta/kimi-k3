@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aiperf-agentx
+  namespace: kimi-k3
+  labels:
+    app: aiperf-agentx
+spec:
+  # Same hostNetwork pattern as vllm-bench so pod IPs / recipe DNS resolve cleanly.
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 10
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - g1191e4
+                  - g13c364
+                  - gc37d78
+                  - gf2a612
+  containers:
+    - name: aiperf
+      image: vllm/vllm-openai-cpu:latest-x86_64
+      imagePullPolicy: IfNotPresent
+      command: ["sleep", "infinity"]
+      env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: ""
+        - name: HF_HOME
+          value: /cache/huggingface
+        - name: AIPERF_DATASET_CONFIGURATION_TIMEOUT
+          value: "1800"
+        - name: AIPERF_SERVICE_PROFILE_CONFIGURE_TIMEOUT
+          value: "1800"
+      resources:
+        requests:
+          cpu: "8"
+          memory: 64Gi
+        limits:
+          cpu: "16"
+          memory: 128Gi
+      volumeMounts:
+        - name: cache
+          mountPath: /cache
+        - name: results
+          mountPath: /results
+  volumes:
+    - name: cache
+      emptyDir:
+        sizeLimit: 200Gi
+    - name: results
+      emptyDir:
+        sizeLimit: 50Gi

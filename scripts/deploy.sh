@@ -17,6 +17,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 PRINT_ONLY=0
 PRINT_JSON=0
+RESTART_ONLY=0
 ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -28,9 +29,15 @@ while [[ $# -gt 0 ]]; do
       PRINT_JSON=1
       shift
       ;;
+    --restart-only)
+      # Stop + relaunch serve on existing pods (clears GPU/CPU KV / prefix cache).
+      RESTART_ONLY=1
+      shift
+      ;;
     -h|--help)
       sed -n '2,20p' "$0"
       echo
+      echo "Flags: --print | --print-json | --restart-only"
       echo "Available recipes:"
       ls "$ROOT/configs/recipes"/*.yaml 2>/dev/null | xargs -n1 basename | sed 's/\.yaml$/  /' | tr '\n' ' '
       echo

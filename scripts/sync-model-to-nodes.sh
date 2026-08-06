@@ -5,7 +5,7 @@
 # Usage:
 #   export KUBECONFIG=...
 #   ./scripts/sync-model-to-nodes.sh
-#   SRC_POD=vllm-recipe-0 DST_NODES="g11cd44 gf2a612" ./scripts/sync-model-to-nodes.sh
+#   SRC_POD=vllm-recipe-0 DST_NODES="gc37d78 gf2a612" ./scripts/sync-model-to-nodes.sh
 
 set -euo pipefail
 
@@ -14,7 +14,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${PORT:-19001}"
 IMAGE="${IMAGE:-vllm/vllm-openai:kimi-k3}"
 SRC_POD="${SRC_POD:-vllm-recipe-0}"
-DST_NODES="${DST_NODES:-g11cd44 gf2a612}"
+DST_NODES="${DST_NODES:-gc37d78 gf2a612}"
 
 if ! kubectl -n "$NS" exec "$SRC_POD" -- test -f /models/Kimi-K3/.download-complete; then
   echo "source $SRC_POD missing /models/Kimi-K3/.download-complete" >&2

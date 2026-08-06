@@ -36,21 +36,26 @@ if [[ ! -f "$SERVE_SCRIPT_HOST" ]]; then
   exit 1
 fi
 
-echo "==> Deploy ${NAME}: TP=${TP_SIZE} PP=${PP_SIZE} DP=${DP_SIZE} DP_LOCAL=${DP_SIZE_LOCAL} NNODES=${NNODES} STORAGE=${STORAGE_BACKEND} VERIFY_WEIGHTS=${VERIFY_WEIGHTS}"
+SKIP_POD_ROLLOUT="${DEPLOY_SKIP_POD_ROLLOUT:-0}"
+echo "==> Deploy ${NAME}: TP=${TP_SIZE} PP=${PP_SIZE} DP=${DP_SIZE} DP_LOCAL=${DP_SIZE_LOCAL} NNODES=${NNODES} STORAGE=${STORAGE_BACKEND} VERIFY_WEIGHTS=${VERIFY_WEIGHTS} SKIP_POD_ROLLOUT=${SKIP_POD_ROLLOUT}"
 
-echo "==> Applying namespace + recipe StatefulSet"
-kubectl apply -f "$ROOT/manifests/namespace.yaml"
-for i in $(seq 0 $((NNODES - 1))); do
-  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/stop-inpod-vllm.sh >/dev/null 2>&1 || true
-done || true
-case "$STORAGE_BACKEND" in
-  hostpath) kubectl apply -f "$ROOT/manifests/vllm-recipe.yaml" ;;
-  overlay)  kubectl apply -f "$ROOT/manifests/vllm-recipe-overlay.yaml" ;;
-  *) echo "Unknown STORAGE_BACKEND=$STORAGE_BACKEND" >&2; exit 1 ;;
-esac
-kubectl -n "$NS" scale statefulset/vllm-recipe --replicas="$NNODES"
-kubectl -n "$NS" delete pod -l app=vllm-recipe --wait=false 2>/dev/null || true
-kubectl -n "$NS" rollout status statefulset/vllm-recipe --timeout=30m
+if [[ "$SKIP_POD_ROLLOUT" != "1" ]]; then
+  echo "==> Applying namespace + recipe StatefulSet"
+  kubectl apply -f "$ROOT/manifests/namespace.yaml"
+  for i in $(seq 0 $((NNODES - 1))); do
+    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash /tmp/stop-inpod-vllm.sh >/dev/null 2>&1 || true
+  done || true
+  case "$STORAGE_BACKEND" in
+    hostpath) kubectl apply -f "$ROOT/manifests/vllm-recipe.yaml" ;;
+    overlay)  kubectl apply -f "$ROOT/manifests/vllm-recipe-overlay.yaml" ;;
+    *) echo "Unknown STORAGE_BACKEND=$STORAGE_BACKEND" >&2; exit 1 ;;
+  esac
+  kubectl -n "$NS" scale statefulset/vllm-recipe --replicas="$NNODES"
+  kubectl -n "$NS" delete pod -l app=vllm-recipe --wait=false 2>/dev/null || true
+  kubectl -n "$NS" rollout status statefulset/vllm-recipe --timeout=30m
+else
+  echo "==> Skipping pod rollout (DEPLOY_SKIP_POD_ROLLOUT=1); restarting serve in place"
+fi
 
 echo "==> Waiting for pods Ready"
 for i in $(seq 0 $((NNODES - 1))); do
@@ -58,21 +63,23 @@ for i in $(seq 0 $((NNODES - 1))); do
 done
 kubectl -n "$NS" get pods -l app=vllm-recipe -o wide
 
-echo "==> Storage mount check"
-for i in $(seq 0 $((NNODES - 1))); do
-  kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
-    'echo rank-'"$i"'; df -h /models | tail -1; findmnt -T /models | head -2 || true'
-done
-
-if [[ "$VERIFY_WEIGHTS" == "1" ]]; then
-  echo "==> Verifying weights on each rank"
+if [[ "$SKIP_POD_ROLLOUT" != "1" ]]; then
+  echo "==> Storage mount check"
   for i in $(seq 0 $((NNODES - 1))); do
     kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
-      "test -f ${MODEL_PATH}/.download-complete && test -f ${MODEL_PATH}/config.json && \
-       echo rank-$i ok && cat ${MODEL_PATH}/.download-complete && du -sh ${MODEL_PATH}"
+      'echo rank-'"$i"'; df -h /models | tail -1; findmnt -T /models | head -2 || true'
   done
-else
-  echo "==> Skipping weight verification (dummy / verify_weights=false)"
+
+  if [[ "$VERIFY_WEIGHTS" == "1" ]]; then
+    echo "==> Verifying weights on each rank"
+    for i in $(seq 0 $((NNODES - 1))); do
+      kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
+        "test -f ${MODEL_PATH}/.download-complete && test -f ${MODEL_PATH}/config.json && \
+         echo rank-$i ok && cat ${MODEL_PATH}/.download-complete && du -sh ${MODEL_PATH}"
+    done
+  else
+    echo "==> Skipping weight verification (dummy / verify_weights=false)"
+  fi
 fi
 
 MASTER_ADDR="$(kubectl -n "$NS" get pod vllm-recipe-0 -o jsonpath='{.status.podIP}')"
@@ -107,57 +114,63 @@ for i in $(seq 0 $((NNODES - 1))); do
   fi
 done
 
-# Forward optional knobs if set in the environment.
-OPT_ENV=""
+# Forward knobs via `kubectl exec -- env` so JSON values (e.g. KV_TRANSFER_CONFIG)
+# keep their quotes (embedding them in bash -c strips " characters).
+ENV_ARGS=(
+  "TP_SIZE=$TP_SIZE"
+  "PP_SIZE=$PP_SIZE"
+  "DP_SIZE=$DP_SIZE"
+  "DP_SIZE_LOCAL=$DP_SIZE_LOCAL"
+  "NNODES=$NNODES"
+  "MODEL=$MODEL"
+  "MASTER_ADDR=$MASTER_ADDR"
+)
+if [[ -n "${LOAD_FORMAT:-}" ]]; then
+  ENV_ARGS+=("LOAD_FORMAT=$LOAD_FORMAT")
+fi
 for v in GPU_MEM_UTIL MAX_NUM_SEQS MAX_MODEL_LEN MAX_NUM_BATCHED_TOKENS \
          NCCL_IB_DISABLE NCCL_IB_GID_INDEX NCCL_IB_HCA NCCL_DMABUF_ENABLE \
          PYTORCH_CUDA_ALLOC_CONF VLLM_USE_RUST_FRONTEND VLLM_USE_V2_MODEL_RUNNER \
-         DP_RPC_PORT DATA_PARALLEL_ADDRESS KV_CACHE_MEMORY_BYTES \
+         DP_RPC_PORT DATA_PARALLEL_ADDRESS KV_CACHE_MEMORY_BYTES CPU_OFFLOAD_GB \
+         KV_TRANSFER_CONFIG ENABLE_CUMEM_ALLOCATOR ENFORCE_EAGER \
+         NO_DISABLE_HYBRID_KV_CACHE_MANAGER COMPILATION_CONFIG \
+         ENABLE_PREFIX_CACHING \
          VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE SKIP_MM_PROFILING \
          ENABLE_EXPERT_PARALLEL ENABLE_EP_WEIGHT_FILTER \
          NUM_LAYERS NUM_EXPERTS NUM_EXPERTS_PER_TOKEN NUM_SHARED_EXPERTS \
          ENABLE_TORCH_PROFILER PROFILE_DIR VLLM_RPC_TIMEOUT \
          VLLM_ENABLE_K3_LATENT_MOE_TAIL_FUSION MOE_BACKEND ATTENTION_BACKEND PORT; do
   if [[ -n "${!v+x}" ]]; then
-    OPT_ENV+=" $v=${!v}"
+    ENV_ARGS+=("$v=${!v}")
   fi
 done
 
-LOAD_ENV=""
-if [[ -n "${LOAD_FORMAT:-}" ]]; then
-  LOAD_ENV="LOAD_FORMAT=$LOAD_FORMAT"
-fi
-
-PAR_ENV="TP_SIZE=$TP_SIZE PP_SIZE=$PP_SIZE DP_SIZE=$DP_SIZE DP_SIZE_LOCAL=$DP_SIZE_LOCAL NNODES=$NNODES MODEL=$MODEL $LOAD_ENV$OPT_ENV"
+start_rank() {
+  local pod="$1"
+  shift
+  local -a rank_env=("$@")
+  kubectl -n "$NS" exec "$pod" -- env "${ENV_ARGS[@]}" "${rank_env[@]}" \
+    bash -c 'rm -f /tmp/vllm-recipe.log; nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & echo started=$!'
+}
 
 if [[ "$DP_SIZE" -gt 1 ]]; then
   echo "==> Starting DP workers (headless) then DP head (data-parallel-address=$MASTER_ADDR)"
   for i in $(seq 1 $((NNODES - 1))); do
-    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
-      "rm -f /tmp/vllm-recipe.log; \
-       DP_START_RANK=$i NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR DATA_PARALLEL_ADDRESS=$MASTER_ADDR $PAR_ENV \
-       nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
-       echo started dp_start_rank=$i pid=\$!"
+    start_rank "vllm-recipe-$i" \
+      "DP_START_RANK=$i" "NODE_RANK=$i" "DATA_PARALLEL_ADDRESS=$MASTER_ADDR"
+    echo "started dp_start_rank=$i"
   done
-  kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
-    "rm -f /tmp/vllm-recipe.log; \
-     DP_START_RANK=0 NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR DATA_PARALLEL_ADDRESS=$MASTER_ADDR $PAR_ENV \
-     nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
-     echo started dp_start_rank=0 pid=\$!"
+  start_rank vllm-recipe-0 \
+    "DP_START_RANK=0" "NODE_RANK=0" "DATA_PARALLEL_ADDRESS=$MASTER_ADDR"
+  echo "started dp_start_rank=0"
 else
   echo "==> Starting workers (headless) then head"
   for i in $(seq 1 $((NNODES - 1))); do
-    kubectl -n "$NS" exec "vllm-recipe-$i" -- bash -c \
-      "rm -f /tmp/vllm-recipe.log; \
-       NODE_RANK=$i MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
-       nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
-       echo started rank $i pid=\$!"
+    start_rank "vllm-recipe-$i" "NODE_RANK=$i"
+    echo "started rank $i"
   done
-  kubectl -n "$NS" exec vllm-recipe-0 -- bash -c \
-    "rm -f /tmp/vllm-recipe.log; \
-     NODE_RANK=0 MASTER_ADDR=$MASTER_ADDR $PAR_ENV \
-     nohup bash /tmp/run-recipe.sh > /tmp/vllm-recipe.log 2>&1 & \
-     echo started rank 0 pid=\$!"
+  start_rank vllm-recipe-0 "NODE_RANK=0"
+  echo "started rank 0"
 fi
 
 echo "==> Waiting for /health on :${HEALTH_PORT} (up to $((HEALTH_POLLS * 10))s)"
