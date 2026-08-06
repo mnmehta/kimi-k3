@@ -1,0 +1,105 @@
+# SGLang recipe-shaped deployment for Kimi-K3 benchmarking.
+# Mirrors manifests/vllm-recipe.yaml but uses SGLang image.
+#
+# Pods sleep; launch SGLang via:
+#   scripts/deploy-sglang-pp2.sh    (TP8×PP2, 2×8 H200)
+#
+# Storage: same hostPath /mnt/local/kimi-k3/models as vLLM harness.
+#
+# NOTE: Update the image tag below to your SGLang build with Kimi-K3 support.
+#       e.g. lmsysorg/sglang:latest or a custom image.
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-recipe
+  namespace: kimi-k3
+  labels:
+    app: sglang-recipe
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: sglang-recipe
+  ports:
+  - name: http
+    port: 30000
+    targetPort: 30000
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sglang-recipe
+  namespace: kimi-k3
+  labels:
+    app: sglang-recipe
+spec:
+  serviceName: sglang-recipe
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: sglang-recipe
+  template:
+    metadata:
+      labels:
+        app: sglang-recipe
+    spec:
+      hostNetwork: true
+      hostIPC: true
+      dnsPolicy: ClusterFirstWithHostNet
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: ["g1191e4", "g13c364"]
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: sglang-recipe
+      containers:
+      - name: sglang
+        # SGLang image with Kimi-K3 support
+        image: lmsysorg/sglang:kimi-k3
+        imagePullPolicy: IfNotPresent
+        command: ["sleep", "infinity"]
+        securityContext:
+          privileged: true
+        ports:
+        - name: http
+          containerPort: 30000
+          hostPort: 30000
+        env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: all
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility
+        - name: HF_HOME
+          value: /models/hf
+        - name: MODEL
+          value: /models/Kimi-K3
+        volumeMounts:
+        - name: model
+          mountPath: /models
+        resources:
+          limits:
+            nvidia.com/gpu: "8"
+            rdma/ib: "1"
+          requests:
+            nvidia.com/gpu: "8"
+            rdma/ib: "1"
+            cpu: "16"
+            memory: 64Gi
+            ephemeral-storage: 50Gi
+      volumes:
+      - name: model
+        hostPath:
+          path: /mnt/local/kimi-k3/models
+          type: DirectoryOrCreate
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
