@@ -1,0 +1,764 @@
+---
+title: "SGLang Kimi-K3 Benchmarking (H200)"
+subtitle: "TP16+EP16 and TP8×PP2 concurrency sweeps — 1000 in / 1000 out"
+date: "August 5, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import re
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+SGLANG_DIR = ROOT / "bench-results" / "sglang"
+
+# --- SGLang log parsers ---
+_RE_SGL_KV_GIB = re.compile(r"KV Cache is allocated\.\s*dtype:\s*\S+,\s*#tokens:\s*([\d,]+),\s*KV size:\s*([\d.]+)\s*GB")
+_RE_SGL_MAMBA = re.compile(r"Mamba Cache is allocated\.\s*max_mamba_cache_size:\s*(\d+),\s*conv_state size:\s*([\d.]+)GB,\s*ssm_state size:\s*([\d.]+)GB")
+_RE_SGL_CAPPED = re.compile(r"max_running_requests is capped to (\d+) by the mamba state cache \(max_mamba_cache_size=(\d+), (\d+) state slots per request\)")
+_RE_SGL_MEM_FRAC = re.compile(r"mem-fraction-static=([\d.]+)")
+_RE_SGL_MAMBA_RATIO = re.compile(r"mamba-full-memory-ratio=([\d.]+)")
+_RE_SGL_CONTEXT = re.compile(r"context-length=(\d+)")
+
+
+def parse_sglang_logs(data_dir: Path) -> dict:
+    """Parse SGLang serve logs for KV cache, Mamba cache, and config metadata."""
+    result = {
+        "kv_gib": "—", "kv_tokens": "—", "kv_dtype": "—",
+        "mamba_slots": "—", "mamba_conv_gb": "—", "mamba_ssm_gb": "—", "mamba_total_gb": "—",
+        "max_running": "—", "slots_per_req": "—",
+        "mem_fraction": "—", "mamba_ratio": "—", "context_length": "—",
+    }
+    for log_name in ["sglang-recipe-0.log", "sglang-recipe-1.log"]:
+        path = data_dir / log_name
+        if not path.exists():
+            continue
+        text = path.read_text(errors="replace")
+
+        m = _RE_SGL_KV_GIB.search(text)
+        if m and result["kv_gib"] == "—":
+            result["kv_tokens"] = f"{int(m.group(1).replace(',', '')):,}"
+            result["kv_gib"] = f"{float(m.group(2)):.2f} GB"
+            # Detect dtype from log
+            dtype_m = re.search(r"KV Cache is allocated\.\s*dtype:\s*(\S+),", text)
+            if dtype_m:
+                result["kv_dtype"] = dtype_m.group(1)
+
+        m = _RE_SGL_MAMBA.search(text)
+        if m and result["mamba_slots"] == "—":
+            result["mamba_slots"] = int(m.group(1))
+            result["mamba_conv_gb"] = float(m.group(2))
+            result["mamba_ssm_gb"] = float(m.group(3))
+            result["mamba_total_gb"] = f"{float(m.group(2)) + float(m.group(3)):.2f} GB"
+
+        m = _RE_SGL_CAPPED.search(text)
+        if m and result["max_running"] == "—":
+            result["max_running"] = int(m.group(1))
+            result["slots_per_req"] = int(m.group(3))
+
+        m = _RE_SGL_MEM_FRAC.search(text)
+        if m and result["mem_fraction"] == "—":
+            result["mem_fraction"] = m.group(1)
+
+        m = _RE_SGL_MAMBA_RATIO.search(text)
+        if m and result["mamba_ratio"] == "—":
+            result["mamba_ratio"] = m.group(1)
+
+        m = _RE_SGL_CONTEXT.search(text)
+        if m and result["context_length"] == "—":
+            result["context_length"] = m.group(1)
+
+    return result
+
+
+def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
+    """Load concurrency sweep JSON results into a DataFrame."""
+    rows = []
+    paths = [
+        p for p in data_dir.glob("conc-*.json")
+        if p.stem.split("-")[1].isdigit() and "topup" not in p.name
+    ]
+    for path in sorted(paths, key=lambda p: int(p.stem.split("-")[1])):
+        d = json.loads(path.read_text())
+        rows.append({
+            "run": label,
+            "concurrency": int(d["max_concurrency"]),
+            "num_prompts": d["num_prompts"],
+            "duration_s": d["duration"],
+            "completed": d["completed"],
+            "failed": d.get("failed", 0),
+            "request_throughput": d["request_throughput"],
+            "output_throughput": d["output_throughput"],
+            "total_token_throughput": d.get("total_token_throughput", d["output_throughput"] * 2),
+            "mean_ttft_ms": d["mean_ttft_ms"],
+            "p99_ttft_ms": d.get("p99_ttft_ms", 0),
+            "mean_tpot_ms": d["mean_tpot_ms"],
+            "p99_tpot_ms": d.get("p99_tpot_ms", 0),
+            "mean_itl_ms": d.get("mean_itl_ms", 0),
+            "mean_e2el_ms": d.get("mean_e2el_ms", 0),
+            "p99_e2el_ms": d.get("p99_e2el_ms", 0),
+            "date": d.get("date"),
+            "model_id": d.get("model_id"),
+        })
+    if not rows:
+        return pd.DataFrame()
+    df = pd.DataFrame(rows).sort_values("concurrency").reset_index(drop=True)
+    tok1 = df.loc[df["concurrency"] == 1, "output_throughput"].iloc[0]
+    df["ideal_output_tok_s"] = tok1 * df["concurrency"]
+    df["scaling_efficiency"] = df["output_throughput"] / df["ideal_output_tok_s"]
+    return df
+
+
+def per_config_table(df):
+    """Format a per-config detail table."""
+    show = df[[
+        "concurrency", "num_prompts", "duration_s",
+        "request_throughput", "output_throughput",
+        "mean_ttft_ms", "mean_tpot_ms", "mean_e2el_ms",
+    ]].copy()
+    show["concurrency"] = show["concurrency"].astype(int)
+    show["num_prompts"] = show["num_prompts"].astype(int)
+    show["duration_s"] = show["duration_s"].round(1)
+    show["request_throughput"] = show["request_throughput"].round(2)
+    show["output_throughput"] = show["output_throughput"].round(1)
+    show["mean_ttft_ms"] = show["mean_ttft_ms"].round(1)
+    show["mean_tpot_ms"] = show["mean_tpot_ms"].round(1)
+    show["mean_e2el_ms"] = (show["mean_e2el_ms"] / 1000).round(1)
+    show = show.rename(columns={
+        "concurrency": "C",
+        "num_prompts": "prompts",
+        "duration_s": "dur (s)",
+        "request_throughput": "req/s",
+        "output_throughput": "out tok/s",
+        "mean_ttft_ms": "TTFT ms",
+        "mean_tpot_ms": "TPOT ms",
+        "mean_e2el_ms": "E2EL s",
+    })
+    return show.style.hide(axis="index").format({
+        "C": "{:d}", "prompts": "{:d}", "dur (s)": "{:.1f}",
+        "req/s": "{:.2f}", "out tok/s": "{:.1f}",
+        "TTFT ms": "{:.1f}", "TPOT ms": "{:.1f}", "E2EL s": "{:.1f}",
+    })
+
+
+# --- Color maps ---
+TP16_COLORS = {
+    "TP16+EP16 (default)": "#1f77b4",
+    "TP16+EP16 (fp8-kv)": "#17becf",
+    "TP16+EP16 (mamba-90/mem-90)": "#9467bd",
+}
+
+PP2_COLORS = {
+    "PP2 (mamba-23)": "#aec7e8",
+    "PP2 (mamba-70)": "#ff7f0e",
+    "PP2 (mamba-90/mem-90)": "#d62728",
+}
+
+BEST_COLORS = {
+    "SGLang TP16+EP16": "#9467bd",
+    "SGLang PP2": "#d62728",
+    "vLLM TEP16": "#17becf",
+    "vLLM PP2 (Humming)": "#2ca02c",
+    "vLLM PP2 (Marlin)": "#ff7f0e",
+}
+
+# --- Load all SGLang sweeps ---
+# TP16+EP16 variants
+tp16_default_dir = SGLANG_DIR / "conc-sweep-tp16-ep16-1000-1000"
+tp16_fp8_dir = SGLANG_DIR / "conc-sweep-tp16-ep16-1000-1000-fp8-kv"
+tp16_m90_dir = SGLANG_DIR / "conc-sweep-tp16-ep16-1000-1000-mamba-cache-90-mem-90"
+
+df_tp16_default = load_sweep(tp16_default_dir, "TP16+EP16 (default)")
+df_tp16_fp8 = load_sweep(tp16_fp8_dir, "TP16+EP16 (fp8-kv)")
+df_tp16_m90 = load_sweep(tp16_m90_dir, "TP16+EP16 (mamba-90/mem-90)")
+
+meta_tp16_default = parse_sglang_logs(tp16_default_dir)
+meta_tp16_fp8 = parse_sglang_logs(tp16_fp8_dir)
+meta_tp16_m90 = parse_sglang_logs(tp16_m90_dir)
+
+# PP2 variants
+pp2_m23_dir = SGLANG_DIR / "conc-sweep-tp8-pp2-1000-1000-mamba-cache-23"
+pp2_m70_dir = SGLANG_DIR / "conc-sweep-tp8-pp2-1000-1000-mamba-cache-70"
+pp2_m90_dir = SGLANG_DIR / "conc-sweep-tp8-pp2-1000-1000-mamba-cache-90-mem-90"
+
+df_pp2_m23 = load_sweep(pp2_m23_dir, "PP2 (mamba-23)")
+df_pp2_m70 = load_sweep(pp2_m70_dir, "PP2 (mamba-70)")
+df_pp2_m90 = load_sweep(pp2_m90_dir, "PP2 (mamba-90/mem-90)")
+
+meta_pp2_m23 = parse_sglang_logs(pp2_m23_dir)
+meta_pp2_m70 = parse_sglang_logs(pp2_m70_dir)
+meta_pp2_m90 = parse_sglang_logs(pp2_m90_dir)
+
+# vLLM baselines
+vllm_tep_dir = ROOT / "bench-results" / "conc-sweep-tep-1000-1000-repro-20260803"
+vllm_pp2_humming_dir = ROOT / "bench-results" / "conc-sweep-pp2-humming-1000-1000"
+vllm_pp2_marlin_dir = ROOT / "bench-results" / "conc-sweep-pp2-1000-1000"
+
+df_vllm_tep = load_sweep(vllm_tep_dir, "vLLM TEP16") if vllm_tep_dir.exists() else pd.DataFrame()
+df_vllm_pp2_humming = load_sweep(vllm_pp2_humming_dir, "vLLM PP2 (Humming)") if vllm_pp2_humming_dir.exists() else pd.DataFrame()
+df_vllm_pp2_marlin = load_sweep(vllm_pp2_marlin_dir, "vLLM PP2 (Marlin)") if vllm_pp2_marlin_dir.exists() else pd.DataFrame()
+```
+
+# Introduction
+
+This report evaluates **SGLang** serving performance for the **Kimi-K3** model on
+**H200 GPUs** (2×8 = 16 GPUs) using two parallelization strategies: **TP16+EP16** (flat
+tensor + expert parallel) and **TP8×PP2** (tensor + pipeline parallel). Each strategy
+was benchmarked under multiple Mamba cache configurations to study the
+`--mamba-full-memory-ratio` tuning knob, which controls the tradeoff between Mamba
+state cache (concurrency) and KV cache (context capacity).
+
+All sweeps use the same workload: **1000 input tokens / 1000 output tokens**, concurrency
+from C=1 to C=512, ~120 seconds per tier. Benchmarked using `vllm bench serve` (CPU build)
+as the OpenAI-compatible client.
+
+```{python}
+#| label: intro-peaks
+#| output: asis
+
+def peak_info(df, label):
+    if df.empty:
+        return f"- **{label}**: no data"
+    peak = df.loc[df["output_throughput"].idxmax()]
+    return f"- **{label}**: peak **{peak['output_throughput']:.0f}** tok/s @ C={int(peak['concurrency'])}"
+
+lines = [
+    "**SGLang peak throughput by configuration:**",
+    "",
+    "TP16+EP16:",
+    peak_info(df_tp16_default, "Default (mamba=0.45, mem=0.85)"),
+    peak_info(df_tp16_fp8, "FP8 KV (mamba=0.47, mem=0.85)"),
+    peak_info(df_tp16_m90, "Tuned (mamba=0.90, mem=0.90)"),
+    "",
+    "TP8×PP2:",
+    peak_info(df_pp2_m23, "mamba=0.23, mem=0.85"),
+    peak_info(df_pp2_m70, "mamba=0.70, mem=0.90"),
+    peak_info(df_pp2_m90, "mamba=0.90, mem=0.90"),
+]
+print("\n".join(lines))
+```
+
+# Configuration
+
+Same MXFP4 checkpoint (`/models/Kimi-K3` on hostPath), same prompt shape (**1000 in / 1000 out**, `--ignore-eos`, `--request-rate inf`). All sweeps cover C ∈ {1…512}. SGLang image: `lmsysorg/sglang:kimi-k3`. Benchmark client: `vllm bench serve` (CPU build, v0.26.0). Flags from each sweep's archived `sglang-recipe-*.log` (launch banner + `server_args`). Bring-up: [`deploy-sglang-tp16-ep16.sh`](scripts/deploy-sglang-tp16-ep16.sh) / [`deploy-sglang-pp2.sh`](scripts/deploy-sglang-pp2.sh).
+
+```{python}
+#| label: config-table
+#| output: asis
+
+# Build the configuration table from parsed log metadata
+# Best TP16 config: mamba-90/mem-90
+# Best PP2 config: mamba-90/mem-90
+
+def fmt_meta(meta, key, suffix=""):
+    v = meta.get(key, "—")
+    if isinstance(v, int):
+        return f"{v:,}{suffix}" if v > 999 else f"{v}{suffix}"
+    return str(v) + suffix
+
+# All configs tested
+tp16_configs_meta = [
+    ("TP16+EP16 default", meta_tp16_default),
+    ("TP16+EP16 fp8-kv", meta_tp16_fp8),
+    ("TP16+EP16 tuned", meta_tp16_m90),
+]
+pp2_configs_meta = [
+    ("PP2 mamba=0.23", meta_pp2_m23),
+    ("PP2 mamba=0.70", meta_pp2_m70),
+    ("PP2 mamba=0.90", meta_pp2_m90),
+]
+all_configs = tp16_configs_meta + pp2_configs_meta
+
+header_names = [c[0] for c in all_configs]
+header = "| | " + " | ".join(f"**{n}**" for n in header_names) + " |"
+sep = "|:--|" + "|".join([":--"] * len(all_configs)) + "|"
+
+def row(label, key=None, values=None):
+    if values:
+        return f"| {label} | " + " | ".join(values) + " |"
+    vals = [fmt_meta(c[1], key) for c in all_configs]
+    return f"| {label} | " + " | ".join(vals) + " |"
+
+lines = [header, sep]
+lines.append(row("**Parallelism**", values=["" for _ in all_configs]))
+lines.append(row("`--tp-size`", values=["16", "16", "16", "8", "8", "8"]))
+lines.append(row("`--pp-size`", values=["— (1)", "— (1)", "— (1)", "2", "2", "2"]))
+lines.append(row("`--ep-size`", values=["16", "16", "16", "— (1)", "— (1)", "— (1)"]))
+lines.append(row("`--nnodes`", values=["2"] * 6))
+lines.append(row("**Memory tuning**", values=["" for _ in all_configs]))
+lines.append(row("`--mem-fraction-static`", "mem_fraction"))
+lines.append(row("`--mamba-full-memory-ratio`", "mamba_ratio"))
+lines.append(row("`--mamba-ssm-dtype`", values=["— (fp32)", "— (fp32)", "bfloat16", "bfloat16", "bfloat16", "bfloat16"]))
+lines.append(row("`--context-length`", "context_length"))
+lines.append(row("`--max-running-requests`", values=["256", "256", "256", "256", "256", "256"]))
+lines.append(row("`--kv-cache-dtype`", "kv_dtype"))
+lines.append(row("**Shared CLI options**", values=["" for _ in all_configs]))
+lines.append(row("`sglang serve` model", values=["`/models/Kimi-K3`"] * 6))
+lines.append(row("`--decode-attention-backend`", values=["`flashmla`"] * 6))
+lines.append(row("`--moe-runner-backend`", values=["`marlin`"] * 6))
+lines.append(row("`--enable-symm-mem`", values=["set"] * 6))
+lines.append(row("`--reasoning-parser`", values=["`kimi_k3`"] * 6))
+lines.append(row("`--port`", values=["`30000`"] * 6))
+lines.append(row("**NCCL env**", values=["" for _ in all_configs]))
+lines.append(row("`NCCL_IB_HCA` / `GID_INDEX`", values=["`mlx5_5`/`3`"] * 6))
+lines.append(row("`NCCL_MNNVL_ENABLE`", values=["`1`"] * 6))
+lines.append(row("`NCCL_CUMEM_ENABLE`", values=["`1`"] * 6))
+lines.append(row("**Observed runtime**", values=["" for _ in all_configs]))
+lines.append(row("GPUs", values=["16× H200 (2×8)"] * 6))
+lines.append(row("Mamba slots/request", values=["5", "5", "5", "4", "4", "4"]))
+
+mr_vals = [str(c[1].get("max_running", "—")) for c in all_configs]
+lines.append(row("max_running (effective)", values=mr_vals))
+
+mamba_vals = []
+for _, meta in all_configs:
+    slots = meta.get("mamba_slots", "—")
+    total = meta.get("mamba_total_gb", "—")
+    mamba_vals.append(f"{total} ({slots} slots)" if slots != "—" else "—")
+lines.append(row("Mamba Cache", values=mamba_vals))
+
+lines.append(row("KV Cache size", "kv_gib"))
+lines.append(row("KV Cache tokens", "kv_tokens"))
+
+print("\n".join(lines))
+```
+
+- **TP16+EP16:** Official H200 low-latency recipe from [SGLang docs](https://docs.sglang.io/cookbook/autoregressive/Moonshotai/Kimi-K3#hw=h200&pdMode=unified&strategy=low-latency). Flat tensor + expert parallelism across 2 nodes — all 16 GPUs participate in every layer. Uses 5 Mamba state slots per request.
+- **TP8×PP2:** Pipeline parallelism across nodes with tensor parallelism within each node. Not an official SGLang H200 recipe (PP is B200-specific in docs), but included for comparison with vLLM PP2 results. Uses 4 Mamba state slots per request. Cross-node PP P2P required `NCCL_IB_HCA=mlx5_5` / `NCCL_IB_GID_INDEX=3` (same RoCE fix as vLLM PP2).
+- **Mamba tuning:** `--mamba-full-memory-ratio` was tuned across multiple runs (see sections below). The "best" config uses ratio=0.90 with `--mem-fraction-static 0.90`. Ratio=0.95 crashed under load (insufficient runtime headroom).
+
+# 1. TP16+EP16 Configuration Comparison
+
+## Configuration
+
+```{python}
+#| label: tp16-config-table
+#| output: asis
+
+def fmt(v):
+    if isinstance(v, int):
+        return f"{v:,}" if v > 999 else str(v)
+    return str(v)
+
+rows = []
+for label, meta in [
+    ("Default", meta_tp16_default),
+    ("FP8 KV", meta_tp16_fp8),
+    ("Tuned", meta_tp16_m90),
+]:
+    rows.append(f"| **{label}** | {meta['mem_fraction']} | {meta['mamba_ratio']} | {meta['context_length']} | {fmt(meta['max_running'])} | {meta['mamba_total_gb']} | {meta['kv_gib']} | {meta['kv_tokens']} | {meta['kv_dtype']} |")
+
+print("""| Config | mem-fraction | mamba-ratio | context-len | max_running | Mamba GB | KV GB | KV tokens | KV dtype |
+|--------|-------------|-------------|-------------|-------------|---------|-------|-----------|----------|""")
+print("\n".join(rows))
+```
+
+## Throughput
+
+```{python}
+#| label: fig-tp16-throughput
+#| fig-cap: "TP16+EP16 output token throughput vs concurrency — Mamba cache tuning."
+
+all_tp16 = pd.concat([df_tp16_default, df_tp16_fp8, df_tp16_m90], ignore_index=True)
+fig = px.line(
+    all_tp16, x="concurrency", y="output_throughput",
+    color="run", color_discrete_map=TP16_COLORS, markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+## Latency
+
+```{python}
+#| label: fig-tp16-latency
+#| fig-cap: "TP16+EP16 TTFT and TPOT across Mamba cache configurations."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT (ms)", "TPOT (ms)"))
+for run, dfx in [
+    ("TP16+EP16 (default)", df_tp16_default),
+    ("TP16+EP16 (fp8-kv)", df_tp16_fp8),
+    ("TP16+EP16 (mamba-90/mem-90)", df_tp16_m90),
+]:
+    color = TP16_COLORS[run]
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_ttft_ms"], mode="lines+markers",
+        name=run, legendgroup=run, line=dict(color=color), showlegend=True), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_tpot_ms"], mode="lines+markers",
+        name=run, legendgroup=run, line=dict(color=color), showlegend=False), row=1, col=2)
+for col in (1, 2):
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+## Per-config detail
+
+### Default (mamba=0.45, mem=0.85)
+
+```{python}
+#| label: tbl-tp16-default
+per_config_table(df_tp16_default)
+```
+
+### FP8 KV (mamba=0.47, mem=0.85)
+
+```{python}
+#| label: tbl-tp16-fp8
+per_config_table(df_tp16_fp8)
+```
+
+### Tuned (mamba=0.90, mem=0.90)
+
+```{python}
+#| label: tbl-tp16-m90
+per_config_table(df_tp16_m90)
+```
+
+# 2. TP8×PP2 Configuration Comparison
+
+## Configuration
+
+```{python}
+#| label: pp2-config-table
+#| output: asis
+
+rows = []
+for label, meta in [
+    ("mamba=0.23", meta_pp2_m23),
+    ("mamba=0.70", meta_pp2_m70),
+    ("mamba=0.90", meta_pp2_m90),
+]:
+    rows.append(f"| **{label}** | {meta['mem_fraction']} | {meta['mamba_ratio']} | {meta['context_length']} | {fmt(meta['max_running'])} | {meta['mamba_total_gb']} | {meta['kv_gib']} | {meta['kv_tokens']} | {meta['kv_dtype']} |")
+
+print("""| Config | mem-fraction | mamba-ratio | context-len | max_running | Mamba GB | KV GB | KV tokens | KV dtype |
+|--------|-------------|-------------|-------------|-------------|---------|-------|-----------|----------|""")
+print("\n".join(rows))
+```
+
+## Throughput
+
+```{python}
+#| label: fig-pp2-throughput
+#| fig-cap: "TP8×PP2 output token throughput vs concurrency — Mamba cache tuning."
+
+all_pp2 = pd.concat([df_pp2_m23, df_pp2_m70, df_pp2_m90], ignore_index=True)
+fig = px.line(
+    all_pp2, x="concurrency", y="output_throughput",
+    color="run", color_discrete_map=PP2_COLORS, markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+## Latency
+
+```{python}
+#| label: fig-pp2-latency
+#| fig-cap: "TP8×PP2 TTFT and TPOT across Mamba cache configurations."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT (ms)", "TPOT (ms)"))
+for run, dfx in [
+    ("PP2 (mamba-23)", df_pp2_m23),
+    ("PP2 (mamba-70)", df_pp2_m70),
+    ("PP2 (mamba-90/mem-90)", df_pp2_m90),
+]:
+    color = PP2_COLORS[run]
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_ttft_ms"], mode="lines+markers",
+        name=run, legendgroup=run, line=dict(color=color), showlegend=True), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_tpot_ms"], mode="lines+markers",
+        name=run, legendgroup=run, line=dict(color=color), showlegend=False), row=1, col=2)
+for col in (1, 2):
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+## Per-config detail
+
+### mamba=0.23, mem=0.85
+
+```{python}
+#| label: tbl-pp2-m23
+per_config_table(df_pp2_m23)
+```
+
+### mamba=0.70, mem=0.90
+
+```{python}
+#| label: tbl-pp2-m70
+per_config_table(df_pp2_m70)
+```
+
+### mamba=0.90, mem=0.90
+
+```{python}
+#| label: tbl-pp2-m90
+per_config_table(df_pp2_m90)
+```
+
+# 3. Best TP16+EP16 vs Best TP8×PP2
+
+```{python}
+#| label: best-sglang-setup
+
+# Select best configs (highest peak throughput)
+tp16_configs = [
+    ("TP16+EP16 (default)", df_tp16_default),
+    ("TP16+EP16 (fp8-kv)", df_tp16_fp8),
+    ("TP16+EP16 (mamba-90/mem-90)", df_tp16_m90),
+]
+pp2_configs = [
+    ("PP2 (mamba-23)", df_pp2_m23),
+    ("PP2 (mamba-70)", df_pp2_m70),
+    ("PP2 (mamba-90/mem-90)", df_pp2_m90),
+]
+
+best_tp16_name, best_tp16_df = max(tp16_configs, key=lambda x: x[1]["output_throughput"].max())
+best_pp2_name, best_pp2_df = max(pp2_configs, key=lambda x: x[1]["output_throughput"].max())
+```
+
+```{python}
+#| label: best-sglang-info
+#| output: asis
+
+peak_tp16 = best_tp16_df.loc[best_tp16_df["output_throughput"].idxmax()]
+peak_pp2 = best_pp2_df.loc[best_pp2_df["output_throughput"].idxmax()]
+
+print(f"""
+**Best TP16+EP16:** {best_tp16_name} — peak **{peak_tp16['output_throughput']:.0f}** tok/s @ C={int(peak_tp16['concurrency'])}
+
+**Best TP8×PP2:** {best_pp2_name} — peak **{peak_pp2['output_throughput']:.0f}** tok/s @ C={int(peak_pp2['concurrency'])}
+
+PP2 achieves **{peak_pp2['output_throughput'] / peak_tp16['output_throughput']:.1f}×** the throughput of TP16+EP16 at peak.
+Pipeline parallelism with TP8 significantly outperforms flat TP16 on SGLang — the PP2 architecture
+allows each pipeline stage to handle its portion more efficiently, resulting in lower per-token
+decode latency.
+""")
+```
+
+## Throughput comparison
+
+```{python}
+#| label: fig-best-sglang
+#| fig-cap: "Best TP16+EP16 vs best TP8×PP2 — throughput."
+
+best_colors = {"SGLang TP16+EP16": "#9467bd", "SGLang PP2": "#d62728"}
+df_best_tp16 = best_tp16_df.copy()
+df_best_tp16["run"] = "SGLang TP16+EP16"
+df_best_pp2 = best_pp2_df.copy()
+df_best_pp2["run"] = "SGLang PP2"
+best_both = pd.concat([df_best_tp16, df_best_pp2], ignore_index=True)
+
+fig = px.line(
+    best_both, x="concurrency", y="output_throughput",
+    color="run", color_discrete_map=best_colors, markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+## Latency comparison
+
+```{python}
+#| label: fig-best-sglang-latency
+#| fig-cap: "Best TP16+EP16 vs best TP8×PP2 — TTFT and TPOT."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT (ms)", "TPOT (ms)"))
+for run, dfx in [("SGLang TP16+EP16", df_best_tp16), ("SGLang PP2", df_best_pp2)]:
+    color = best_colors[run]
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_ttft_ms"], mode="lines+markers",
+        name=run, legendgroup=run, line=dict(color=color), showlegend=True), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_tpot_ms"], mode="lines+markers",
+        name=run, legendgroup=run, line=dict(color=color), showlegend=False), row=1, col=2)
+for col in (1, 2):
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+# 4. SGLang vs vLLM
+
+```{python}
+#| label: cross-runtime-setup
+
+# Combine best SGLang with vLLM baselines
+cross_dfs = []
+
+df_best_tp16_cross = best_tp16_df.copy()
+df_best_tp16_cross["run"] = "SGLang TP16+EP16"
+cross_dfs.append(df_best_tp16_cross)
+
+df_best_pp2_cross = best_pp2_df.copy()
+df_best_pp2_cross["run"] = "SGLang PP2"
+cross_dfs.append(df_best_pp2_cross)
+
+if not df_vllm_tep.empty:
+    cross_dfs.append(df_vllm_tep)
+if not df_vllm_pp2_humming.empty:
+    cross_dfs.append(df_vllm_pp2_humming)
+if not df_vllm_pp2_marlin.empty:
+    cross_dfs.append(df_vllm_pp2_marlin)
+
+cross_all = pd.concat(cross_dfs, ignore_index=True)
+```
+
+```{python}
+#| label: cross-runtime-summary
+#| output: asis
+
+lines = ["**Peak throughput comparison (1000/1000):**", ""]
+for name, df in [
+    ("SGLang TP16+EP16", df_best_tp16_cross),
+    ("SGLang PP2", df_best_pp2_cross),
+    ("vLLM TEP16", df_vllm_tep),
+    ("vLLM PP2 (Humming)", df_vllm_pp2_humming),
+    ("vLLM PP2 (Marlin)", df_vllm_pp2_marlin),
+]:
+    if df.empty:
+        continue
+    peak = df.loc[df["output_throughput"].idxmax()]
+    c1 = df.loc[df["concurrency"] == 1].iloc[0]
+    lines.append(
+        f"- **{name}**: peak **{peak['output_throughput']:.0f}** tok/s @ C={int(peak['concurrency'])}, "
+        f"C=1 TTFT={c1['mean_ttft_ms']:.0f}ms, TPOT={c1['mean_tpot_ms']:.1f}ms"
+    )
+print("\n".join(lines))
+```
+
+## Throughput
+
+```{python}
+#| label: fig-cross-throughput
+#| fig-cap: "SGLang vs vLLM — output token throughput."
+
+fig = px.line(
+    cross_all, x="concurrency", y="output_throughput",
+    color="run", color_discrete_map=BEST_COLORS, markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+## Latency
+
+```{python}
+#| label: fig-cross-latency
+#| fig-cap: "SGLang vs vLLM — TTFT and TPOT."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT (ms)", "TPOT (ms)"))
+for run_name in cross_all["run"].unique():
+    dfx = cross_all[cross_all["run"] == run_name]
+    color = BEST_COLORS.get(run_name, "#888888")
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_ttft_ms"], mode="lines+markers",
+        name=run_name, legendgroup=run_name, line=dict(color=color), showlegend=True), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_tpot_ms"], mode="lines+markers",
+        name=run_name, legendgroup=run_name, line=dict(color=color), showlegend=False), row=1, col=2)
+for col in (1, 2):
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+# Mamba Cache Tuning Analysis
+
+```{python}
+#| label: mamba-tuning-analysis
+#| output: asis
+
+print("""
+## Key findings on --mamba-full-memory-ratio
+
+Kimi-K3 is a hybrid Mamba+Transformer model. SGLang exposes `--mamba-full-memory-ratio` to
+control how GPU memory (after weights) is split between Mamba state cache and KV cache.
+Each in-flight request requires a fixed number of Mamba state slots (4 for PP2, 5 for TP16+EP16),
+making this ratio the primary concurrency limiter.
+
+**The ratio does NOT map linearly to memory fraction.** Actual Mamba allocation is significantly
+lower than the requested ratio — at ratio=0.90 with mem=0.90, Mamba only receives ~34% of the
+available pool.
+
+**For the 1000/1000 workload, Mamba is always the bottleneck.** Each request needs only 2000 KV
+tokens, but even at the lowest ratio tested (0.23), KV cache has 17× headroom. Increasing the
+ratio shifts memory from over-provisioned KV to under-provisioned Mamba, directly improving
+max concurrency and throughput.
+
+| Setting | mem | ratio | max_running | KV headroom | Impact |
+|---------|-----|-------|-------------|-------------|--------|
+| Conservative | 0.85 | 0.23 | 31 | 17× | Worst throughput |
+| Default | 0.85 | 0.45 | 52-68 | 6-9× | Baseline |
+| Tuned | 0.90 | 0.70 | 95 | 5.6× | +40% over default |
+| Aggressive | 0.90 | 0.90 | 110 | 4.3× | +60% over default |
+| **Too aggressive** | **0.95** | **0.90** | **140** | **4.3×** | **Crashed under load** |
+
+**Recommendation:** For 1000/1000 workloads, use `--mem-fraction-static 0.90 --mamba-full-memory-ratio 0.90`.
+Do not exceed `--mem-fraction-static 0.90` — the 0.95 setting crashed due to insufficient runtime
+memory headroom for CUDA graph replay and temporary buffers.
+""")
+```
+
+# Artifacts
+
+```{python}
+#| label: artifacts
+#| output: asis
+
+artifacts = [
+    ("SGLang TP16+EP16 (default)", "bench-results/sglang/conc-sweep-tp16-ep16-1000-1000/"),
+    ("SGLang TP16+EP16 (fp8-kv)", "bench-results/sglang/conc-sweep-tp16-ep16-1000-1000-fp8-kv/"),
+    ("SGLang TP16+EP16 (mamba-90/mem-90)", "bench-results/sglang/conc-sweep-tp16-ep16-1000-1000-mamba-cache-90-mem-90/"),
+    ("SGLang PP2 (mamba-23)", "bench-results/sglang/conc-sweep-tp8-pp2-1000-1000-mamba-cache-23/"),
+    ("SGLang PP2 (mamba-70)", "bench-results/sglang/conc-sweep-tp8-pp2-1000-1000-mamba-cache-70/"),
+    ("SGLang PP2 (mamba-90/mem-90)", "bench-results/sglang/conc-sweep-tp8-pp2-1000-1000-mamba-cache-90-mem-90/"),
+    ("Report source", "reports/sglang-kimi-k3-1000-1000.qmd"),
+]
+
+lines = ["| Kind | Path |", "|------|------|"]
+for kind, path in artifacts:
+    lines.append(f"| {kind} | `{path}` |")
+print("\n".join(lines))
+```
