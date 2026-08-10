@@ -12,6 +12,9 @@ RESULT_DIR="${RESULT_DIR:-/tmp/vllm-bench-sweep-512}"
 CONCURRENCIES=(${CONCURRENCIES:-1 2 4 8 16 32 64 128 256 512})
 # Fresh random seed for this sweep (override with SEED=...).
 SEED="${SEED:-$(python3 -c 'import random; print(random.randint(1, 2_000_000_000))')}"
+# Bench command: default to Rust binary, fall back to Python for servers
+# whose /tokenize endpoint is broken (e.g. SGLang + Kimi-K3 tiktoken).
+BENCH_CMD="${BENCH_CMD:-vllm bench serve}"
 
 mkdir -p "$RESULT_DIR"
 SUMMARY="$RESULT_DIR/summary.tsv"
@@ -32,7 +35,8 @@ print(
     f"{d.get('mean_ttft_ms', '')}\t{d.get('mean_tpot_ms', '')}\t"
     f"{d.get('mean_e2el_ms', '')}"
 )
-waves = max(1.0, float(nprompts) / float(conc))
+numeric_conc = float(''.join(c for c in conc if c.isdigit() or c == '.') or '1')
+waves = max(1.0, float(nprompts) / numeric_conc)
 print(f"observed_avg_request_s={dur / waves:.4f}", file=sys.stderr)
 PY
 }
@@ -40,10 +44,11 @@ PY
 run_bench() {
   local c="$1" n="$2" out_json="$3" seed="$4" log="$5"
   set +e
-  vllm bench serve \
+  $BENCH_CMD \
     --backend openai \
     --base-url "$BASE_URL" \
     --model "$MODEL" \
+    --trust-remote-code \
     --endpoint /v1/completions \
     --dataset-name random \
     --random-input-len "$INPUT_LEN" \
