@@ -1,0 +1,440 @@
+---
+title: "SGLang vs vLLM Pipeline Parallel Performance (H200)"
+subtitle: "SGLang PP2/PP4 vs vLLM PP2 (Marlin/Humming) — 1000 in / 1000 out"
+date: "August 10, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import re
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+SGLANG_DIR = ROOT / "bench-results" / "sglang"
+
+# --- Log parsers ---
+_RE_SGL_KV = re.compile(r"KV Cache is allocated\.\s*dtype:\s*(\S+),\s*#tokens:\s*([\d,]+),\s*KV size:\s*([\d.]+)\s*GB")
+_RE_SGL_MAMBA = re.compile(r"Mamba Cache is allocated\.\s*max_mamba_cache_size:\s*(\d+),\s*conv_state size:\s*([\d.]+)GB,\s*ssm_state size:\s*([\d.]+)GB")
+_RE_SGL_CAPPED = re.compile(r"max_running_requests is capped to (\d+)")
+_RE_SGL_WEIGHT = re.compile(r"Load weight end.*avail mem=([\d.]+) GB, mem usage=([\d.]+) GB")
+_RE_VLLM_KV_GIB = re.compile(r"Available KV cache memory:\s*([\d.]+)\s*GiB")
+_RE_VLLM_KV_TOKENS = re.compile(r"GPU KV cache size:\s*([\d,]+)\s*tokens")
+_RE_VLLM_MAXCONC = re.compile(r"Maximum concurrency for\s*([\d,]+)\s*tokens per request:\s*([\d.]+)x")
+
+
+def parse_sglang_logs(data_dir: Path) -> dict:
+    result = {"kv_gib": "—", "kv_tokens": "—", "kv_dtype": "—",
+              "mamba_slots": "—", "mamba_total_gb": "—",
+              "max_running": "—", "weight_gb": "—", "avail_gb": "—"}
+    for log in sorted(data_dir.glob("sglang-recipe-*.log")):
+        text = log.read_text(errors="replace")
+        m = _RE_SGL_KV.search(text)
+        if m and result["kv_gib"] == "—":
+            result["kv_dtype"] = m.group(1)
+            result["kv_tokens"] = f"{int(m.group(2).replace(',','')):,}"
+            result["kv_gib"] = f"{float(m.group(3)):.2f} GB"
+        m = _RE_SGL_MAMBA.search(text)
+        if m and result["mamba_slots"] == "—":
+            result["mamba_slots"] = int(m.group(1))
+            result["mamba_total_gb"] = f"{float(m.group(2))+float(m.group(3)):.2f} GB"
+        m = _RE_SGL_CAPPED.search(text)
+        if m and result["max_running"] == "—":
+            result["max_running"] = int(m.group(1))
+        m = _RE_SGL_WEIGHT.search(text)
+        if m and result["weight_gb"] == "—":
+            result["weight_gb"] = f"{float(m.group(2)):.1f} GB"
+            result["avail_gb"] = f"{float(m.group(1)):.1f} GB"
+        # Check banner
+        for line in text.split("\n")[:15]:
+            if "mem-fraction-static=" in line:
+                result["mem_frac"] = re.search(r"mem-fraction-static=([\d.]+)", line).group(1)
+            if "mamba-full-memory-ratio=" in line:
+                result["mamba_ratio"] = re.search(r"mamba-full-memory-ratio=([\d.]+)", line).group(1)
+    if result["max_running"] == "—" and result["mamba_slots"] != "—":
+        result["max_running"] = f"{result['mamba_slots'] // 4}+"
+    return result
+
+
+def parse_vllm_logs(data_dir: Path) -> dict:
+    result = {"kv_gib": "—", "kv_tokens": "—", "kv_maxconc": "—"}
+    for log in sorted(data_dir.glob("vllm-recipe-*.log")):
+        text = log.read_text(errors="replace")
+        m = _RE_VLLM_KV_GIB.search(text)
+        if m:
+            result["kv_gib"] = f"{float(m.group(1)):.2f} GiB"
+        m = _RE_VLLM_KV_TOKENS.search(text)
+        if m:
+            result["kv_tokens"] = f"{int(m.group(1).replace(',','')):,}"
+        m = _RE_VLLM_MAXCONC.search(text)
+        if m:
+            result["kv_maxconc"] = f"{float(m.group(2)):.1f}x @ {int(m.group(1).replace(',','')):,} tok"
+    return result
+
+
+def load_sweep(data_dir: Path, label: str) -> pd.DataFrame:
+    rows = []
+    paths = [p for p in data_dir.glob("conc-*.json")
+             if p.stem.split("-")[1].isdigit() and "topup" not in p.name]
+    for path in sorted(paths, key=lambda p: int(p.stem.split("-")[1])):
+        d = json.loads(path.read_text())
+        rows.append({
+            "run": label,
+            "concurrency": int(d["max_concurrency"]),
+            "num_prompts": d["num_prompts"],
+            "duration_s": d["duration"],
+            "completed": d["completed"],
+            "failed": d.get("failed", 0),
+            "request_throughput": d["request_throughput"],
+            "output_throughput": d["output_throughput"],
+            "total_token_throughput": d.get("total_token_throughput", d["output_throughput"] * 2),
+            "mean_ttft_ms": d["mean_ttft_ms"],
+            "p99_ttft_ms": d.get("p99_ttft_ms", 0),
+            "mean_tpot_ms": d["mean_tpot_ms"],
+            "p99_tpot_ms": d.get("p99_tpot_ms", 0),
+            "mean_itl_ms": d.get("mean_itl_ms", 0),
+            "mean_e2el_ms": d.get("mean_e2el_ms", 0),
+            "date": d.get("date"),
+        })
+    if not rows:
+        return pd.DataFrame()
+    df = pd.DataFrame(rows).sort_values("concurrency").reset_index(drop=True)
+    tok1 = df.loc[df["concurrency"] == 1, "output_throughput"].iloc[0]
+    df["ideal_output_tok_s"] = tok1 * df["concurrency"]
+    df["scaling_efficiency"] = df["output_throughput"] / df["ideal_output_tok_s"]
+    return df
+
+
+def per_config_table(df):
+    show = df[["concurrency", "num_prompts", "duration_s", "request_throughput",
+               "output_throughput", "mean_ttft_ms", "mean_tpot_ms", "mean_e2el_ms"]].copy()
+    show["concurrency"] = show["concurrency"].astype(int)
+    show["num_prompts"] = show["num_prompts"].astype(int)
+    show["duration_s"] = show["duration_s"].round(1)
+    show["request_throughput"] = show["request_throughput"].round(2)
+    show["output_throughput"] = show["output_throughput"].round(1)
+    show["mean_ttft_ms"] = show["mean_ttft_ms"].round(1)
+    show["mean_tpot_ms"] = show["mean_tpot_ms"].round(1)
+    show["mean_e2el_ms"] = (show["mean_e2el_ms"] / 1000).round(1)
+    show = show.rename(columns={
+        "concurrency": "C", "num_prompts": "prompts", "duration_s": "dur (s)",
+        "request_throughput": "req/s", "output_throughput": "out tok/s",
+        "mean_ttft_ms": "TTFT ms", "mean_tpot_ms": "TPOT ms", "mean_e2el_ms": "E2EL s",
+    })
+    return show.style.hide(axis="index").format({
+        "C": "{:d}", "prompts": "{:d}", "dur (s)": "{:.1f}",
+        "req/s": "{:.2f}", "out tok/s": "{:.1f}",
+        "TTFT ms": "{:.1f}", "TPOT ms": "{:.1f}", "E2EL s": "{:.1f}",
+    })
+
+
+# --- Colors ---
+RUN_COLORS = {
+    "SGLang PP2": "#d62728",
+    "SGLang PP4": "#e377c2",
+    "vLLM PP2 (Marlin)": "#ff7f0e",
+    "vLLM PP2 (Humming)": "#2ca02c",
+}
+
+# --- Load data ---
+df_sgl_pp2 = load_sweep(SGLANG_DIR / "conc-sweep-tp8-pp2-1000-1000-mamba-cache-90-mem-90", "SGLang PP2")
+df_sgl_pp4 = load_sweep(SGLANG_DIR / "conc-sweep-tp8-pp4-1000-1000-mamba-cache-90-kv-85", "SGLang PP4")
+df_vllm_marlin = load_sweep(ROOT / "bench-results" / "conc-sweep-pp2-1000-1000", "vLLM PP2 (Marlin)")
+df_vllm_humming = load_sweep(ROOT / "bench-results" / "conc-sweep-pp2-humming-1000-1000", "vLLM PP2 (Humming)")
+
+meta_sgl_pp2 = parse_sglang_logs(SGLANG_DIR / "conc-sweep-tp8-pp2-1000-1000-mamba-cache-90-mem-90")
+meta_sgl_pp4 = parse_sglang_logs(SGLANG_DIR / "conc-sweep-tp8-pp4-1000-1000-mamba-cache-90-kv-85")
+meta_vllm_marlin = parse_vllm_logs(ROOT / "bench-results" / "conc-sweep-pp2-1000-1000")
+meta_vllm_humming = parse_vllm_logs(ROOT / "bench-results" / "conc-sweep-pp2-humming-1000-1000")
+
+all_runs = pd.concat([df_sgl_pp2, df_sgl_pp4, df_vllm_marlin, df_vllm_humming], ignore_index=True)
+```
+
+# Introduction
+
+```{python}
+#| label: intro
+#| output: asis
+
+def peak(df):
+    row = df.loc[df["output_throughput"].idxmax()]
+    return row["output_throughput"], int(row["concurrency"])
+
+def c1(df):
+    row = df.loc[df["concurrency"] == 1].iloc[0]
+    return row["mean_ttft_ms"], row["mean_tpot_ms"]
+
+sgl_pp2_peak, sgl_pp2_c = peak(df_sgl_pp2)
+sgl_pp4_peak, sgl_pp4_c = peak(df_sgl_pp4)
+vllm_m_peak, vllm_m_c = peak(df_vllm_marlin)
+vllm_h_peak, vllm_h_c = peak(df_vllm_humming)
+
+print(f"""
+Compare pipeline parallel performance across **SGLang** and **vLLM** for the Kimi-K3 model
+on H200 GPUs with **1000 in / 1000 out** workload. All configurations use TP8 within each
+node; PP determines how many nodes participate.
+
+**Peak throughput (1000/1000):**
+
+| Runtime | Config | GPUs | Peak tok/s | @ C | MoE backend |
+|---------|--------|------|-----------|-----|-------------|
+| **vLLM** | **PP2 (Humming)** | **16** | **{vllm_h_peak:.0f}** | **{vllm_h_c}** | **Humming** |
+| SGLang | PP4 | 32 | {sgl_pp4_peak:.0f} | {sgl_pp4_c} | Marlin |
+| vLLM | PP2 (Marlin) | 16 | {vllm_m_peak:.0f} | {vllm_m_c} | Marlin |
+| SGLang | PP2 | 16 | {sgl_pp2_peak:.0f} | {sgl_pp2_c} | Marlin |
+
+**Key finding:** The **Humming MoE kernel** is the single biggest performance lever.
+vLLM PP2 with Humming achieves **{vllm_h_peak:.0f} tok/s on 16 GPUs** — outperforming
+SGLang PP4's {sgl_pp4_peak:.0f} tok/s on **32 GPUs** (2x the hardware). Switching from
+Marlin to Humming on the same vLLM PP2 config gives a
+**{vllm_h_peak/vllm_m_peak:.1f}x throughput boost**.
+""")
+```
+
+# Configuration
+
+```{python}
+#| label: config-table
+#| output: asis
+
+print("""| | **SGLang PP2** | **SGLang PP4** | **vLLM PP2 (Marlin)** | **vLLM PP2 (Humming)** |
+|:--|:--|:--|:--|:--|
+| **Runtime** | SGLang | SGLang | vLLM | vLLM |
+| **Image** | `lmsysorg/sglang:kimi-k3` | `lmsysorg/sglang:kimi-k3` | `vllm/vllm-openai:kimi-k3` | `vllm/vllm-openai:kimi-k3` |
+| **Parallelism** | | | | |
+| TP / PP | 8 / 2 | 8 / 4 | 8 / 2 | 8 / 2 |
+| Nodes × GPUs | 2×8 (16) | 4×8 (32) | 2×8 (16) | 2×8 (16) |
+| **MoE** | | | | |
+| MoE backend | Marlin | Marlin | Marlin | **Humming** |
+| **Memory** | | | | |""")
+
+print(f"""| mem-fraction / gpu-mem-util | {meta_sgl_pp2.get('mem_frac','0.90')} | {meta_sgl_pp4.get('mem_frac','0.85')} | 0.90 | 0.90 |
+| mamba-full-memory-ratio | {meta_sgl_pp2.get('mamba_ratio','0.90')} | {meta_sgl_pp4.get('mamba_ratio','0.90')} | — (internal) | — (internal) |
+| mamba-ssm-dtype | bfloat16 | bfloat16 | — | — |
+| **Attention** | | | | |
+| Decode backend | flashmla | flashmla | FLASHMLA | FLASHMLA |
+| Prefill backend | fa3 (auto) | fa3 (auto) | FLASHMLA | FLASHMLA |
+| **Context** | | | | |
+| Max context / model len | 8192 | 8192 | 8192 | 8192 |
+| **NCCL** | | | | |
+| NCCL_IB_HCA / GID_INDEX | mlx5_5 / 3 | mlx5_5 / 3 | mlx5_5 / 3 | mlx5_5 / 3 |
+| **Observed runtime** | | | | |
+| Weight per GPU | {meta_sgl_pp2.get('weight_gb','95.2 GB')} | {meta_sgl_pp4.get('weight_gb','47.3 GB')} | ~95 GB | ~95 GB |
+| max_running_requests | {meta_sgl_pp2.get('max_running','110')} | {meta_sgl_pp4.get('max_running','256+')} | 256 | 256 |
+| Mamba Cache | {meta_sgl_pp2.get('mamba_total_gb','6.07 GB')} ({meta_sgl_pp2.get('mamba_slots','441')} slots) | {meta_sgl_pp4.get('mamba_total_gb','8.19 GB')} ({meta_sgl_pp4.get('mamba_slots','1160')} slots) | — | — |
+| KV Cache | {meta_sgl_pp2.get('kv_gib','—')} / {meta_sgl_pp2.get('kv_tokens','—')} tok | {meta_sgl_pp4.get('kv_gib','—')} / {meta_sgl_pp4.get('kv_tokens','—')} tok | {meta_vllm_marlin.get('kv_gib','—')} / {meta_vllm_marlin.get('kv_tokens','—')} tok | {meta_vllm_humming.get('kv_gib','—')} / {meta_vllm_humming.get('kv_tokens','—')} tok |
+| Sweep tiers | C ∈ {{1…512}} | C ∈ {{1…512}} | C ∈ {{1…512}} | C ∈ {{1…512}} |""")
+```
+
+- **SGLang PP2:** Best SGLang 2-node config after Mamba cache tuning (ratio=0.90, mem=0.90). Mamba-capped to 110 concurrent.
+- **SGLang PP4:** 4-node config with more headroom (ratio=0.90, mem=0.85). Mamba no longer the bottleneck — 1160 slots.
+- **vLLM PP2 (Marlin):** vLLM baseline with Marlin MoE backend. Same hardware as SGLang PP2.
+- **vLLM PP2 (Humming):** vLLM with the Humming MoE kernel — the fastest configuration tested.
+
+# Throughput
+
+```{python}
+#| label: fig-throughput
+#| fig-cap: "Output token throughput vs concurrency — all PP configurations."
+
+fig = px.line(
+    all_runs, x="concurrency", y="output_throughput",
+    color="run", color_discrete_map=RUN_COLORS, markers=True,
+    labels={"concurrency": "max concurrency", "output_throughput": "out tok/s", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+```{python}
+#| label: throughput-table
+#| output: asis
+
+shared_c = sorted(set(df_sgl_pp2["concurrency"]) & set(df_sgl_pp4["concurrency"])
+                   & set(df_vllm_marlin["concurrency"]) & set(df_vllm_humming["concurrency"]))
+
+header = "| C | SGLang PP2 | SGLang PP4 | vLLM PP2 (Marlin) | vLLM PP2 (Humming) | PP4/PP2 | Humming/Marlin |"
+sep = "|---|---|---|---|---|---|---|"
+rows = [header, sep]
+for c in shared_c:
+    s2 = df_sgl_pp2.loc[df_sgl_pp2["concurrency"] == c, "output_throughput"].iloc[0]
+    s4 = df_sgl_pp4.loc[df_sgl_pp4["concurrency"] == c, "output_throughput"].iloc[0]
+    vm = df_vllm_marlin.loc[df_vllm_marlin["concurrency"] == c, "output_throughput"].iloc[0]
+    vh = df_vllm_humming.loc[df_vllm_humming["concurrency"] == c, "output_throughput"].iloc[0]
+    rows.append(f"| {c} | {s2:.0f} | {s4:.0f} | {vm:.0f} | {vh:.0f} | {s4/s2:.2f}x | {vh/vm:.2f}x |")
+print("\n".join(rows))
+```
+
+# Latency
+
+```{python}
+#| label: fig-latency
+#| fig-cap: "TTFT and TPOT across all PP configurations."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT (ms)", "TPOT (ms)"))
+for run_name in ["SGLang PP2", "SGLang PP4", "vLLM PP2 (Marlin)", "vLLM PP2 (Humming)"]:
+    dfx = all_runs[all_runs["run"] == run_name]
+    color = RUN_COLORS[run_name]
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_ttft_ms"], mode="lines+markers",
+        name=run_name, legendgroup=run_name, line=dict(color=color), showlegend=True), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dfx["concurrency"], y=dfx["mean_tpot_ms"], mode="lines+markers",
+        name=run_name, legendgroup=run_name, line=dict(color=color), showlegend=False), row=1, col=2)
+for col in (1, 2):
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+```{python}
+#| label: latency-table
+#| output: asis
+
+header = "| C | | SGLang PP2 | SGLang PP4 | vLLM PP2 (Marlin) | vLLM PP2 (Humming) |"
+sep = "|---|---|---|---|---|---|"
+rows = [header, sep]
+for c in shared_c:
+    s2 = df_sgl_pp2.loc[df_sgl_pp2["concurrency"] == c].iloc[0]
+    s4 = df_sgl_pp4.loc[df_sgl_pp4["concurrency"] == c].iloc[0]
+    vm = df_vllm_marlin.loc[df_vllm_marlin["concurrency"] == c].iloc[0]
+    vh = df_vllm_humming.loc[df_vllm_humming["concurrency"] == c].iloc[0]
+    rows.append(f"| {c} | TTFT | {s2['mean_ttft_ms']:.0f} | {s4['mean_ttft_ms']:.0f} | {vm['mean_ttft_ms']:.0f} | {vh['mean_ttft_ms']:.0f} |")
+    rows.append(f"| | TPOT | {s2['mean_tpot_ms']:.1f} | {s4['mean_tpot_ms']:.1f} | {vm['mean_tpot_ms']:.1f} | {vh['mean_tpot_ms']:.1f} |")
+print("\n".join(rows))
+```
+
+# Throughput per GPU
+
+```{python}
+#| label: fig-per-gpu
+#| fig-cap: "Output throughput normalized per GPU — measures efficiency."
+
+per_gpu = all_runs.copy()
+gpu_map = {"SGLang PP2": 16, "SGLang PP4": 32, "vLLM PP2 (Marlin)": 16, "vLLM PP2 (Humming)": 16}
+per_gpu["tok_per_gpu"] = per_gpu.apply(lambda r: r["output_throughput"] / gpu_map[r["run"]], axis=1)
+
+fig = px.line(
+    per_gpu, x="concurrency", y="tok_per_gpu",
+    color="run", color_discrete_map=RUN_COLORS, markers=True,
+    labels={"concurrency": "max concurrency", "tok_per_gpu": "tok/s per GPU", "run": ""},
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+```{python}
+#| label: per-gpu-summary
+#| output: asis
+
+print("""
+**Throughput per GPU at C=512 (peak):**
+""")
+
+for name, df in [("SGLang PP2", df_sgl_pp2), ("SGLang PP4", df_sgl_pp4),
+                  ("vLLM PP2 (Marlin)", df_vllm_marlin), ("vLLM PP2 (Humming)", df_vllm_humming)]:
+    gpus = gpu_map[name]
+    p = df.loc[df["output_throughput"].idxmax()]
+    print(f"- **{name}** ({gpus} GPUs): {p['output_throughput']:.0f} tok/s total, **{p['output_throughput']/gpus:.1f} tok/s/GPU**")
+
+print(f"""
+vLLM PP2 (Humming) achieves **{vllm_h_peak/16:.1f} tok/s per GPU** — the most efficient
+configuration. SGLang PP4 at {sgl_pp4_peak/32:.1f} tok/s/GPU is **{(vllm_h_peak/16)/(sgl_pp4_peak/32):.1f}x less
+efficient** per GPU despite achieving competitive absolute throughput through 2x the hardware.
+""")
+```
+
+# Per-config detail
+
+## SGLang PP2 (TP8×PP2, 16 GPUs)
+
+```{python}
+#| label: tbl-sgl-pp2
+per_config_table(df_sgl_pp2)
+```
+
+## SGLang PP4 (TP8×PP4, 32 GPUs)
+
+```{python}
+#| label: tbl-sgl-pp4
+per_config_table(df_sgl_pp4)
+```
+
+## vLLM PP2 — Marlin (TP8×PP2, 16 GPUs)
+
+```{python}
+#| label: tbl-vllm-marlin
+per_config_table(df_vllm_marlin)
+```
+
+## vLLM PP2 — Humming (TP8×PP2, 16 GPUs)
+
+```{python}
+#| label: tbl-vllm-humming
+per_config_table(df_vllm_humming)
+```
+
+```{python}
+#| label: analysis-scaling
+#| output: asis
+
+print(f"""
+## SGLang PP2 vs PP4: near-linear GPU scaling
+
+On the same runtime (SGLang, Marlin), doubling GPUs from 16 to 32 via PP4:
+
+- Peak: {sgl_pp2_peak:.0f} → {sgl_pp4_peak:.0f} tok/s = **{sgl_pp4_peak/sgl_pp2_peak:.2f}x** (ideal would be 2.0x)
+- PP4 removes the Mamba concurrency bottleneck (1160 slots vs 441) by halving weight per GPU
+
+## SGLang vs vLLM on same hardware (PP2, Marlin)
+
+Apples-to-apples on 16 GPUs with Marlin MoE:
+
+- vLLM: {vllm_m_peak:.0f} tok/s
+- SGLang: {sgl_pp2_peak:.0f} tok/s
+- **vLLM is {vllm_m_peak/sgl_pp2_peak:.1f}x faster** on identical hardware and MoE backend
+""")
+```
+
+# Artifacts
+
+| Kind | Path |
+|------|------|
+| SGLang PP2 sweep | `bench-results/sglang/conc-sweep-tp8-pp2-1000-1000-mamba-cache-90-mem-90/` |
+| SGLang PP4 sweep | `bench-results/sglang/conc-sweep-tp8-pp4-1000-1000-mamba-cache-90-kv-85/` |
+| vLLM PP2 (Marlin) sweep | `bench-results/conc-sweep-pp2-1000-1000/` |
+| vLLM PP2 (Humming) sweep | `bench-results/conc-sweep-pp2-humming-1000-1000/` |
+| Report source | `reports/sglang-vs-vllm-pp-1000-1000.qmd` |
