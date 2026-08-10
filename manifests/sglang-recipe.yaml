@@ -54,7 +54,7 @@ spec:
             - matchExpressions:
               - key: kubernetes.io/hostname
                 operator: In
-                values: ["g1191e4", "g13c364"]
+                values: ["g1191e4", "g13c364", "gc37d78", "gf2a612"]
       topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: kubernetes.io/hostname
