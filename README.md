@@ -12,6 +12,7 @@ Evaluation of Kimi K3 using vLLM parallelization recipes from
 | Full harness history (incl. dummy) | https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html |
 | Sweep reproducibility | https://mnmehta.github.io/kimi-k3/repro-1000-1000.html |
 | PP2 Marlin vs Humming | https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html |
+| PP2 Humming: vLLM-bench vs MLflow | https://mnmehta.github.io/kimi-k3/pp2-humming-vllmbench-vs-mlflow-1000-1000.html |
 | AgentX MVP (C=1–4) | https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html |
 | AgentX MVP + CPU KV offload (C=1–5) | https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming-kv-offload.html |
 
@@ -122,6 +123,7 @@ Published pages (also listed at the top of this README):
 - History: https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html
 - Repro: https://mnmehta.github.io/kimi-k3/repro-1000-1000.html
 - PP2 Marlin vs Humming: https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html
+- PP2 Humming vLLM-bench vs MLflow: https://mnmehta.github.io/kimi-k3/pp2-humming-vllmbench-vs-mlflow-1000-1000.html
 - AgentX MVP (C=1–4): https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html
 
 Sources: [`reports/README.md`](reports/README.md).
@@ -133,6 +135,8 @@ brew install quarto
 ```
 
 Other platforms: download from [quarto.org/docs/get-started](https://quarto.org/docs/get-started/), or see the [install docs](https://quarto.org/docs/download/). CI installs Quarto via [`quarto-dev/quarto-actions/setup`](https://github.com/quarto-dev/quarto-actions).
+
+The MLflow-backed Humming report downloads GuideLLM `results/benchmark_output.json` at render time (not checked into git) and overlays it on the archived vLLM-bench JSON already in `bench-results/conc-sweep-pp2-humming-1000-1000/`. Locally, export `KUBECONFIG` so [`reports/mlflow_guidellm.py`](reports/mlflow_guidellm.py) can read secret `mlflow-ui-auth` in namespace `benchflow`, or set `MLFLOW_TRACKING_USERNAME` / `MLFLOW_TRACKING_PASSWORD` (and `MLFLOW_WORKSPACE=benchflow`, `MLFLOW_TRACKING_INSECURE_TLS=true`). GitHub Pages CI uses repository secrets `MLFLOW_TRACKING_USERNAME` and `MLFLOW_TRACKING_PASSWORD`; the published HTML is static and does not call MLflow.
 
 Then set up the Python kernel and render:
 
@@ -147,5 +151,6 @@ quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
 quarto render reports/concurrency-sweep-1000-1000.qmd --to html
 quarto render reports/repro-1000-1000.qmd --to html
 quarto render reports/pp2-marlin-vs-humming-1000-1000.qmd --to html
+quarto render reports/pp2-humming-vllmbench-vs-mlflow-1000-1000.qmd --to html
 quarto render reports/agentx-mvp-pp2-humming.qmd --to html
 ```

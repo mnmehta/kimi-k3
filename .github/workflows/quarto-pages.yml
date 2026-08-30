@@ -42,12 +42,27 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Cache MLflow GuideLLM aggregates
+        uses: actions/cache@v4
+        with:
+          path: reports/.mlflow-cache
+          key: mlflow-guidellm-${{ hashFiles('reports/mlflow_guidellm.py', 'reports/pp2-humming-vllmbench-vs-mlflow-1000-1000.qmd') }}
+          restore-keys: |
+            mlflow-guidellm-
+
       - name: Render reports
+        env:
+          MLFLOW_TRACKING_URI: https://mlflow.apps.psap-automation.ibm.rhperfscale.org
+          MLFLOW_WORKSPACE: benchflow
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+          MLFLOW_TRACKING_INSECURE_TLS: "true"
         run: |
           quarto render reports/tp16-vs-pp2-1000-1000.qmd --to html
           quarto render reports/concurrency-sweep-1000-1000.qmd --to html
           quarto render reports/repro-1000-1000.qmd --to html
           quarto render reports/pp2-marlin-vs-humming-1000-1000.qmd --to html
+          quarto render reports/pp2-humming-vllmbench-vs-mlflow-1000-1000.qmd --to html
           quarto render reports/agentx-mvp-pp2-humming.qmd --to html
           quarto render reports/agentx-mvp-pp2-humming-kv-offload.qmd --to html
           quarto render reports/sglang-kimi-k3-1000-1000.qmd --to html
@@ -58,6 +73,7 @@ jobs:
           cp reports/concurrency-sweep-1000-1000.html _site/concurrency-sweep-1000-1000.html
           cp reports/repro-1000-1000.html _site/repro-1000-1000.html
           cp reports/pp2-marlin-vs-humming-1000-1000.html _site/pp2-marlin-vs-humming-1000-1000.html
+          cp reports/pp2-humming-vllmbench-vs-mlflow-1000-1000.html _site/pp2-humming-vllmbench-vs-mlflow-1000-1000.html
           cp reports/agentx-mvp-pp2-humming.html _site/agentx-mvp-pp2-humming.html
           cp reports/agentx-mvp-pp2-humming-kv-offload.html _site/agentx-mvp-pp2-humming-kv-offload.html
           cp reports/sglang-kimi-k3-1000-1000.html _site/sglang-kimi-k3-1000-1000.html

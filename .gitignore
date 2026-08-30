@@ -21,3 +21,9 @@ reports/*.html
 !reports/kimireports.html
 reports/*_files/
 reports/*.quarto_ipynb
+reports/__pycache__/
+# Slim GuideLLM aggregates pulled from MLflow at render time.
+reports/.mlflow-cache/
+# Raw GuideLLM dumps (~100MB) and local BenchFlow extracts — do not check in.
+bench-results/**/_dl/
+bench-results/benchflow-*/

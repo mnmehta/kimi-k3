@@ -2,6 +2,8 @@
 
 Quarto sources for publishing harness results. Setup and local render (including Quarto CLI install): [repo README — Report setup](../README.md#report-setup--local-render).
 
+The Humming MLflow report calls [`mlflow_guidellm.py`](mlflow_guidellm.py) at render time and does not check GuideLLM dumps into git. Archived `vllm bench serve` JSON under `bench-results/conc-sweep-pp2-humming-1000-1000` is still read from the repo.
+
 ## vLLM Kimi-K3 recipe strategy evaluation (primary)
 
 Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://recipes.vllm.ai/moonshotai/Kimi-K3) on H200. Measured: `multi_node_tp`, `multi_node_tep`, `multi_node_tp_pp`, `multi_node_tp_dp`. Pending: P/D. `multi_node_dep` is unsupported/greyed out on H200 in the recipe UI.
@@ -30,6 +32,12 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 - Recipe: `./scripts/deploy.sh pp2-humming` (SiTU allowlist patch via [`scripts/lib/patch_humming_situ.sh`](https://github.com/mnmehta/kimi-k3/blob/main/scripts/lib/patch_humming_situ.sh))
 - Pages: [/pp2-marlin-vs-humming-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html)
 
+## PP2 Humming: archived vLLM-bench vs BenchFlow/MLflow
+
+- Source: [`pp2-humming-vllmbench-vs-mlflow-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/pp2-humming-vllmbench-vs-mlflow-1000-1000.qmd)
+- Data: [`conc-sweep-pp2-humming-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-humming-1000-1000) (August 3 vLLM-bench) vs MLflow experiment 372 / run `6b4f197e…` (GuideLLM artifact pulled at render time)
+- Pages: [/pp2-humming-vllmbench-vs-mlflow-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-humming-vllmbench-vs-mlflow-1000-1000.html)
+
 ## AgentX MVP (C=1–4)
 
 - Source: [`agentx-mvp-pp2-humming.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/agentx-mvp-pp2-humming.qmd)
@@ -54,5 +62,6 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 | Full harness history | [/concurrency-sweep-1000-1000.html](https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html) |
 | Sweep reproducibility | [/repro-1000-1000.html](https://mnmehta.github.io/kimi-k3/repro-1000-1000.html) |
 | PP2 Marlin vs Humming | [/pp2-marlin-vs-humming-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html) |
+| PP2 Humming vLLM-bench vs MLflow | [/pp2-humming-vllmbench-vs-mlflow-1000-1000.html](https://mnmehta.github.io/kimi-k3/pp2-humming-vllmbench-vs-mlflow-1000-1000.html) |
 | AgentX MVP (C=1–4) | [/agentx-mvp-pp2-humming.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming.html) |
 | AgentX MVP + CPU KV offload (C=1) | [/agentx-mvp-pp2-humming-kv-offload.html](https://mnmehta.github.io/kimi-k3/agentx-mvp-pp2-humming-kv-offload.html) |

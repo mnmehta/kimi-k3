@@ -1,0 +1,418 @@
+---
+title: "PP2 Humming 1000/1000: archived vLLM-bench vs BenchFlow/MLflow"
+subtitle: "Same TP8×PP2 Humming recipe · 16× H200 · 1000 in / 1000 out"
+date: "August 24, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import sys
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+for candidate in (Path("."), Path("reports")):
+    if (candidate / "mlflow_guidellm.py").exists():
+        sys.path.insert(0, str(candidate.resolve()))
+        break
+from mlflow_guidellm import load_guidellm_run
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+RUN_COLORS = {
+    "Humming (vLLM-bench, Aug 3)": "#9467bd",
+    "Humming (GuideLLM / MLflow, Aug 24)": "#17becf",
+}
+
+DIR_ARCHIVED = ROOT / "bench-results" / "conc-sweep-pp2-humming-1000-1000"
+MLFLOW_EXPERIMENT_ID = "372"
+MLFLOW_RUN_ID = "6b4f197ebba84c83938e56b6bd4fc899"
+
+
+def load_vllm_bench(data_dir: Path, label: str) -> pd.DataFrame:
+    paths = [
+        p
+        for p in data_dir.glob("conc-*.json")
+        if p.stem.split("-")[1].isdigit() and "topup" not in p.name
+    ]
+    rows = []
+    for path in sorted(paths, key=lambda p: int(p.stem.split("-")[1])):
+        d = json.loads(path.read_text())
+        rows.append(
+            {
+                "run": label,
+                "concurrency": int(d["max_concurrency"]),
+                "num_prompts": d["num_prompts"],
+                "duration_s": d["duration"],
+                "completed": d["completed"],
+                "failed": d["failed"],
+                "incomplete": 0,
+                "request_throughput": d["request_throughput"],
+                "output_throughput": d["output_throughput"],
+                "mean_ttft_ms": d["mean_ttft_ms"],
+                "p90_ttft_ms": d["p90_ttft_ms"],
+                "p99_ttft_ms": d["p99_ttft_ms"],
+                "mean_tpot_ms": d["mean_tpot_ms"],
+                "mean_itl_ms": d.get("mean_itl_ms", d["mean_tpot_ms"]),
+                "mean_e2el_ms": d["mean_e2el_ms"],
+            }
+        )
+    return pd.DataFrame(rows).sort_values("concurrency").reset_index(drop=True)
+
+
+def read_seed(data_dir: Path) -> str:
+    p = data_dir / "seed.txt"
+    return p.read_text().strip() if p.exists() else "n/a"
+
+
+LABEL_OLD = "Humming (vLLM-bench, Aug 3)"
+LABEL_NEW = "Humming (GuideLLM / MLflow, Aug 24)"
+
+df_old = load_vllm_bench(DIR_ARCHIVED, LABEL_OLD)
+df_new, _mlflow_payload, MLFLOW_URL = load_guidellm_run(
+    MLFLOW_RUN_ID,
+    experiment_id=MLFLOW_EXPERIMENT_ID,
+    label=LABEL_NEW,
+)
+both = pd.concat([df_old, df_new], ignore_index=True)
+
+SEED_OLD = read_seed(DIR_ARCHIVED)
+
+merged = df_old.merge(df_new, on="concurrency", suffixes=("_old", "_new"))
+for col in ("output_throughput", "mean_ttft_ms", "mean_itl_ms", "mean_e2el_ms"):
+    merged[f"ratio_{col}"] = merged[f"{col}_new"] / merged[f"{col}_old"]
+    merged[f"pct_{col}"] = (merged[f"ratio_{col}"] - 1.0) * 100
+
+peak_old = df_old.loc[df_old["output_throughput"].idxmax()]
+peak_new = df_new.loc[df_new["output_throughput"].idxmax()]
+base_old = df_old.loc[df_old["concurrency"] == 1].iloc[0]
+base_new = df_new.loc[df_new["concurrency"] == 1].iloc[0]
+
+
+def per_config_table(df, extra=None):
+    cols = [
+        "concurrency",
+        "num_prompts",
+        "duration_s",
+        "completed",
+        "incomplete",
+        "request_throughput",
+        "output_throughput",
+        "mean_ttft_ms",
+        "mean_itl_ms",
+        "mean_e2el_ms",
+    ]
+    show = df[cols].copy()
+    show["concurrency"] = show["concurrency"].astype(int)
+    show["num_prompts"] = show["num_prompts"].astype(int)
+    show["completed"] = show["completed"].astype(int)
+    show["incomplete"] = show["incomplete"].astype(int)
+    show["duration_s"] = show["duration_s"].round(1)
+    show["request_throughput"] = show["request_throughput"].round(2)
+    show["output_throughput"] = show["output_throughput"].round(1)
+    show["mean_ttft_ms"] = show["mean_ttft_ms"].round(1)
+    show["mean_itl_ms"] = show["mean_itl_ms"].round(1)
+    show["mean_e2el_ms"] = (show["mean_e2el_ms"] / 1000).round(1)
+    show = show.rename(
+        columns={
+            "concurrency": "C",
+            "num_prompts": "completed reqs",
+            "duration_s": "dur (s)",
+            "completed": "ok",
+            "incomplete": "in-flight",
+            "request_throughput": "req/s",
+            "output_throughput": "out tok/s",
+            "mean_ttft_ms": "TTFT (ms)",
+            "mean_itl_ms": "ITL (ms)",
+            "mean_e2el_ms": "E2E (s)",
+        }
+    )
+    return show.style.hide(axis="index").format(
+        {
+            "C": "{:d}",
+            "completed reqs": "{:d}",
+            "dur (s)": "{:.1f}",
+            "ok": "{:d}",
+            "in-flight": "{:d}",
+            "req/s": "{:.2f}",
+            "out tok/s": "{:.1f}",
+            "TTFT (ms)": "{:.1f}",
+            "ITL (ms)": "{:.1f}",
+            "E2E (s)": "{:.1f}",
+        }
+    )
+```
+
+# Goal
+
+Check whether the **BenchFlow / MLflow Humming 1k/1k** run reproduces the Humming curve from the published [PP2 Marlin vs Humming](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html) report.
+
+Same intended recipe: **TP8×PP2**, `--moe-backend humming`, MXFP4 Kimi-K3, **1000/1000**, C ∈ {1…512}. The serving stack matches (`vllm/vllm-openai:kimi-k3`, SiTU allowlist). The **client harness does not**: archived data is `vllm bench serve`; MLflow data is GuideLLM.
+
+# Configuration
+
+| | **Archived Humming** | **BenchFlow / MLflow Humming** |
+|:--|:--|:--|
+| Date | August 3, 2026 | August 24, 2026 |
+| Recipe | `pp2-humming` | BenchFlow `rhaiis-kimi-k3-tp8-pp2-humming` |
+| `--moe-backend` | `humming` | `humming` |
+| Parallelism | TP8 × PP2 | TP8 × PP2 |
+| GPUs | 16× H200 | 16× H200 |
+| `--gpu-memory-utilization` | `0.90` | `0.90` |
+| `--max-num-seqs` | `256` | `256` |
+| `--max-model-len` | `8192` | `8192` |
+| Image | `vllm/vllm-openai:kimi-k3` | `vllm/vllm-openai:kimi-k3` |
+| Harness | `vllm bench serve` (`/v1/completions`) | GuideLLM concurrent (`/v1/chat/completions`) |
+| Stop condition | `num_prompts` ≈ 2 min / tier | `max_duration` **600 s / stream** |
+| Seed | `{python} SEED_OLD` | n/a (GuideLLM synthetic) |
+| PipelineRun | n/a | `kimi-k3-tp8-pp2-humming-1k-1k-cf8e6b` |
+| MLflow | n/a | [experiment 372 / `6b4f197e…`](`{python} MLFLOW_URL`) |
+| Data | [`conc-sweep-pp2-humming-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-humming-1000-1000) | MLflow artifact `results/benchmark_output.json` (pulled at render time) |
+
+# How to read the comparison
+
+These are **not** identical benchmarks:
+
+- **vLLM-bench** sends a fixed prompt count and **waits for every request to finish**. C=1 used 7 prompts (~127 s); C=512 used 1024 prompts (~269 s). `output_throughput` is completed output tokens / wall time.
+- **GuideLLM** holds each concurrency for **600 s** and then stops. Requests still in flight are `incomplete` (0 at C=1, **509 at C=512**). Decode throughput below is GuideLLM `output_tokens_per_second.total.mean` (all requests, matches the BenchFlow console “All Requests” table).
+- **ITL, not GuideLLM TPOT.** vLLM-bench `mean_tpot_ms` is inter-token time after the first token. GuideLLM `time_per_output_token_ms` is closer to E2E / output tokens (includes TTFT). The plots compare **mean ITL** (`mean_itl_ms` vs `inter_token_latency_ms`).
+
+C=1 is the cleanest apples-to-apples check (no in-flight cutoff). High-C gaps mix serving behavior with harness cutoff.
+
+```{python}
+#| label: headline
+#| output: asis
+c1_thr = merged.loc[merged["concurrency"] == 1].iloc[0]
+peak_gap = peak_new["output_throughput"] / peak_old["output_throughput"]
+print(
+    f"- **C=1 decode:** archived {base_old['output_throughput']:.1f} tok/s vs "
+    f"MLflow {base_new['output_throughput']:.1f} tok/s "
+    f"({c1_thr['pct_output_throughput']:+.1f}%)\n"
+    f"- **C=1 TTFT / ITL:** archived {base_old['mean_ttft_ms']:.0f} ms / "
+    f"{base_old['mean_itl_ms']:.1f} ms vs MLflow {base_new['mean_ttft_ms']:.0f} ms / "
+    f"{base_new['mean_itl_ms']:.1f} ms\n"
+    f"- **Peak decode:** archived {peak_old['output_throughput']:.0f} tok/s @ C="
+    f"{int(peak_old['concurrency'])} vs MLflow {peak_new['output_throughput']:.0f} tok/s @ C="
+    f"{int(peak_new['concurrency'])} ({peak_gap:.3f}×)\n"
+    f"- **C=256 (largest tok/s gap):** archived "
+    f"{merged.loc[merged['concurrency']==256,'output_throughput_old'].iloc[0]:.0f} vs "
+    f"MLflow {merged.loc[merged['concurrency']==256,'output_throughput_new'].iloc[0]:.0f} "
+    f"({merged.loc[merged['concurrency']==256,'pct_output_throughput'].iloc[0]:+.1f}%)"
+)
+```
+
+# Comparison charts
+
+## Decode throughput
+
+```{python}
+#| label: fig-tok
+#| fig-cap: "Output token throughput vs concurrency. Archived = vLLM-bench output_throughput; MLflow = GuideLLM output_tokens_per_second.total.mean."
+
+fig = px.line(
+    both,
+    x="concurrency",
+    y="output_throughput",
+    color="run",
+    color_discrete_map=RUN_COLORS,
+    markers=True,
+    labels={
+        "concurrency": "max concurrency",
+        "output_throughput": "out tok/s",
+        "run": "",
+    },
+)
+fig.update_xaxes(type="log", dtick=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+## Latency
+
+```{python}
+#| label: fig-latency
+#| fig-cap: "Mean TTFT (left) and mean ITL (right). ITL is the comparable decode-time metric; GuideLLM TPOT is omitted (different definition)."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT (ms)", "ITL (ms)"))
+for run, dfx in [(LABEL_OLD, df_old), (LABEL_NEW, df_new)]:
+    color = RUN_COLORS[run]
+    fig.add_trace(
+        go.Scatter(
+            x=dfx["concurrency"],
+            y=dfx["mean_ttft_ms"],
+            mode="lines+markers",
+            name=run,
+            legendgroup=run,
+            line=dict(color=color),
+            showlegend=True,
+        ),
+        row=1,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=dfx["concurrency"],
+            y=dfx["mean_itl_ms"],
+            mode="lines+markers",
+            name=run,
+            legendgroup=run,
+            line=dict(color=color),
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
+    )
+for col in (1, 2):
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=col)
+fig.update_yaxes(type="log", row=1, col=1)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+## Ratio (MLflow ÷ archived)
+
+```{python}
+#| label: fig-ratio
+#| fig-cap: "BenchFlow/MLflow ÷ archived vLLM-bench. 1.0 = parity. Throughput below 1 means the new run is slower."
+
+fig = make_subplots(
+    rows=1,
+    cols=3,
+    subplot_titles=("tok/s", "TTFT", "ITL"),
+)
+metrics = [
+    ("ratio_output_throughput", 1),
+    ("ratio_mean_ttft_ms", 2),
+    ("ratio_mean_itl_ms", 3),
+]
+for col, cidx in metrics:
+    fig.add_trace(
+        go.Scatter(
+            x=merged["concurrency"],
+            y=merged[col],
+            mode="lines+markers",
+            name=col.replace("ratio_", ""),
+            line=dict(color="#17becf"),
+            showlegend=False,
+        ),
+        row=1,
+        col=cidx,
+    )
+    fig.add_hline(y=1.0, line_dash="dot", line_color="#adb5bd", row=1, col=cidx)
+    fig.update_xaxes(type="log", dtick=1, title_text="C", row=1, col=cidx)
+fig.update_layout(margin=dict(t=50), height=420)
+fig.show()
+```
+
+# Side-by-side numbers
+
+Decode throughput is the column to compare first. Ratios are MLflow / archived.
+
+```{python}
+#| label: tbl-compare
+#| tbl-cap: "Humming 1000/1000: archived vLLM-bench vs BenchFlow GuideLLM (MLflow)."
+cmp = merged[
+    [
+        "concurrency",
+        "output_throughput_old",
+        "output_throughput_new",
+        "pct_output_throughput",
+        "mean_ttft_ms_old",
+        "mean_ttft_ms_new",
+        "mean_itl_ms_old",
+        "mean_itl_ms_new",
+        "incomplete_new",
+    ]
+].copy()
+cmp["concurrency"] = cmp["concurrency"].astype(int)
+cmp["incomplete_new"] = cmp["incomplete_new"].astype(int)
+cmp = cmp.rename(
+    columns={
+        "concurrency": "C",
+        "output_throughput_old": "tok/s archived",
+        "output_throughput_new": "tok/s MLflow",
+        "pct_output_throughput": "tok/s Δ%",
+        "mean_ttft_ms_old": "TTFT arch",
+        "mean_ttft_ms_new": "TTFT MLflow",
+        "mean_itl_ms_old": "ITL arch",
+        "mean_itl_ms_new": "ITL MLflow",
+        "incomplete_new": "MLflow in-flight",
+    }
+)
+cmp.style.hide(axis="index").format(
+    {
+        "C": "{:d}",
+        "tok/s archived": "{:.1f}",
+        "tok/s MLflow": "{:.1f}",
+        "tok/s Δ%": "{:+.1f}",
+        "TTFT arch": "{:.1f}",
+        "TTFT MLflow": "{:.1f}",
+        "ITL arch": "{:.1f}",
+        "ITL MLflow": "{:.1f}",
+        "MLflow in-flight": "{:d}",
+    }
+)
+```
+
+# Per-config detail
+
+## Archived Humming (vLLM-bench)
+
+Source of the Humming series in [pp2-marlin-vs-humming-1000-1000](https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html).
+
+```{python}
+#| label: tbl-archived
+#| tbl-cap: "PP2 Humming vLLM-bench sweep (August 3)."
+per_config_table(df_old)
+```
+
+## BenchFlow / MLflow Humming (GuideLLM)
+
+PipelineRun `kimi-k3-tp8-pp2-humming-1k-1k-cf8e6b`. GuideLLM `results/benchmark_output.json` is downloaded from MLflow at render time; only per-concurrency aggregates are kept (the raw dump is ~93 MB).
+
+```{python}
+#| label: tbl-mlflow
+#| tbl-cap: "PP2 Humming GuideLLM sweep logged to MLflow (August 24, 600 s/stream)."
+per_config_table(df_new)
+```
+
+# Artifacts
+
+- Archived Humming: [`bench-results/conc-sweep-pp2-humming-1000-1000/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-humming-1000-1000)
+- MLflow run: [kimi-k3-tp8-pp2-humming-1k-1k-cf8e6b](`{python} MLFLOW_URL`) (artifact `results/benchmark_output.json`)
+- Original comparison: [`reports/pp2-marlin-vs-humming-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/pp2-marlin-vs-humming-1000-1000.qmd)
+- This report: [`reports/pp2-humming-vllmbench-vs-mlflow-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/pp2-humming-vllmbench-vs-mlflow-1000-1000.qmd)
+
+# GitHub Repository
+
+Source, scripts, and bench results: [github.com/mnmehta/kimi-k3](https://github.com/mnmehta/kimi-k3).
