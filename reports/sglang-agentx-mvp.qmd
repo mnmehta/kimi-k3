@@ -1,0 +1,571 @@
+---
+title: "SGLang Kimi-K3 AgentX MVP"
+subtitle: "PP4 · TP32+EP32 · DSpark · HiCache · 256k context · H200"
+date: "August 18, 2026"
+format:
+  html:
+    theme: darkly
+    page-layout: full
+    grid:
+      sidebar-width: 280px
+      body-width: 1800px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    css: full-width.css
+    toc: true
+    toc-depth: 2
+    toc-expand: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    fig-width: 14
+    fig-height: 5
+execute:
+  echo: false
+  warning: false
+jupyter: kimi-k3-reports
+---
+
+```{python}
+#| label: setup
+from pathlib import Path
+import json
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
+
+pio.templates.default = "plotly_dark"
+
+ROOT = Path("..")
+if not (ROOT / "bench-results").exists():
+    ROOT = Path(".")
+
+SGLANG_DIR = ROOT / "bench-results" / "sglang"
+
+
+def avg(ex, name, default=None):
+    v = ex.get(name)
+    if isinstance(v, dict):
+        return v.get("avg", default)
+    return v if v is not None else default
+
+
+def pct(ex, name, key, default=None):
+    v = ex.get(name)
+    if isinstance(v, dict):
+        return v.get(key, default)
+    return default
+
+
+def load_sglang_run(prefix, c):
+    art = SGLANG_DIR / f"{prefix}-c{c}"
+    if not art.exists():
+        return None
+    export_path = art / "profile_export_aiperf.json"
+    if not export_path.exists():
+        return None
+    export = json.loads(export_path.read_text())
+    return {"c": c, "art": art, "export": export}
+
+
+def summary_row(run):
+    ex, c = run["export"], run["c"]
+    br = ex.get("branch_stats") or {}
+    return {
+        "C": c,
+        "duration_s": avg(ex, "benchmark_duration"),
+        "ok": avg(ex, "request_count", 0),
+        "errors": avg(ex, "error_request_count", 0),
+        "error_rate_pct": avg(ex, "request_error_rate", 0),
+        "e2e_out_tps": avg(ex, "e2e_output_token_throughput"),
+        "eff_decode_tps": avg(ex, "effective_decode_throughput"),
+        "act_decode_tps": avg(ex, "active_decode_throughput"),
+        "eff_prefill_tps": avg(ex, "effective_prefill_throughput"),
+        "act_prefill_tps": avg(ex, "active_prefill_throughput"),
+        "eff_total_tps": avg(ex, "effective_total_throughput"),
+        "ttft_avg": avg(ex, "time_to_first_token"),
+        "ttft_p50": pct(ex, "time_to_first_token", "p50"),
+        "ttft_p90": pct(ex, "time_to_first_token", "p90"),
+        "itl_avg": avg(ex, "inter_token_latency"),
+        "itl_p50": pct(ex, "inter_token_latency", "p50"),
+        "itl_p90": pct(ex, "inter_token_latency", "p90"),
+        "e2e_avg": avg(ex, "request_latency"),
+        "decode_avg": avg(ex, "decode_duration"),
+        "isl_avg": avg(ex, "input_sequence_length"),
+        "isl_p50": pct(ex, "input_sequence_length", "p50"),
+        "isl_max": pct(ex, "input_sequence_length", "max"),
+        "osl_avg": avg(ex, "output_sequence_length"),
+        "osl_p50": pct(ex, "output_sequence_length", "p50"),
+        "osl_max": pct(ex, "output_sequence_length", "max"),
+        "eff_conc_avg": avg(ex, "effective_concurrency"),
+        "eff_conc_max": pct(ex, "effective_concurrency", "max"),
+        "theoretical_cache_pct": avg(ex, "theoretical_prefix_cache_hit"),
+        "children_spawned": br.get("children_spawned"),
+        "children_completed": br.get("children_completed"),
+        "children_errored": br.get("children_errored"),
+    }
+
+
+# --- Load all SGLang AgentX configs ---
+CONFIGS = {
+    "PP4 (no DSpark)": {
+        "prefix": "agentx-mvp-pp4-sglang-kv-90-mamba-17",
+        "concs": [1, 2, 3, 4],
+        "parallelism": "TP8×PP4",
+        "gpus": 32,
+        "dspark": False,
+        "hicache": False,
+    },
+    "TP32+EP32+DSpark": {
+        "prefix": "agentx-mvp-tp32-ep32-sglang-kv-90-mamba-17",
+        "concs": [1, 2, 3, 4],
+        "parallelism": "TP32+EP32",
+        "gpus": 32,
+        "dspark": True,
+        "hicache": False,
+    },
+    "TP32+EP32+DSpark+HiCache": {
+        "prefix": "agentx-mvp-tp32-ep32-sglang-kv-90-mamba-17-dspark-hicache",
+        "concs": [1, 2, 3, 4, 5],
+        "parallelism": "TP32+EP32",
+        "gpus": 32,
+        "dspark": True,
+        "hicache": True,
+    },
+}
+
+all_runs = {}
+all_summaries = {}
+for label, cfg in CONFIGS.items():
+    runs = [load_sglang_run(cfg["prefix"], c) for c in cfg["concs"]]
+    runs = [r for r in runs if r is not None]
+    all_runs[label] = runs
+    if runs:
+        all_summaries[label] = pd.DataFrame([summary_row(r) for r in runs])
+
+# Reference config from first available run
+REF_LABEL = list(all_runs.keys())[0]
+REF_RUN = all_runs[REF_LABEL][0] if all_runs[REF_LABEL] else None
+REF = REF_RUN["export"] if REF_RUN else {}
+IC = REF.get("input_config") or {}
+```
+
+# Introduction
+
+```{python}
+#| label: intro
+#| output: asis
+
+lines = [
+    "SGLang AgentX MVP benchmarking on Kimi-K3 with **4×8 H200** (32 GPUs).",
+    "Three configurations tested:",
+    "",
+]
+
+for label, cfg in CONFIGS.items():
+    df = all_summaries.get(label)
+    if df is not None and not df.empty:
+        peak = df.loc[df["e2e_out_tps"].idxmax()]
+        lines.append(
+            f"- **{label}** ({cfg['parallelism']}, {cfg['gpus']} GPUs): "
+            f"peak **{peak['e2e_out_tps']:.1f}** e2e out tok/s @ C={int(peak['C'])}, "
+            f"{int(peak['ok'])} requests, {peak['error_rate_pct']:.0f}% errors"
+        )
+
+lines.append("")
+lines.append("All runs use: `--mem-fraction-static 0.90`, `--mamba-full-memory-ratio 0.17`, "
+             "`--mamba-ssm-dtype bfloat16`, `--context-length 262144`, MoE backend: Marlin.")
+print("\n".join(lines))
+```
+
+# Configuration
+
+```{python}
+#| label: config-table
+#| output: asis
+
+print("""| | **PP4 (no DSpark)** | **TP32+EP32+DSpark** | **TP32+EP32+DSpark+HiCache** |
+|:--|:--|:--|:--|
+| **Parallelism** | TP8×PP4 | TP32+EP32 | TP32+EP32 |
+| **GPUs** | 32 (4×8) | 32 (4×8) | 32 (4×8) |
+| **DSpark** | No | Yes (RadixArk/Kimi-K3-DSpark, block=7) | Yes (RadixArk/Kimi-K3-DSpark, block=7) |
+| **HiCache** | No | No | Yes (100 GB CPU per rank) |
+| **MoE backend** | Marlin | Marlin | Marlin |
+| **mem-fraction-static** | 0.90 | 0.90 | 0.90 |
+| **mamba-full-memory-ratio** | 0.17 | 0.17 | 0.17 |
+| **context-length** | 262,144 | 262,144 | 262,144 |
+| **max-running-requests** | 48 | 48 | 48 |
+| **mamba-radix-cache-strategy** | extra_buffer_lazy | extra_buffer_lazy | extra_buffer_lazy |
+| **Attention** | flashmla (decode) / fa3 (prefill) | flashmla / fa3 | flashmla / fa3 |
+| **NCCL** | mlx5_5 / GID 3 | mlx5_5 / GID 3 | mlx5_5 / GID 3 |
+| **Upstream optimizations** | — | SGLANG_K3_ATTN_RES_MODE=jit, SGLANG_MOE_FUSED_GATE_RADIX=1 | Same + hicache |
+| **Concurrency tested** | C=1–4 | C=1–4 | C=1–5 |""")
+```
+
+## AIPerf config
+
+```{python}
+#| label: tbl-aiperf-config
+#| output: asis
+
+IC_EP = IC.get("endpoint") or {}
+IC_DS = (IC.get("datasets") or [{}])[0]
+IC_PHASE = (IC.get("phases") or [{}])[0]
+IC_TOK = IC.get("tokenizer") or {}
+extra = IC_EP.get("extra") or {}
+cache_bust = (IC_DS.get("cache_bust") or {}).get("target")
+
+rows = [
+    ("Scenario", IC.get("scenario")),
+    ("Endpoint type", IC_EP.get("type")),
+    ("Model", ((IC.get("models") or {}).get("items") or [{}])[0].get("name")),
+    ("Tokenizer", IC_TOK.get("name")),
+    ("Streaming", IC_EP.get("streaming")),
+    ("Use server token count", IC_EP.get("use_server_token_count")),
+    ("Extra inputs", ", ".join(f"{k}:{v}" for k, v in extra.items()) or "—"),
+    ("Public dataset", IC_DS.get("dataset")),
+    ("Max context length", IC_DS.get("max_context_length")),
+    ("Cache bust", cache_bust),
+    ("Random seed", IC_DS.get("random_seed")),
+    ("Timing mode", IC_PHASE.get("timing_mode")),
+    ("Benchmark duration", f"{IC_PHASE.get('duration')} s"),
+    ("System idle gap cap", f"{IC_PHASE.get('system_idle_gap_cap_seconds')} s"),
+]
+df_cfg = pd.DataFrame(rows, columns=["Setting", "Value"])
+df_cfg.style.hide(axis="index")
+```
+
+# Results summary
+
+```{python}
+#| label: tbl-summary
+#| output: asis
+
+header = "| Config | C | Requests | Errors | E2E Out tok/s | Eff Decode tok/s | Act Decode tok/s | TTFT avg (s) | ITL avg (ms) | ISL avg | OSL avg | Eff Conc |"
+sep = "|---|---|---|---|---|---|---|---|---|---|---|---|"
+rows = [header, sep]
+
+for label, df in all_summaries.items():
+    for _, r in df.iterrows():
+        ttft_s = r['ttft_avg'] / 1000 if r['ttft_avg'] and r['ttft_avg'] > 100 else r.get('ttft_avg', 0)
+        rows.append(
+            f"| {label} | {int(r['C'])} | {int(r['ok'])} | {int(r['errors'])} | "
+            f"{r['e2e_out_tps']:.1f} | {r['eff_decode_tps']:.1f} | {r['act_decode_tps']:.1f} | "
+            f"{ttft_s:.1f} | {r['itl_avg']:.1f} | {r['isl_avg']:.0f} | {r['osl_avg']:.0f} | "
+            f"{r['eff_conc_avg']:.2f} |"
+        )
+
+print("\n".join(rows))
+```
+
+# Throughput comparison
+
+## E2E output throughput
+
+```{python}
+#| label: fig-e2e-throughput
+#| fig-cap: "E2E output token throughput across configurations and concurrency."
+
+COLORS = {
+    "PP4 (no DSpark)": "#ff7f0e",
+    "TP32+EP32+DSpark": "#1f77b4",
+    "TP32+EP32+DSpark+HiCache": "#2ca02c",
+}
+
+plot_rows = []
+for label, df in all_summaries.items():
+    for _, r in df.iterrows():
+        plot_rows.append({"config": label, "C": int(r["C"]), "e2e_out_tps": r["e2e_out_tps"]})
+plot_df = pd.DataFrame(plot_rows)
+
+fig = px.bar(
+    plot_df, x="C", y="e2e_out_tps", color="config", barmode="group",
+    color_discrete_map=COLORS,
+    labels={"C": "Concurrency", "e2e_out_tps": "E2E Out tok/s", "config": ""},
+)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+## Active decode throughput
+
+```{python}
+#| label: fig-decode-throughput
+#| fig-cap: "Active decode throughput (tokens/s during active decode phases)."
+
+plot_rows = []
+for label, df in all_summaries.items():
+    for _, r in df.iterrows():
+        plot_rows.append({"config": label, "C": int(r["C"]), "act_decode_tps": r["act_decode_tps"]})
+plot_df = pd.DataFrame(plot_rows)
+
+fig = px.bar(
+    plot_df, x="C", y="act_decode_tps", color="config", barmode="group",
+    color_discrete_map=COLORS,
+    labels={"C": "Concurrency", "act_decode_tps": "Active Decode tok/s", "config": ""},
+)
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02), margin=dict(t=40))
+fig.show()
+```
+
+# Latency
+
+```{python}
+#| label: fig-latency
+#| fig-cap: "TTFT and ITL across configurations."
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("TTFT avg (s)", "ITL avg (ms)"))
+for label, df in all_summaries.items():
+    color = COLORS.get(label, "#888")
+    ttft_vals = df["ttft_avg"].apply(lambda x: x / 1000 if x and x > 100 else x)
+    fig.add_trace(go.Bar(x=df["C"], y=ttft_vals, name=label, legendgroup=label,
+        marker_color=color, showlegend=True), row=1, col=1)
+    fig.add_trace(go.Bar(x=df["C"], y=df["itl_avg"], name=label, legendgroup=label,
+        marker_color=color, showlegend=False), row=1, col=2)
+fig.update_layout(barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.08), margin=dict(t=50))
+fig.show()
+```
+
+# Per-config detail
+
+```{python}
+#| label: per-config-tables
+
+def detail_table(df):
+    show = df[["C", "ok", "errors", "e2e_out_tps", "eff_decode_tps", "act_decode_tps",
+               "ttft_avg", "itl_avg", "isl_avg", "osl_avg", "eff_conc_avg"]].copy()
+    show["C"] = show["C"].astype(int)
+    show["ok"] = show["ok"].astype(int)
+    show["errors"] = show["errors"].astype(int)
+    show["e2e_out_tps"] = show["e2e_out_tps"].round(1)
+    show["eff_decode_tps"] = show["eff_decode_tps"].round(1)
+    show["act_decode_tps"] = show["act_decode_tps"].round(1)
+    show["ttft_avg"] = show["ttft_avg"].apply(lambda x: round(x / 1000, 1) if x and x > 100 else round(x, 1) if x else 0)
+    show["itl_avg"] = show["itl_avg"].round(1)
+    show["isl_avg"] = show["isl_avg"].round(0).astype(int)
+    show["osl_avg"] = show["osl_avg"].round(0).astype(int)
+    show["eff_conc_avg"] = show["eff_conc_avg"].round(2)
+    show = show.rename(columns={
+        "ok": "Requests", "errors": "Errors", "e2e_out_tps": "E2E Out tok/s",
+        "eff_decode_tps": "Eff Dec tok/s", "act_decode_tps": "Act Dec tok/s",
+        "ttft_avg": "TTFT s", "itl_avg": "ITL ms",
+        "isl_avg": "ISL avg", "osl_avg": "OSL avg", "eff_conc_avg": "Eff Conc",
+    })
+    return show.style.hide(axis="index")
+```
+
+## PP4 (no DSpark)
+
+```{python}
+#| label: tbl-pp4
+if "PP4 (no DSpark)" in all_summaries:
+    detail_table(all_summaries["PP4 (no DSpark)"])
+```
+
+## TP32+EP32+DSpark
+
+```{python}
+#| label: tbl-tp32-dspark
+if "TP32+EP32+DSpark" in all_summaries:
+    detail_table(all_summaries["TP32+EP32+DSpark"])
+```
+
+## TP32+EP32+DSpark+HiCache
+
+```{python}
+#| label: tbl-tp32-dspark-hicache
+if "TP32+EP32+DSpark+HiCache" in all_summaries:
+    detail_table(all_summaries["TP32+EP32+DSpark+HiCache"])
+```
+
+# Per-concurrency request charts
+
+```{python}
+#| label: load-requests
+
+def load_requests(path):
+    """Load per-request data from profile_export.jsonl."""
+    rows = []
+    if not path.exists():
+        return pd.DataFrame()
+    with path.open() as f:
+        for line in f:
+            rec = json.loads(line)
+            meta = rec.get("metadata", {})
+            metrics = rec.get("metrics", {})
+            if meta.get("was_cancelled") or meta.get("benchmark_phase") != "profiling":
+                continue
+
+            def val(key):
+                x = metrics.get(key)
+                if isinstance(x, dict):
+                    return x.get("value")
+                return x
+
+            rows.append({
+                "isl": val("input_sequence_length") or val("usage_prompt_tokens"),
+                "osl": val("output_sequence_length") or val("usage_completion_tokens"),
+                "ttft_ms": val("time_to_first_token"),
+                "itl_ms": val("inter_token_latency"),
+                "agent_depth": meta.get("agent_depth", 0),
+            })
+    df = pd.DataFrame(rows)
+    if not df.empty:
+        df = df.reset_index(drop=True)
+        df["req_i"] = df.index + 1
+    return df
+
+
+# Load per-request data for the best config (TP32+EP32+DSpark+HiCache or fallback)
+BEST_CONFIG = "TP32+EP32+DSpark+HiCache"
+if BEST_CONFIG not in CONFIGS:
+    BEST_CONFIG = list(CONFIGS.keys())[-1]
+
+best_cfg = CONFIGS[BEST_CONFIG]
+BEST_CONCS = [c for c in best_cfg["concs"]
+              if (SGLANG_DIR / f"{best_cfg['prefix']}-c{c}" / "profile_export.jsonl").exists()]
+BEST_REQ = {c: load_requests(SGLANG_DIR / f"{best_cfg['prefix']}-c{c}" / "profile_export.jsonl")
+            for c in BEST_CONCS}
+BEST_REQ = {c: df for c, df in BEST_REQ.items() if not df.empty}
+BEST_COLORS = {1: "#1f77b4", 2: "#2ca02c", 3: "#ff7f0e", 4: "#9467bd", 5: "#d62728"}
+```
+
+```{python}
+#| label: fig-isl-ttft-best
+#| fig-cap: "Per-request ISL (top) and TTFT (bottom) — best config per concurrency."
+#| output: asis
+
+if BEST_REQ:
+    concs = sorted(BEST_REQ.keys())
+    n = len(concs)
+    print(f"Showing **{BEST_CONFIG}** (C={', '.join(str(c) for c in concs)}).\n")
+```
+
+```{python}
+#| label: fig-isl-ttft-chart
+
+if BEST_REQ:
+    concs = sorted(BEST_REQ.keys())
+    n = len(concs)
+    fig = make_subplots(
+        rows=2, cols=n, shared_yaxes=False,
+        subplot_titles=[f"C={c} ISL" for c in concs] + [f"C={c} TTFT" for c in concs],
+        vertical_spacing=0.12, horizontal_spacing=0.05,
+    )
+    for i, c in enumerate(concs):
+        df = BEST_REQ[c]
+        fig.add_trace(
+            go.Scatter(x=df["req_i"], y=df["isl"], mode="lines",
+                       line=dict(color=BEST_COLORS.get(c, "#888"), width=1.5), showlegend=False),
+            row=1, col=i+1,
+        )
+        fig.add_trace(
+            go.Scatter(x=df["req_i"], y=df["ttft_ms"], mode="lines",
+                       line=dict(color=BEST_COLORS.get(c, "#888"), width=1.5), showlegend=False),
+            row=2, col=i+1,
+        )
+    fig.update_layout(height=560, margin=dict(t=50))
+    fig.show()
+```
+
+```{python}
+#| label: fig-osl-itl-chart
+#| fig-cap: "Per-request OSL (top) and ITL (bottom) — best config per concurrency."
+
+if BEST_REQ:
+    concs = sorted(BEST_REQ.keys())
+    n = len(concs)
+    fig = make_subplots(
+        rows=2, cols=n, shared_yaxes=False,
+        subplot_titles=[f"C={c} OSL" for c in concs] + [f"C={c} ITL" for c in concs],
+        vertical_spacing=0.12, horizontal_spacing=0.05,
+    )
+    for i, c in enumerate(concs):
+        df = BEST_REQ[c]
+        fig.add_trace(
+            go.Scatter(x=df["req_i"], y=df["osl"], mode="lines",
+                       line=dict(color=BEST_COLORS.get(c, "#888"), width=1.5), showlegend=False),
+            row=1, col=i+1,
+        )
+        fig.add_trace(
+            go.Scatter(x=df["req_i"], y=df["itl_ms"], mode="lines",
+                       line=dict(color=BEST_COLORS.get(c, "#888"), width=1.5), showlegend=False),
+            row=2, col=i+1,
+        )
+    fig.update_layout(height=560, margin=dict(t=50))
+    fig.show()
+```
+
+# Analysis
+
+```{python}
+#| label: analysis
+#| output: asis
+
+pp4 = all_summaries.get("PP4 (no DSpark)")
+tp32 = all_summaries.get("TP32+EP32+DSpark")
+hicache = all_summaries.get("TP32+EP32+DSpark+HiCache")
+
+lines = []
+
+if pp4 is not None and tp32 is not None:
+    pp4_c1 = pp4.loc[pp4["C"] == 1].iloc[0] if 1 in pp4["C"].values else None
+    tp32_c1 = tp32.loc[tp32["C"] == 1].iloc[0] if 1 in tp32["C"].values else None
+    if pp4_c1 is not None and tp32_c1 is not None:
+        lines.append("## PP4 vs TP32+EP32+DSpark")
+        lines.append("")
+        lines.append(f"At C=1, PP4 (no DSpark) achieves **{pp4_c1['act_decode_tps']:.1f}** active decode tok/s "
+                     f"vs TP32+EP32+DSpark at **{tp32_c1['act_decode_tps']:.1f}** tok/s.")
+        ratio = pp4_c1['act_decode_tps'] / tp32_c1['act_decode_tps'] if tp32_c1['act_decode_tps'] > 0 else 0
+        lines.append(f"PP4 decode throughput is **{ratio:.1f}x** faster per-user — pipeline parallelism "
+                     f"reduces per-token latency vs flat TP32 cross-node communication.")
+        lines.append(f"However, PP4 cannot use DSpark (PP>1 not supported), so the comparison "
+                     f"is PP4-without-spec-decode vs TP32-with-spec-decode.")
+        lines.append("")
+
+if tp32 is not None and hicache is not None:
+    lines.append("## DSpark vs DSpark+HiCache")
+    lines.append("")
+    for c in [1, 2, 3, 4]:
+        tp32_row = tp32.loc[tp32["C"] == c].iloc[0] if c in tp32["C"].values else None
+        hc_row = hicache.loc[hicache["C"] == c].iloc[0] if c in hicache["C"].values else None
+        if tp32_row is not None and hc_row is not None:
+            lines.append(f"- C={c}: DSpark={tp32_row['e2e_out_tps']:.1f} vs DSpark+HiCache={hc_row['e2e_out_tps']:.1f} e2e out tok/s")
+    lines.append("")
+    lines.append("HiCache enables CPU KV offloading (100 GB per rank), extending effective KV capacity "
+                 "beyond GPU L1. This allows higher concurrency without KV eviction pressure.")
+
+if hicache is not None and 5 in hicache["C"].values:
+    hc_c5 = hicache.loc[hicache["C"] == 5].iloc[0]
+    lines.append(f"")
+    lines.append(f"HiCache enables C=5 ({int(hc_c5['ok'])} requests, {hc_c5['error_rate_pct']:.0f}% errors, "
+                 f"{hc_c5['e2e_out_tps']:.1f} e2e out tok/s) — not tested on non-HiCache configs.")
+
+lines.append("")
+lines.append("## Key limitations vs vLLM AgentX")
+lines.append("")
+lines.append("- **MoE backend**: SGLang uses Marlin; vLLM uses Humming (~1.7x faster)")
+lines.append("- **DSpark draft model**: SGLang uses RadixArk/Kimi-K3-DSpark; vLLM uses Inferact/Kimi-K3-DSpark")
+lines.append("- **KV offload**: SGLang HiCache vs vLLM SimpleCPUOffloadConnector — different architectures")
+lines.append("- **Server metrics**: SGLang /metrics not enabled — no server-side KV/GPU utilization data")
+
+print("\n".join(lines))
+```
+
+# Artifacts
+
+```{python}
+#| label: artifacts
+#| output: asis
+
+lines = ["| Kind | Path |", "|------|------|"]
+for label, cfg in CONFIGS.items():
+    for c in cfg["concs"]:
+        d = SGLANG_DIR / f"{cfg['prefix']}-c{c}"
+        if d.exists():
+            lines.append(f"| {label} C={c} | `bench-results/sglang/{cfg['prefix']}-c{c}/` |")
+lines.append(f"| Report source | `reports/sglang-agentx-mvp.qmd` |")
+print("\n".join(lines))
+```
