@@ -13,6 +13,12 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 - Prior C≤256 archives: [`…-c1-256/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-real-1000-1000-c1-256), [`…-pp2-…-c1-256/`](https://github.com/mnmehta/kimi-k3/tree/main/bench-results/conc-sweep-pp2-1000-1000-c1-256)
 - Pages: [mnmehta.github.io/kimi-k3](https://mnmehta.github.io/kimi-k3/) (this report is `index.html`)
 
+## AIConfigurator estimate comparison
+
+- Source: [`aiconfigurator-kimi-k3.qmd`](aiconfigurator-kimi-k3.qmd)
+- Data: [`aiconfigurator-comparison.json`](aiconfigurator-comparison.json)
+- Pages: [/aiconfigurator-kimi-k3.html](https://mnmehta.github.io/kimi-k3/aiconfigurator-kimi-k3.html)
+
 ## Full harness history (incl. dummy)
 
 - Source: [`concurrency-sweep-1000-1000.qmd`](https://github.com/mnmehta/kimi-k3/blob/main/reports/concurrency-sweep-1000-1000.qmd)

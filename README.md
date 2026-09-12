@@ -9,6 +9,7 @@ Evaluation of Kimi K3 using vLLM parallelization recipes from
 |--------|-----|
 | Hub | https://mnmehta.github.io/kimi-k3/kimireports.html |
 | Recipe strategy evaluation (primary / `index.html`) | https://mnmehta.github.io/kimi-k3/ |
+| AIConfigurator estimate comparison | https://mnmehta.github.io/kimi-k3/aiconfigurator-kimi-k3.html |
 | Full harness history (incl. dummy) | https://mnmehta.github.io/kimi-k3/concurrency-sweep-1000-1000.html |
 | Sweep reproducibility | https://mnmehta.github.io/kimi-k3/repro-1000-1000.html |
 | PP2 Marlin vs Humming | https://mnmehta.github.io/kimi-k3/pp2-marlin-vs-humming-1000-1000.html |
