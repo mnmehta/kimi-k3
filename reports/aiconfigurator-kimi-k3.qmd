@@ -174,8 +174,14 @@ mape = ok.groupby("strategy", sort=False).agg(
     **{"Output throughput": ("throughput_error", lambda s: s.abs().mean()), "Points compared": ("strategy", "size")}
 ).reindex(strategy_order).reset_index()
 for col in ["TTFT", "TPOT", "Output throughput"]:
-    mape[col] = mape[col].map(lambda value: f"{value:.1f}%" if pd.notna(value) else "—")
-display(HTML(mape.to_html(index=False, classes="table table-striped table-hover", border=0)))
+    mape[col] = pd.to_numeric(mape[col], errors="coerce")
+mape_formats = {col: "{:.1f}%" for col in ["TTFT", "TPOT", "Output throughput"]}
+mape_formats["Points compared"] = "{:.0f}"
+styled_mape = mape.style.format(mape_formats, na_rep="—").map(
+    error_cell_style,
+    subset=["TTFT", "TPOT", "Output throughput"],
+)
+display(HTML(styled_mape.to_html(index=False, na_rep="—", classes="table table-striped table-hover", border=0)))
 ```
 
 ## Artifacts
