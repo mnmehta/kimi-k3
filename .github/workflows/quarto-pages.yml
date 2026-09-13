@@ -73,8 +73,10 @@ jobs:
             exit 1
           fi
           export AICONFIGURATOR_COMPARISON="$GITHUB_WORKSPACE/$latest_aiconfigurator_comparison"
+          report_date="$(date -u '+%Y-%m-%d %H:%M UTC')"
           quarto render reports/aiconfigurator-kimi-k3.qmd \
             --execute-dir "$GITHUB_WORKSPACE/$(dirname "$latest_aiconfigurator_comparison")" \
+            -M "date=$report_date" \
             --to html
           mkdir -p _site
           # Keep index.html as the primary recipe report (existing links).
