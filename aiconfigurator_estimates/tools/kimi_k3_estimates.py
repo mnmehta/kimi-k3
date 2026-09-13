@@ -19,8 +19,9 @@ from the checkpoint; prefix caching and speculative decoding stay disabled.
 
 Outputs go into a new results/kimi-k3-<timestamp>/ directory in this repository:
 metadata.json, results.jsonl (including errors and per-op sources), summary.csv,
-best.json, commands.txt (equivalent CLI calls), and run.log. The report suite
-also writes comparison.json and a Quarto report.qmd. Missing profiles
+best.json, commands.txt (a looped shell reproduction script), and run.log. The
+report suite also writes comparison.json, report.qmd, and report.html by
+rendering the canonical Quarto source. Missing profiles
 and OOM candidates are recorded without stopping the sweep. Only results with
 16 GPUs, effective concurrency 1, and no KV-cache warning enter the ranking.
 Pipeline cases can report higher concurrency even with batch_size=1.
@@ -40,6 +41,8 @@ import logging
 import math
 import os
 import shlex
+import shutil
+import subprocess
 import sys
 import time
 from datetime import UTC, datetime
@@ -403,7 +406,51 @@ def save_report(output, rows, ground_truth):
     report_qmd = output / "report.qmd"
     report_qmd.write_text(canonical_qmd.read_text())
     print(f"Report: {report_qmd}")
+    render_report(report_qmd, canonical_qmd.parents[1])
     return 0
+
+
+def render_report(report_qmd, repo_root):
+    """Render a generated QMD using the repository's Quarto/reporting environment."""
+    dependency_roots = [repo_root]
+    sibling_checkout = Path.home() / "kimi-k3"
+    if sibling_checkout != repo_root:
+        dependency_roots.append(sibling_checkout)
+
+    quarto = os.environ.get("QUARTO_BIN")
+    if not quarto:
+        for dependency_root in dependency_roots:
+            bundled_quarto = dependency_root / "reports" / ".quarto-cli" / "bin" / "quarto"
+            if bundled_quarto.is_file():
+                quarto = str(bundled_quarto)
+                break
+        quarto = quarto or shutil.which("quarto")
+    if not quarto:
+        raise RuntimeError(
+            "Quarto was not found. Install it or set QUARTO_BIN to the Quarto executable "
+            "(for example reports/.quarto-cli/bin/quarto)."
+        )
+
+    quarto_python = os.environ.get("QUARTO_PYTHON")
+    if not quarto_python:
+        for dependency_root in dependency_roots:
+            bundled_python = dependency_root / "reports" / ".venv" / "bin" / "python"
+            if bundled_python.is_file():
+                quarto_python = str(bundled_python)
+                break
+        quarto_python = quarto_python or sys.executable
+    if not Path(quarto_python).is_file():
+        raise RuntimeError(f"Quarto Python interpreter was not found: {quarto_python}")
+
+    environment = os.environ.copy()
+    environment["QUARTO_PYTHON"] = quarto_python
+    subprocess.run(
+        [quarto, "render", str(report_qmd), "--to", "html"],
+        cwd=report_qmd.parent,
+        env=environment,
+        check=True,
+    )
+    print(f"HTML report: {report_qmd.with_suffix('.html')}")
 
 
 def main():
