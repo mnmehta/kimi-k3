@@ -61,7 +61,7 @@ ok["ttft_error"] = (ok["aic_ttft"] / ok["gt_ttft"] - 1) * 100
 ok["tpot_error"] = (ok["aic_tpot"] / ok["gt_tpot"] - 1) * 100
 ok["throughput_error"] = (ok["aic_tok_s"] / ok["gt_tok_s"] - 1) * 100
 strategy_order = ["TP16", "TEP16", "TP8xPP2", "TP8xDP2"]
-strategy_colors = dict(zip(strategy_order, ["#1f77b4", "#17becf", "#ff7f0e", "#2ca02c"]))
+strategy_colors = dict.fromkeys(strategy_order, "#1f77b4")
 ```
 
 ## Comparison chart
@@ -103,7 +103,7 @@ for row_index, strategy in enumerate(strategy_order, 1):
             col=col,
         )
         fig.add_trace(go.Scatter(x=subset["target_c"], y=plotted_error, mode="lines+markers",
-            name=f"{strategy} · AIC error", legendgroup=strategy, showlegend=(col == 1),
+            name=f"{strategy} · AIC error", showlegend=False,
             line=dict(color=strategy_colors[strategy]), marker=dict(size=6),
             customdata=subset[[error_col]],
             hovertemplate="C=%{x}<br>Δ=%{customdata[0]:.1f}%<extra>" + f"{strategy} · AIC error</extra>"),
@@ -120,7 +120,6 @@ for row_index, strategy in enumerate(strategy_order, 1):
 fig.update_layout(
     height=1250,
     margin=dict(t=90, b=110),
-    legend=dict(orientation="h", y=-0.04),
     hovermode="x unified",
 )
 fig.show()
