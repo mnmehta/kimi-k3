@@ -308,7 +308,11 @@ def save_report(output, rows, ground_truth):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--suite", choices=["all", "estimates", "parallelism", "refinement", "report"], default="all")
-    parser.add_argument("--ground-truth-repo", type=Path, help="Cloned mnmehta/kimi-k3 repository for --suite report.")
+    parser.add_argument(
+        "--ground-truth-repo",
+        type=Path,
+        help="Cloned mnmehta/kimi-k3 repository; enables report cases for --suite all/report.",
+    )
     parser.add_argument(
         "--output-dir", type=Path, help="New or empty directory; defaults to results/kimi-k3-<timestamp>."
     )
@@ -371,7 +375,10 @@ def main():
             print(f"[{index}/{len(calls)}] {call['case']}: {detail}", flush=True)
     if args.suite == "report":
         return save_report(output, rows, ground_truth)
-    return save_summary(output, rows)
+    summary_status = save_summary(output, rows)
+    if args.suite == "all" and ground_truth is not None:
+        save_report(output, [row for row in rows if row.get("suite") == "report"], ground_truth)
+    return summary_status
 
 
 if __name__ == "__main__":
