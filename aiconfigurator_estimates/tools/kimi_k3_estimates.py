@@ -321,7 +321,11 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Print equivalent CLI calls without importing the SDK.")
     args = parser.parse_args()
     ground_truth = None
-    if args.suite == "report":
+    if args.suite in ("all", "report"):
+        if args.ground_truth_repo is None and args.suite == "all":
+            candidate = Path(__file__).resolve().parents[2]
+            if (candidate / "bench-results").is_dir():
+                args.ground_truth_repo = candidate
         if args.ground_truth_repo is None:
             parser.error("--suite report requires --ground-truth-repo")
         ground_truth = load_ground_truth(args.ground_truth_repo)
