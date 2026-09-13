@@ -178,13 +178,8 @@ for col in ["TTFT", "TPOT", "Output throughput"]:
 display(HTML(mape.to_html(index=False, classes="table table-striped table-hover", border=0)))
 ```
 
-## Interpretation
+## Artifacts
 
-AIC's single-point `agg` model represents steady-state scheduler behavior differently from the benchmark's finite burst sweep. TTFT is therefore most comparable at low concurrency; at high concurrency, benchmark queueing and KV-cache limits can dominate. TPOT/ITL is the cleaner decode comparison, while ITL is reported as the ground-truth companion to TPOT.
-
-```{python}
-display(Markdown(
-    f"The complete machine-readable comparison is in `{comparison_path.name}`; "
-    "raw AIC rows and per-operation source tags are retained in the AIConfigurator result artifact."
-))
-```
+- [Kimi-K3 GitHub repository](https://github.com/mnmehta/kimi-k3)
+- [Latest AIConfigurator artifacts directory](https://github.com/mnmehta/kimi-k3/tree/main/aiconfigurator_estimates/results/kimi-k3-20260913T225810268008Z)
+- [Raw report QMD](https://raw.githubusercontent.com/mnmehta/kimi-k3/main/reports/aiconfigurator-kimi-k3.qmd)
