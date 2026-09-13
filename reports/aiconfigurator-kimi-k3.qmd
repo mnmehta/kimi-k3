@@ -92,8 +92,8 @@ for row_index, strategy in enumerate(strategy_order, 1):
             x1=max(1, float(subset["target_c"].max())),
             y0=-20,
             y1=20,
-            fillcolor="rgba(255, 193, 7, 0.28)",
-            line_color="rgba(255, 193, 7, 0.85)",
+            fillcolor="rgba(40, 167, 69, 0.28)",
+            line_color="rgba(40, 167, 69, 0.85)",
             line_width=1,
             layer="below",
             row=row_index,
@@ -132,7 +132,23 @@ detail = df[["strategy", "target_c", "aic_c", "c_match", "gt_ttft", "aic_ttft", 
 })
 numeric_columns = detail.select_dtypes(include="number").columns
 detail[numeric_columns] = detail[numeric_columns].round(1)
-display(HTML(detail.to_html(index=False, na_rep="—", classes="table table-striped table-hover", border=0)))
+
+percentage_columns = ["TTFT error (%)", "TPOT error (%)", "Throughput error (%)"]
+
+def error_cell_style(value):
+    if pd.isna(value):
+        return ""
+    absolute_error = abs(float(value))
+    if absolute_error <= 20:
+        color = "#d4edda"
+    elif absolute_error <= 100:
+        color = "#fff3cd"
+    else:
+        color = "#f8d7da"
+    return f"background-color: {color};"
+
+styled_detail = detail.style.map(error_cell_style, subset=percentage_columns)
+display(HTML(styled_detail.to_html(index=False, na_rep="—", classes="table table-striped table-hover", border=0)))
 ```
 
 ## Mean absolute percentage error
