@@ -128,8 +128,8 @@ fig.show()
 
 ```{python}
 #| label: detail-table
-detail = df[["strategy", "target_c", "aic_c", "c_match", "gt_ttft", "aic_ttft", "ttft_error", "gt_tpot", "aic_tpot", "tpot_error", "gt_itl", "gt_tok_s", "aic_tok_s", "throughput_error", "status"]].rename(columns={
-    "target_c": "Target C", "aic_c": "AIC C", "c_match": "C match", "gt_ttft": "TTFT GT (ms)", "aic_ttft": "TTFT AIC (ms)", "ttft_error": "TTFT error (%)", "gt_tpot": "TPOT GT (ms)", "aic_tpot": "TPOT AIC (ms)", "tpot_error": "TPOT error (%)", "gt_itl": "ITL GT (ms)", "gt_tok_s": "Output GT (tok/s)", "aic_tok_s": "Output AIC (tok/s)", "throughput_error": "Throughput error (%)"
+detail = df[["strategy", "target_c", "aic_batch", "aic_c", "c_match", "gt_ttft", "aic_ttft", "ttft_error", "gt_tpot", "aic_tpot", "tpot_error", "gt_itl", "gt_tok_s", "aic_tok_s", "throughput_error", "status"]].rename(columns={
+    "target_c": "Target C", "aic_batch": "AIC batch", "aic_c": "AIC C", "c_match": "C match", "gt_ttft": "TTFT GT (ms)", "aic_ttft": "TTFT AIC (ms)", "ttft_error": "TTFT error (%)", "gt_tpot": "TPOT GT (ms)", "aic_tpot": "TPOT AIC (ms)", "tpot_error": "TPOT error (%)", "gt_itl": "ITL GT (ms)", "gt_tok_s": "Output GT (tok/s)", "aic_tok_s": "Output AIC (tok/s)", "throughput_error": "Throughput error (%)"
 })
 numeric_columns = detail.select_dtypes(include="number").columns
 detail[numeric_columns] = detail[numeric_columns].round(1)
