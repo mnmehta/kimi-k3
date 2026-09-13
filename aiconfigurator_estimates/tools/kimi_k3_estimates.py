@@ -430,6 +430,8 @@ detail = df[["strategy", "target_c", "aic_c", "c_match", "gt_ttft", "aic_ttft", 
 }})
 numeric_columns = detail.select_dtypes(include="number").columns
 detail[numeric_columns] = detail[numeric_columns].round(1)
+number_formats = {{column: "{{:.1f}}" for column in numeric_columns}}
+number_formats["AIC C"] = "{{:.0f}}"
 
 percentage_columns = ["TTFT error (%)", "TPOT error (%)", "Throughput error (%)"]
 
@@ -438,14 +440,13 @@ def error_cell_style(value):
         return ""
     absolute_error = abs(float(value))
     if absolute_error <= 20:
-        color = "#d4edda"
+        return "background-color: #198754; color: #ffffff;"
     elif absolute_error <= 100:
-        color = "#fff3cd"
+        return "background-color: #d97706; color: #ffffff;"
     else:
-        color = "#f8d7da"
-    return f"background-color: {color};"
+        return "background-color: #dc3545; color: #ffffff;"
 
-styled_detail = detail.style.map(error_cell_style, subset=percentage_columns)
+styled_detail = detail.style.format(number_formats, na_rep="—").map(error_cell_style, subset=percentage_columns)
 display(HTML(styled_detail.to_html(index=False, na_rep="—", classes="table table-striped table-hover", border=0)))
 ```
 
