@@ -34,6 +34,7 @@ For PP2 and DP2, AIC's effective concurrency is `batch_size × PP × attention-D
 ```{python}
 #| label: setup
 import json
+import os
 from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
@@ -43,9 +44,7 @@ from IPython.display import HTML, Markdown, display
 
 pio.templates.default = "plotly_dark"
 pio.renderers.default = "notebook"
-comparison_path = Path("aiconfigurator-comparison.json")
-if not comparison_path.exists():
-    comparison_path = Path("comparison.json")
+comparison_path = Path(os.environ.get("AICONFIGURATOR_COMPARISON", "comparison.json"))
 records = json.loads(comparison_path.read_text())
 df = pd.DataFrame(records)
 ok = df[df["status"] == "ok"].copy()
@@ -174,7 +173,7 @@ AIC's single-point `agg` model represents steady-state scheduler behavior differ
 
 ```{python}
 display(Markdown(
-    f"The complete machine-readable comparison is in [`{comparison_path.name}`]({comparison_path.name}); "
+    f"The complete machine-readable comparison is in `{comparison_path.name}`; "
     "raw AIC rows and per-operation source tags are retained in the AIConfigurator result artifact."
 ))
 ```

@@ -67,7 +67,15 @@ jobs:
           quarto render reports/agentx-mvp-pp2-humming-kv-offload.qmd --to html
           quarto render reports/sglang-kimi-k3-1000-1000.qmd --to html
           quarto render reports/sglang-vs-vllm-pp-1000-1000.qmd --to html
-          quarto render reports/aiconfigurator-kimi-k3.qmd --to html
+          latest_aiconfigurator_comparison="$(find aiconfigurator_estimates/results -mindepth 2 -maxdepth 2 -path '*/kimi-k3-20*/comparison.json' -print | sort | tail -n 1)"
+          if [[ -z "$latest_aiconfigurator_comparison" ]]; then
+            echo "No AIConfigurator comparison.json found under aiconfigurator_estimates/results" >&2
+            exit 1
+          fi
+          export AICONFIGURATOR_COMPARISON="$GITHUB_WORKSPACE/$latest_aiconfigurator_comparison"
+          quarto render reports/aiconfigurator-kimi-k3.qmd \
+            --execute-dir "$GITHUB_WORKSPACE/$(dirname "$latest_aiconfigurator_comparison")" \
+            --to html
           mkdir -p _site
           # Keep index.html as the primary recipe report (existing links).
           cp reports/tp16-vs-pp2-1000-1000.html _site/index.html

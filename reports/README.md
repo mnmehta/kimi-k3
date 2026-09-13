@@ -16,7 +16,7 @@ Goal: evaluate strategies from [recipes.vllm.ai/moonshotai/Kimi-K3](https://reci
 ## AIConfigurator estimate comparison
 
 - Source: [`aiconfigurator-kimi-k3.qmd`](aiconfigurator-kimi-k3.qmd)
-- Data: [`aiconfigurator-comparison.json`](aiconfigurator-comparison.json)
+- Data: latest committed `comparison.json` under `aiconfigurator_estimates/results/`
 - Pages: [/aiconfigurator-kimi-k3.html](https://mnmehta.github.io/kimi-k3/aiconfigurator-kimi-k3.html)
 
 ## Full harness history (incl. dummy)
