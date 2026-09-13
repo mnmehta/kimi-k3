@@ -5,6 +5,11 @@ set -euo pipefail
 export MPLCONFIGDIR=/Users/mimehta/.codex/worktrees/cd94/kimi-k3/aiconfigurator_estimates/results/kimi-k3-20260913T204028746139Z/matplotlib
 AICONFIGURATOR=/Users/mimehta/aiconfigurator/.venv/bin/aiconfigurator
 COMMON=(--model-path moonshotai/Kimi-K3 --system h200_sxm --isl 1000 --osl 1000 --ctx-tokens 1000 --database-mode SILICON)
+# --attention-dp-size N: replicate the attention computation across N data-parallel groups.
+# --moe-tp-size N: split each MoE expert tensor computation across N GPUs.
+# --moe-ep-size N: distribute the MoE expert set across N GPUs (expert parallelism).
+# For TP8xDP2, attention DP=2, MoE TP=1, and MoE EP=16 use all 16 GPUs:
+# two attention replicas, with experts distributed across the full GPU group.
 
 run_estimate() {
   local label=$1 batch=$2 mode=$3; shift 3
@@ -70,4 +75,3 @@ for c in 1 2 4 8 16; do
   batch=$(((c + 2 - 1) / 2))
   run_estimate "report/TP8xDP2-c${c}" "$batch" agg --backend vllm --backend-version 0.24.0 --tp-size 8 --pp-size 1 --attention-dp-size 2 --moe-tp-size 1 --moe-ep-size 16
 done
-
