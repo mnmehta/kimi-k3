@@ -2,6 +2,7 @@
 title: "Kimi-K3 AIConfigurator estimates versus H200 ground truth"
 subtitle: "16-GPU strategy comparison at 1000 input / 1000 output tokens"
 date: "2026-09-13 16:08 PDT"
+date-format: "YYYY-MM-DD HH:mm z"
 format:
   html:
     theme: darkly
