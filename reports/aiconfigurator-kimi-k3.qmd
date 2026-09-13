@@ -144,7 +144,8 @@ detail = df[["strategy", "target_c", "aic_batch", "aic_c", "c_match", "gt_ttft",
 numeric_columns = detail.select_dtypes(include="number").columns
 detail[numeric_columns] = detail[numeric_columns].round(1)
 number_formats = {column: "{:.1f}" for column in numeric_columns}
-number_formats["AIC C"] = "{:.0f}"
+for column in ["Target C", "AIC batch", "AIC C"]:
+    number_formats[column] = "{:.0f}"
 
 percentage_columns = ["TTFT error (%)", "TPOT error (%)", "Throughput error (%)"]
 
