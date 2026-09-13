@@ -64,7 +64,7 @@ REPORT_CONFIGS = {
     # With attention TP8 × DP2, the installed Kimi-K3 database represents the
     # recipe's expert-parallel global group as MoE TP1 × EP16. The intuitive
     # TP8 × EP2 tuple has no profile row in vLLM 0.24.0.
-    "TP8xDP2": dict(tp_size=8, pp_size=1, attention_dp_size=2, moe_tp_size=1, moe_ep_size=16),
+    "TP8xDP2": dict(tp_size=8, pp_size=1, attention_dp_size=2, moe_tp_size=16, moe_ep_size=1),
 }
 FIELDS = [
     "case",
@@ -232,8 +232,8 @@ def write_commands(output, calls):
         "# --attention-dp-size N: replicate the attention computation across N data-parallel groups.",
         "# --moe-tp-size N: split each MoE expert tensor computation across N GPUs.",
         "# --moe-ep-size N: distribute the MoE expert set across N GPUs (expert parallelism).",
-        "# For TP8xDP2, attention DP=2, MoE TP=1, and MoE EP=16 use all 16 GPUs:",
-        "# two attention replicas, with experts distributed across the full GPU group.",
+        "# For TP8xDP2, AIC requires attention DP=2 and MoE TP=16/EP=1:",
+        "# this is AIC's global-width approximation to two measured TP8 replicas without EP.",
         "",
         "run_estimate() {",
         "  local label=$1 batch=$2 mode=$3; shift 3",
@@ -298,7 +298,7 @@ def write_commands(output, calls):
             "TP16": (16, 1, 1, 16, 1),
             "TEP16": (16, 1, 1, 1, 16),
             "TP8xPP2": (8, 2, 1, 8, 1),
-            "TP8xDP2": (8, 1, 2, 1, 16),
+            "TP8xDP2": (8, 1, 2, 16, 1),
         }
         for strategy in ("TP16", "TEP16", "TP8xPP2", "TP8xDP2"):
             if strategy not in report_concurrencies:
