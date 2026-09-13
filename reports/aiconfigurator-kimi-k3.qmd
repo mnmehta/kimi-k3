@@ -1,7 +1,7 @@
 ---
 title: "Kimi-K3 AIConfigurator estimates versus H200 ground truth"
 subtitle: "16-GPU strategy comparison at 1000 input / 1000 output tokens"
-date: "2026-09-12"
+date: "2026-09-13 16:08 PDT"
 format:
   html:
     theme: darkly
@@ -38,7 +38,7 @@ For PP2 and DP2, AIC's effective concurrency is `batch_size × PP × attention-D
 | **TP16** | TP16 × PP1 × DP1 | MoE TP16 × EP1 | 16 | Tensor-parallel attention and experts across all GPUs. |
 | **TEP16** | TP16 × PP1 × DP1 | MoE TP1 × EP16 | 16 | Tensor-parallel attention with experts distributed across all GPUs. |
 | **TP8×PP2** | TP8 × PP2 × DP1 | MoE TP8 × EP1 | 16 | Two pipeline stages, with TP8 within each stage. |
-| **TP8×DP2** | TP8 × PP1 × DP2 | AIC: MoE TP16 × EP1 | 16 | Ground truth uses two TP8 replicas without EP; AIC models the equivalent global width because its MoE dimensions must match TP×DP. |
+| **TP8×DP2** | TP8 × PP1 × DP2 | AIC: MoE TP16 × EP1 | 16 | Ground truth uses two TP8 replicas without EP; vLLM shards MoE over TP×DP=16, represented in AIC as MoE TP16 × EP1. |
 
 ```{python}
 #| label: setup

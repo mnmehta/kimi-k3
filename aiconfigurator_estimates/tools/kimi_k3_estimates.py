@@ -40,6 +40,7 @@ import json
 import logging
 import math
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -61,9 +62,8 @@ REPORT_CONFIGS = {
     "TP16": dict(tp_size=16, pp_size=1, attention_dp_size=1, moe_tp_size=16, moe_ep_size=1),
     "TEP16": dict(tp_size=16, pp_size=1, attention_dp_size=1, moe_tp_size=1, moe_ep_size=16),
     "TP8xPP2": dict(tp_size=8, pp_size=2, attention_dp_size=1, moe_tp_size=8, moe_ep_size=1),
-    # With attention TP8 × DP2, the installed Kimi-K3 database represents the
-    # recipe's expert-parallel global group as MoE TP1 × EP16. The intuitive
-    # TP8 × EP2 tuple has no profile row in vLLM 0.24.0.
+    # vLLM DP2 without --enable-expert-parallel shards MoE over TP×DP=16;
+    # AIC represents that no-EP topology as global MoE TP16 × EP1.
     "TP8xDP2": dict(tp_size=8, pp_size=1, attention_dp_size=2, moe_tp_size=16, moe_ep_size=1),
 }
 FIELDS = [
@@ -232,8 +232,8 @@ def write_commands(output, calls):
         "# --attention-dp-size N: replicate the attention computation across N data-parallel groups.",
         "# --moe-tp-size N: split each MoE expert tensor computation across N GPUs.",
         "# --moe-ep-size N: distribute the MoE expert set across N GPUs (expert parallelism).",
-        "# For TP8xDP2, AIC requires attention DP=2 and MoE TP=16/EP=1:",
-        "# this is AIC's global-width approximation to two measured TP8 replicas without EP.",
+        "# For TP8xDP2, vLLM without EP shards MoE over TP*DP=16 GPUs:",
+        "# AIC represents that topology as attention DP=2 and MoE TP=16/EP=1.",
         "",
         "run_estimate() {",
         "  local label=$1 batch=$2 mode=$3; shift 3",
@@ -409,7 +409,12 @@ def save_report(output, rows, ground_truth):
     if not canonical_qmd.is_file():
         raise FileNotFoundError(f"Canonical report source not found: {canonical_qmd}")
     report_qmd = output / "report.qmd"
-    report_qmd.write_text(canonical_qmd.read_text())
+    report_source = canonical_qmd.read_text()
+    # Keep the checked-in source portable for GitHub Pages, while stamping each
+    # generated result with the actual local render time.
+    report_date = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    report_source = re.sub(r'(?m)^date:.*$', f'date: "{report_date}"', report_source, count=1)
+    report_qmd.write_text(report_source)
     print(f"Report: {report_qmd}")
     render_report(report_qmd, canonical_qmd.parents[1])
     return 0
