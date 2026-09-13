@@ -31,6 +31,15 @@ Ground truth: the published vLLM-bench artifacts in [`mnmehta/kimi-k3`](https://
 
 For PP2 and DP2, AIC's effective concurrency is `batch_size × PP × attention-DP`; odd target concurrencies therefore use the next representable batch and are shown explicitly.
 
+## Parallelism configurations
+
+| Label | Attention layout | MoE layout | GPUs | Description |
+|---|---|---|---:|---|
+| **TP16** | TP16 × PP1 × DP1 | MoE TP16 × EP1 | 16 | Tensor-parallel attention and experts across all GPUs. |
+| **TEP16** | TP16 × PP1 × DP1 | MoE TP1 × EP16 | 16 | Tensor-parallel attention with experts distributed across all GPUs. |
+| **TP8×PP2** | TP8 × PP2 × DP1 | MoE TP8 × EP1 | 16 | Two pipeline stages, with TP8 within each stage. |
+| **TP8×DP2** | TP8 × PP1 × DP2 | MoE TP1 × EP16 | 16 | Two attention data-parallel groups, with experts distributed across all GPUs. |
+
 ```{python}
 #| label: setup
 import json
