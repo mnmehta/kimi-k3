@@ -269,8 +269,8 @@ def save_summary(output, rows):
     return 0 if best else 1
 
 
-def save_report(output, rows, ground_truth, repo):
-    """Write a Quarto AIC-versus-measured report for the four 16-GPU runs."""
+def save_report(output, rows, ground_truth):
+    """Write comparison data and copy the canonical Quarto report source."""
     report_rows = []
     for row in rows:
         strategy = row.get("ground_truth_strategy")
@@ -296,182 +296,12 @@ def save_report(output, rows, ground_truth, repo):
         )
     (output / "comparison.json").write_text(json.dumps(report_rows, indent=2, default=str) + "\n")
 
-    qmd = f'''---
-title: "Kimi-K3 AIConfigurator estimates versus H200 ground truth"
-subtitle: "16-GPU strategy comparison at 1000 input / 1000 output tokens"
-date: "{datetime.now(UTC).date().isoformat()}"
-format:
-  html:
-    theme: darkly
-    page-layout: full
-    grid:
-      sidebar-width: 280px
-      body-width: 1800px
-      margin-width: 220px
-      gutter-width: 1.5rem
-    toc: true
-    toc-depth: 2
-    code-fold: true
-    code-tools: false
-    embed-resources: true
-    html-math-method: plain
-    fig-width: 14
-    fig-height: 5
-execute:
-  echo: false
-  warning: false
-jupyter: kimi-k3-reports
----
-
-This report compares AIConfigurator estimates with the published vLLM-bench artifacts for the four 16-GPU strategies. The 32-GPU P/D strategy is intentionally omitted. Ground truth is the artifact's `mean_ttft_ms`, `mean_tpot_ms`, `mean_itl_ms`, and `output_throughput`; AIC uses the matching 1000-token/1000-token `agg` estimate.
-
-Ground-truth repository: `{Path(repo).resolve()}`. AIC backend: vLLM 0.24.0; system: H200 SXM; model: `moonshotai/Kimi-K3`.
-
-For PP2 and DP2, AIC's effective concurrency is `batch_size × PP × attention-DP`; odd target concurrencies therefore use the next representable batch and are shown explicitly.
-
-```{{python}}
-#| label: setup
-import json
-from pathlib import Path
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.io as pio
-from plotly.subplots import make_subplots
-from IPython.display import HTML, display
-
-pio.templates.default = "plotly_dark"
-pio.renderers.default = "notebook"
-records = json.loads(Path("comparison.json").read_text())
-df = pd.DataFrame(records)
-ok = df[df["status"] == "ok"].copy()
-for col in ["target_c", "aic_c", "gt_ttft", "aic_ttft", "gt_tpot", "aic_tpot", "gt_itl", "gt_tok_s", "aic_tok_s"]:
-    df[col] = pd.to_numeric(df[col], errors="coerce")
-ok = df[df["status"] == "ok"].copy()
-df["c_match"] = df["target_c"] == df["aic_c"]
-df["ttft_error"] = (df["aic_ttft"] / df["gt_ttft"] - 1) * 100
-df["tpot_error"] = (df["aic_tpot"] / df["gt_tpot"] - 1) * 100
-df["throughput_error"] = (df["aic_tok_s"] / df["gt_tok_s"] - 1) * 100
-ok["c_match"] = ok["target_c"] == ok["aic_c"]
-ok["ttft_error"] = (ok["aic_ttft"] / ok["gt_ttft"] - 1) * 100
-ok["tpot_error"] = (ok["aic_tpot"] / ok["gt_tpot"] - 1) * 100
-ok["throughput_error"] = (ok["aic_tok_s"] / ok["gt_tok_s"] - 1) * 100
-strategy_order = ["TP16", "TEP16", "TP8xPP2", "TP8xDP2"]
-strategy_colors = dict(zip(strategy_order, ["#1f77b4", "#17becf", "#ff7f0e", "#2ca02c"]))
-```
-
-## Comparison chart
-
-The chart shows signed AIC error relative to the measured value. Positive values mean AIC is higher than ground truth; negative values mean it is lower. (Values are clamped at ±100%; the shaded band marks ±20%.)
-
-```{{python}}
-#| label: comparison-chart
-fig = make_subplots(
-    rows=len(strategy_order),
-    cols=3,
-    subplot_titles=[
-        f"{{strategy}} · {{title}}"
-        for strategy in strategy_order
-        for title in ("Output throughput Δ (%)", "TTFT Δ (%)", "TPOT Δ (%)")
-    ],
-    shared_xaxes=False,
-)
-metrics = [("throughput_error", "Output throughput Δ (%)"), ("ttft_error", "TTFT Δ (%)"), ("tpot_error", "TPOT Δ (%)")]
-error_limits = {{
-    error_col: max(1.0, float(ok[error_col].abs().max()) * 1.05)
-    for error_col, _ in metrics
-}}
-for row_index, strategy in enumerate(strategy_order, 1):
-    subset = ok[ok["strategy"] == strategy].sort_values("target_c")
-    for col, (error_col, title) in enumerate(metrics, 1):
-        plotted_error = subset[error_col].clip(-100, 100)
-        fig.add_shape(
-            type="rect",
-            x0=1,
-            x1=max(1, float(subset["target_c"].max())),
-            y0=-20,
-            y1=20,
-            fillcolor="rgba(40, 167, 69, 0.28)",
-            line_color="rgba(40, 167, 69, 0.85)",
-            line_width=1,
-            layer="below",
-            row=row_index,
-            col=col,
-        )
-        fig.add_trace(go.Scatter(x=subset["target_c"], y=plotted_error, mode="lines+markers",
-            name=f"{{strategy}} · AIC error", legendgroup=strategy, showlegend=(col == 1),
-            line=dict(color=strategy_colors[strategy]), marker=dict(size=6),
-            customdata=subset[[error_col]],
-            hovertemplate="C=%{{x}}<br>Δ=%{{customdata[0]:.1f}}%<extra>" + f"{{strategy}} · AIC error</extra>"),
-            row=row_index, col=col)
-        fig.add_hline(y=0, line_color="#888888", line_width=1, row=row_index, col=col)
-        fig.update_xaxes(type="log", dtick=1, title_text="Concurrency (C)", row=row_index, col=col)
-        fig.update_yaxes(
-            range=[-100, 100],
-            title_text=title,
-            ticksuffix="%",
-            row=row_index,
-            col=col,
-        )
-fig.update_layout(
-    height=1250,
-    margin=dict(t=90, b=110),
-    legend=dict(orientation="h", y=-0.04),
-    hovermode="x unified",
-)
-fig.show()
-```
-
-## Detailed comparison
-
-```{{python}}
-#| label: detail-table
-detail = df[["strategy", "target_c", "aic_c", "c_match", "gt_ttft", "aic_ttft", "ttft_error", "gt_tpot", "aic_tpot", "tpot_error", "gt_itl", "gt_tok_s", "aic_tok_s", "throughput_error", "status"]].rename(columns={{
-    "target_c": "Target C", "aic_c": "AIC C", "c_match": "C match", "gt_ttft": "TTFT GT (ms)", "aic_ttft": "TTFT AIC (ms)", "ttft_error": "TTFT error (%)", "gt_tpot": "TPOT GT (ms)", "aic_tpot": "TPOT AIC (ms)", "tpot_error": "TPOT error (%)", "gt_itl": "ITL GT (ms)", "gt_tok_s": "Output GT (tok/s)", "aic_tok_s": "Output AIC (tok/s)", "throughput_error": "Throughput error (%)"
-}})
-numeric_columns = detail.select_dtypes(include="number").columns
-detail[numeric_columns] = detail[numeric_columns].round(1)
-number_formats = {{column: "{{:.1f}}" for column in numeric_columns}}
-number_formats["AIC C"] = "{{:.0f}}"
-
-percentage_columns = ["TTFT error (%)", "TPOT error (%)", "Throughput error (%)"]
-
-def error_cell_style(value):
-    if pd.isna(value):
-        return ""
-    absolute_error = abs(float(value))
-    if absolute_error <= 20:
-        return "background-color: #198754; color: #ffffff;"
-    elif absolute_error <= 100:
-        return "background-color: #d97706; color: #ffffff;"
-    else:
-        return "background-color: #dc3545; color: #ffffff;"
-
-styled_detail = detail.style.format(number_formats, na_rep="—").map(error_cell_style, subset=percentage_columns)
-display(HTML(styled_detail.to_html(index=False, na_rep="—", classes="table table-striped table-hover", border=0)))
-```
-
-## Mean absolute percentage error
-
-```{{python}}
-#| label: mape-table
-mape = ok.groupby("strategy", sort=False).agg(
-    TTFT=("ttft_error", lambda s: s.abs().mean()),
-    TPOT=("tpot_error", lambda s: s.abs().mean()),
-    **{{"Output throughput": ("throughput_error", lambda s: s.abs().mean()), "Points compared": ("strategy", "size")}}
-).reindex(strategy_order).reset_index()
-for col in ["TTFT", "TPOT", "Output throughput"]:
-    mape[col] = mape[col].map(lambda value: f"{{value:.1f}}%" if pd.notna(value) else "—")
-display(HTML(mape.to_html(index=False, classes="table table-striped table-hover", border=0)))
-```
-
-## Interpretation
-
-AIC's single-point `agg` model represents steady-state scheduler behavior differently from the benchmark's finite burst sweep. TTFT is therefore most comparable at low concurrency; at high concurrency, benchmark queueing and KV-cache limits can dominate. TPOT/ITL is the cleaner decode comparison, while ITL is reported as the ground-truth companion to TPOT.
-
-The complete machine-readable comparison is in `comparison.json`; raw AIC rows and per-operation source tags are in `results.jsonl`.
-'''
-    (output / "report.qmd").write_text(qmd)
-    print(f"Report: {output / 'report.qmd'}")
+    canonical_qmd = Path(__file__).resolve().parents[2] / "reports" / "aiconfigurator-kimi-k3.qmd"
+    if not canonical_qmd.is_file():
+        raise FileNotFoundError(f"Canonical report source not found: {canonical_qmd}")
+    report_qmd = output / "report.qmd"
+    report_qmd.write_text(canonical_qmd.read_text())
+    print(f"Report: {report_qmd}")
     return 0
 
 
@@ -540,7 +370,7 @@ def main():
                 )
             print(f"[{index}/{len(calls)}] {call['case']}: {detail}", flush=True)
     if args.suite == "report":
-        return save_report(output, rows, ground_truth, args.ground_truth_repo)
+        return save_report(output, rows, ground_truth)
     return save_summary(output, rows)
 
 

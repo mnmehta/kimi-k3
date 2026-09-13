@@ -39,11 +39,14 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 from plotly.subplots import make_subplots
-from IPython.display import HTML, display
+from IPython.display import HTML, Markdown, display
 
 pio.templates.default = "plotly_dark"
 pio.renderers.default = "notebook"
-records = json.loads(Path("aiconfigurator-comparison.json").read_text())
+comparison_path = Path("aiconfigurator-comparison.json")
+if not comparison_path.exists():
+    comparison_path = Path("comparison.json")
+records = json.loads(comparison_path.read_text())
 df = pd.DataFrame(records)
 ok = df[df["status"] == "ok"].copy()
 for col in ["target_c", "aic_c", "gt_ttft", "aic_ttft", "gt_tpot", "aic_tpot", "gt_itl", "gt_tok_s", "aic_tok_s"]:
@@ -170,4 +173,9 @@ display(HTML(mape.to_html(index=False, classes="table table-striped table-hover"
 
 AIC's single-point `agg` model represents steady-state scheduler behavior differently from the benchmark's finite burst sweep. TTFT is therefore most comparable at low concurrency; at high concurrency, benchmark queueing and KV-cache limits can dominate. TPOT/ITL is the cleaner decode comparison, while ITL is reported as the ground-truth companion to TPOT.
 
-The complete machine-readable comparison is in [`aiconfigurator-comparison.json`](aiconfigurator-comparison.json); raw AIC rows and per-operation source tags are retained in the AIConfigurator result artifact.
+```{python}
+display(Markdown(
+    f"The complete machine-readable comparison is in [`{comparison_path.name}`]({comparison_path.name}); "
+    "raw AIC rows and per-operation source tags are retained in the AIConfigurator result artifact."
+))
+```
