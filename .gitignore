@@ -27,3 +27,6 @@ reports/.mlflow-cache/
 # Raw GuideLLM dumps (~100MB) and local BenchFlow extracts — do not check in.
 bench-results/**/_dl/
 bench-results/benchflow-*/
+# Generated Quarto sources and HTML in local AIConfigurator result directories.
+aiconfigurator_estimates/results/*/report.html
+aiconfigurator_estimates/results/*/report.qmd
