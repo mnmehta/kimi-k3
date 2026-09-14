@@ -9,12 +9,12 @@
   },
   "aic_candidates": [
     {
-      "id": "vllm-next-tp8-moe-tp8",
+      "id": "vllm-0240-tp8-moe-tp8",
       "label": "vLLM TP8 MoE TP8",
       "backend_family": "vllm",
       "config": {
         "backend_name": "vllm",
-        "backend_version": "next",
+        "backend_version": "0.24.0",
         "tp_size": 8,
         "pp_size": 1,
         "attention_dp_size": 1,

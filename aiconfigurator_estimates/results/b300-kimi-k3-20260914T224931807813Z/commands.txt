@@ -1,11 +1,11 @@
 # Equivalent AIConfigurator commands for this comparison run.
 export MPLCONFIGDIR=/Users/mimehta/kimi-k3/aiconfigurator_estimates/results/b300-kimi-k3-20260914T224931807813Z/matplotlib
 
-# blog-vllm-0271-c1 vs vllm-next-tp8-moe-tp8
-/Users/mimehta/aiconfigurator/.venv/bin/aiconfigurator cli estimate --model-path moonshotai/Kimi-K3 --system b300_sxm --database-mode SILICON --estimate-mode agg --backend vllm --backend-version next --tp-size 8 --pp-size 1 --attention-dp-size 1 --moe-tp-size 8 --moe-ep-size 1 --isl 8000 --osl 1000 --ctx-tokens 8000 --batch-size 1 --detail source
+# blog-vllm-0271-c1 vs vllm-0240-tp8-moe-tp8
+/Users/mimehta/aiconfigurator/.venv/bin/aiconfigurator cli estimate --model-path moonshotai/Kimi-K3 --system b300_sxm --database-mode SILICON --estimate-mode agg --backend vllm --backend-version 0.24.0 --tp-size 8 --pp-size 1 --attention-dp-size 1 --moe-tp-size 8 --moe-ep-size 1 --isl 8000 --osl 1000 --ctx-tokens 8000 --batch-size 1 --detail source
 
-# blog-vllm-0271-c4 vs vllm-next-tp8-moe-tp8
-/Users/mimehta/aiconfigurator/.venv/bin/aiconfigurator cli estimate --model-path moonshotai/Kimi-K3 --system b300_sxm --database-mode SILICON --estimate-mode agg --backend vllm --backend-version next --tp-size 8 --pp-size 1 --attention-dp-size 1 --moe-tp-size 8 --moe-ep-size 1 --isl 8000 --osl 1000 --ctx-tokens 8000 --batch-size 4 --detail source
+# blog-vllm-0271-c4 vs vllm-0240-tp8-moe-tp8
+/Users/mimehta/aiconfigurator/.venv/bin/aiconfigurator cli estimate --model-path moonshotai/Kimi-K3 --system b300_sxm --database-mode SILICON --estimate-mode agg --backend vllm --backend-version 0.24.0 --tp-size 8 --pp-size 1 --attention-dp-size 1 --moe-tp-size 8 --moe-ep-size 1 --isl 8000 --osl 1000 --ctx-tokens 8000 --batch-size 4 --detail source
 
-# blog-vllm-0271-c16 vs vllm-next-tp8-moe-tp8
-/Users/mimehta/aiconfigurator/.venv/bin/aiconfigurator cli estimate --model-path moonshotai/Kimi-K3 --system b300_sxm --database-mode SILICON --estimate-mode agg --backend vllm --backend-version next --tp-size 8 --pp-size 1 --attention-dp-size 1 --moe-tp-size 8 --moe-ep-size 1 --isl 8000 --osl 1000 --ctx-tokens 8000 --batch-size 16 --detail source
+# blog-vllm-0271-c16 vs vllm-0240-tp8-moe-tp8
+/Users/mimehta/aiconfigurator/.venv/bin/aiconfigurator cli estimate --model-path moonshotai/Kimi-K3 --system b300_sxm --database-mode SILICON --estimate-mode agg --backend vllm --backend-version 0.24.0 --tp-size 8 --pp-size 1 --attention-dp-size 1 --moe-tp-size 8 --moe-ep-size 1 --isl 8000 --osl 1000 --ctx-tokens 8000 --batch-size 16 --detail source

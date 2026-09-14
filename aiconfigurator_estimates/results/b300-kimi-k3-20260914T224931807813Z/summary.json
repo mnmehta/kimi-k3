@@ -1,6 +1,6 @@
 [
   {
-    "candidate_id": "vllm-next-tp8-moe-tp8",
+    "candidate_id": "vllm-0240-tp8-moe-tp8",
     "candidate_label": "vLLM TP8 MoE TP8",
     "points_total": 3,
     "points_ok": 3,

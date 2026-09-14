@@ -11,7 +11,7 @@
     {
       "point_id": "blog-vllm-0271-c1",
       "point_label": "Blog vLLM 0.27.1 C=1",
-      "candidate_id": "vllm-next-tp8-moe-tp8",
+      "candidate_id": "vllm-0240-tp8-moe-tp8",
       "candidate_label": "vLLM TP8 MoE TP8",
       "backend_family": "vllm",
       "config": {
@@ -20,7 +20,7 @@
         "database_mode": "SILICON",
         "mode": "agg",
         "backend_name": "vllm",
-        "backend_version": "next",
+        "backend_version": "0.24.0",
         "tp_size": 8,
         "pp_size": 1,
         "attention_dp_size": 1,
@@ -35,7 +35,7 @@
     {
       "point_id": "blog-vllm-0271-c4",
       "point_label": "Blog vLLM 0.27.1 C=4",
-      "candidate_id": "vllm-next-tp8-moe-tp8",
+      "candidate_id": "vllm-0240-tp8-moe-tp8",
       "candidate_label": "vLLM TP8 MoE TP8",
       "backend_family": "vllm",
       "config": {
@@ -44,7 +44,7 @@
         "database_mode": "SILICON",
         "mode": "agg",
         "backend_name": "vllm",
-        "backend_version": "next",
+        "backend_version": "0.24.0",
         "tp_size": 8,
         "pp_size": 1,
         "attention_dp_size": 1,
@@ -59,7 +59,7 @@
     {
       "point_id": "blog-vllm-0271-c16",
       "point_label": "Blog vLLM 0.27.1 C=16",
-      "candidate_id": "vllm-next-tp8-moe-tp8",
+      "candidate_id": "vllm-0240-tp8-moe-tp8",
       "candidate_label": "vLLM TP8 MoE TP8",
       "backend_family": "vllm",
       "config": {
@@ -68,7 +68,7 @@
         "database_mode": "SILICON",
         "mode": "agg",
         "backend_name": "vllm",
-        "backend_version": "next",
+        "backend_version": "0.24.0",
         "tp_size": 8,
         "pp_size": 1,
         "attention_dp_size": 1,

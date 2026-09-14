@@ -20,7 +20,7 @@ MAPE = Mean Absolute Percentage Error.
 
 ## Notes
 
-- The AIC side uses the local queryable B300 vLLM slot `next`, which resolves to `0.27.0`; the measured rows are the blog's `0.27.1` numbers.
+- The AIC side uses the most current checked-in AIC B300 vLLM data, `0.24.0`; the measured rows are the blog's `0.27.1` numbers.
 - This manifest assumes `tp_size=8`, `pp_size=1`, `attention_dp_size=1`, `moe_tp_size=8`, `moe_ep_size=1` for every comparison row.
 - Only the measured fields present in the manifest are rendered in the point table.
 
