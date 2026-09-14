@@ -2,12 +2,6 @@
 
 This report compares AIC Kimi K3 B300 estimates to data in the blog at [Kimi K3 Performance Optimizations in vLLM, 2.2–2.8× Higher Throughput](https://16ca0411.vllm-blog-source.pages.dev/2026/09/13/kimi-k3-performance-optimization).
 
-## Artifacts
-
-- Script: [aiconfigurator_estimates/tools/kimi_k3_b300_compare.py](https://github.com/mnmehta/kimi-k3/blob/main/aiconfigurator_estimates/tools/kimi_k3_b300_compare.py)
-- Commands source: [commands.txt](https://github.com/mnmehta/kimi-k3/blob/main/aiconfigurator_estimates/results/b300-kimi-k3-20260914T224931807813Z/commands.txt)
-- Results root: [aiconfigurator_estimates/results](https://github.com/mnmehta/kimi-k3/tree/main/aiconfigurator_estimates/results)
-
 ## Candidate summary
 
 MAPE = Mean Absolute Percentage Error.
@@ -29,3 +23,9 @@ MAPE = Mean Absolute Percentage Error.
 - The AIC side uses the local queryable B300 vLLM slot `next`, which resolves to `0.27.0`; the measured rows are the blog's `0.27.1` numbers.
 - This manifest assumes `tp_size=8`, `pp_size=1`, `attention_dp_size=1`, `moe_tp_size=8`, `moe_ep_size=1` for every comparison row.
 - Only the measured fields present in the manifest are rendered in the point table.
+
+## Artifacts
+
+- Script: [aiconfigurator_estimates/tools/kimi_k3_b300_compare.py](https://github.com/mnmehta/kimi-k3/blob/main/aiconfigurator_estimates/tools/kimi_k3_b300_compare.py)
+- Commands source: [commands.txt](https://github.com/mnmehta/kimi-k3/blob/main/aiconfigurator_estimates/results/b300-kimi-k3-20260914T224931807813Z/commands.txt)
+- Results root: [aiconfigurator_estimates/results](https://github.com/mnmehta/kimi-k3/tree/main/aiconfigurator_estimates/results)
