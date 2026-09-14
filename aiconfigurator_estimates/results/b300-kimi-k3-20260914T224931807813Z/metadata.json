@@ -1,0 +1,84 @@
+{
+  "started_utc": "20260914T224931808613Z",
+  "python": "/Users/mimehta/aiconfigurator/.venv/bin/python",
+  "manifest": "/Users/mimehta/kimi-k3/aiconfigurator_estimates/results/b300-kimi-k3-20260914T224931807813Z/manifest.json",
+  "manifest_source": "built-in default",
+  "packages": {
+    "aiconfigurator": "0.12.0",
+    "aiconfigurator-core": "0.12.0"
+  },
+  "calls": [
+    {
+      "point_id": "blog-vllm-0271-c1",
+      "point_label": "Blog vLLM 0.27.1 C=1",
+      "candidate_id": "vllm-next-tp8-moe-tp8",
+      "candidate_label": "vLLM TP8 MoE TP8",
+      "backend_family": "vllm",
+      "config": {
+        "model_path": "moonshotai/Kimi-K3",
+        "system_name": "b300_sxm",
+        "database_mode": "SILICON",
+        "mode": "agg",
+        "backend_name": "vllm",
+        "backend_version": "next",
+        "tp_size": 8,
+        "pp_size": 1,
+        "attention_dp_size": 1,
+        "moe_tp_size": 8,
+        "moe_ep_size": 1,
+        "isl": 8000,
+        "osl": 1000,
+        "ctx_tokens": 8000,
+        "batch_size": 1
+      }
+    },
+    {
+      "point_id": "blog-vllm-0271-c4",
+      "point_label": "Blog vLLM 0.27.1 C=4",
+      "candidate_id": "vllm-next-tp8-moe-tp8",
+      "candidate_label": "vLLM TP8 MoE TP8",
+      "backend_family": "vllm",
+      "config": {
+        "model_path": "moonshotai/Kimi-K3",
+        "system_name": "b300_sxm",
+        "database_mode": "SILICON",
+        "mode": "agg",
+        "backend_name": "vllm",
+        "backend_version": "next",
+        "tp_size": 8,
+        "pp_size": 1,
+        "attention_dp_size": 1,
+        "moe_tp_size": 8,
+        "moe_ep_size": 1,
+        "isl": 8000,
+        "osl": 1000,
+        "ctx_tokens": 8000,
+        "batch_size": 4
+      }
+    },
+    {
+      "point_id": "blog-vllm-0271-c16",
+      "point_label": "Blog vLLM 0.27.1 C=16",
+      "candidate_id": "vllm-next-tp8-moe-tp8",
+      "candidate_label": "vLLM TP8 MoE TP8",
+      "backend_family": "vllm",
+      "config": {
+        "model_path": "moonshotai/Kimi-K3",
+        "system_name": "b300_sxm",
+        "database_mode": "SILICON",
+        "mode": "agg",
+        "backend_name": "vllm",
+        "backend_version": "next",
+        "tp_size": 8,
+        "pp_size": 1,
+        "attention_dp_size": 1,
+        "moe_tp_size": 8,
+        "moe_ep_size": 1,
+        "isl": 8000,
+        "osl": 1000,
+        "ctx_tokens": 8000,
+        "batch_size": 16
+      }
+    }
+  ]
+}

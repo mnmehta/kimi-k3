@@ -1,0 +1,97 @@
+{
+  "name": "kimi-k3-b300-vllm-blog-3row-comparison",
+  "description": "Three-row B300 comparison built from the vLLM Kimi K3 optimization blog's v0.27.1 throughput and TTFT table.",
+  "defaults": {
+    "model_path": "moonshotai/Kimi-K3",
+    "system_name": "b300_sxm",
+    "database_mode": "SILICON",
+    "mode": "agg"
+  },
+  "aic_candidates": [
+    {
+      "id": "vllm-next-tp8-moe-tp8",
+      "label": "vLLM TP8 MoE TP8",
+      "backend_family": "vllm",
+      "config": {
+        "backend_name": "vllm",
+        "backend_version": "next",
+        "tp_size": 8,
+        "pp_size": 1,
+        "attention_dp_size": 1,
+        "moe_tp_size": 8,
+        "moe_ep_size": 1
+      }
+    }
+  ],
+  "points": [
+    {
+      "id": "blog-vllm-0271-c1",
+      "label": "Blog vLLM 0.27.1 C=1",
+      "source_kind": "web",
+      "evidence_status": "measured",
+      "scenario": "recipe-benchmark",
+      "hardware": "B300 single node",
+      "system_name": "b300_sxm",
+      "node_count": 1,
+      "gpu_count": 8,
+      "backend_family": "vllm",
+      "backend_label": "vLLM 0.27.1",
+      "runtime_config": "TP8, DSpark 8 speculative tokens, prefix caching disabled, 8k/1k",
+      "isl": 8000,
+      "osl": 1000,
+      "concurrency_target": 1,
+      "metrics": {
+        "output_tok_s": 83.3,
+        "ttft_ms": 2262.9
+      },
+      "provenance_url": "https://16ca0411.vllm-blog-source.pages.dev/2026/09/13/kimi-k3-performance-optimization",
+      "notes": "Blog performance table row for v0.27.1."
+    },
+    {
+      "id": "blog-vllm-0271-c4",
+      "label": "Blog vLLM 0.27.1 C=4",
+      "source_kind": "web",
+      "evidence_status": "measured",
+      "scenario": "recipe-benchmark",
+      "hardware": "B300 single node",
+      "system_name": "b300_sxm",
+      "node_count": 1,
+      "gpu_count": 8,
+      "backend_family": "vllm",
+      "backend_label": "vLLM 0.27.1",
+      "runtime_config": "TP8, DSpark 8 speculative tokens, prefix caching disabled, 8k/1k",
+      "isl": 8000,
+      "osl": 1000,
+      "concurrency_target": 4,
+      "metrics": {
+        "output_tok_s": 166.7,
+        "ttft_ms": 2314.9
+      },
+      "provenance_url": "https://16ca0411.vllm-blog-source.pages.dev/2026/09/13/kimi-k3-performance-optimization",
+      "notes": "Blog performance table row for v0.27.1."
+    },
+    {
+      "id": "blog-vllm-0271-c16",
+      "label": "Blog vLLM 0.27.1 C=16",
+      "source_kind": "web",
+      "evidence_status": "measured",
+      "scenario": "recipe-benchmark",
+      "hardware": "B300 single node",
+      "system_name": "b300_sxm",
+      "node_count": 1,
+      "gpu_count": 8,
+      "backend_family": "vllm",
+      "backend_label": "vLLM 0.27.1",
+      "runtime_config": "TP8, DSpark 8 speculative tokens, prefix caching disabled, 8k/1k",
+      "isl": 8000,
+      "osl": 1000,
+      "concurrency_target": 16,
+      "metrics": {
+        "output_tok_s": 258.3,
+        "ttft_ms": 7601.1
+      },
+      "provenance_url": "https://16ca0411.vllm-blog-source.pages.dev/2026/09/13/kimi-k3-performance-optimization",
+      "notes": "Blog performance table row for v0.27.1."
+    }
+  ]
+}
