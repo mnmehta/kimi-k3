@@ -5,10 +5,12 @@ This report compares AIC Kimi K3 B300 estimates to data in the blog at [Kimi K3 
 ## Artifacts
 
 - Script: [aiconfigurator_estimates/tools/kimi_k3_b300_compare.py](https://github.com/mnmehta/kimi-k3/blob/main/aiconfigurator_estimates/tools/kimi_k3_b300_compare.py)
-- Commands source: [same script emits `commands.txt`](https://github.com/mnmehta/kimi-k3/blob/main/aiconfigurator_estimates/tools/kimi_k3_b300_compare.py)
+- Commands source: [commands.txt](https://github.com/mnmehta/kimi-k3/blob/main/aiconfigurator_estimates/results/b300-kimi-k3-20260914T224931807813Z/commands.txt)
 - Results root: [aiconfigurator_estimates/results](https://github.com/mnmehta/kimi-k3/tree/main/aiconfigurator_estimates/results)
 
 ## Candidate summary
+
+MAPE = Mean Absolute Percentage Error.
 
 | Candidate | Points ok | Throughput MAPE | TTFT MAPE | TPOT MAPE |
 |---|---:|---:|---:|---:|

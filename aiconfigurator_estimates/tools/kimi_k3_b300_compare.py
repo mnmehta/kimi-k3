@@ -267,6 +267,10 @@ def save_report(output_dir: Path, manifest: dict, manifest_label: str, raw_rows:
     repo_root = "https://github.com/mnmehta/kimi-k3"
     script_github = f"{repo_root}/blob/main/aiconfigurator_estimates/tools/kimi_k3_b300_compare.py"
     results_github = f"{repo_root}/tree/main/aiconfigurator_estimates/results"
+    commands_github = (
+        f"{repo_root}/blob/main/"
+        f"{output_dir.relative_to(Path.cwd()).as_posix()}/commands.txt"
+    )
 
     def fmt_pct(value: float | None) -> str:
         return "—" if value is None else f"{value:+.1f}%"
@@ -279,10 +283,12 @@ def save_report(output_dir: Path, manifest: dict, manifest_label: str, raw_rows:
         "## Artifacts",
         "",
         f"- Script: [aiconfigurator_estimates/tools/kimi_k3_b300_compare.py]({script_github})",
-        f"- Commands source: [same script emits `commands.txt`]({script_github})",
+        f"- Commands source: [commands.txt]({commands_github})",
         f"- Results root: [aiconfigurator_estimates/results]({results_github})",
         "",
         "## Candidate summary",
+        "",
+        "MAPE = Mean Absolute Percentage Error.",
         "",
         "| Candidate | Points ok | Throughput MAPE | TTFT MAPE | TPOT MAPE |",
         "|---|---:|---:|---:|---:|",
